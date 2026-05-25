@@ -1,0 +1,32 @@
+﻿# .gitignore — Python Web 项目
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+*.env.local
+
+# Data
+data/*.db
+*.secret_key
+
+# Uploads (generated files)
+uploads/*.xlsx
+uploads/*.png
+
+# OS
+Thumbs.db
+.DS_Store
