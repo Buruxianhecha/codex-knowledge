@@ -1,0 +1,97 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1a1a3e"/>
+      <stop offset="60%" stop-color="#0d0d2b"/>
+      <stop offset="100%" stop-color="#050515"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="40%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#fafae6"/>
+      <stop offset="70%" stop-color="#e8e0c8"/>
+      <stop offset="100%" stop-color="#c8c0a8"/>
+    </radialGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c8d8ff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#c8d8ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+    <filter id="glowBlur">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+
+  <!-- Sky background -->
+  <rect width="512" height="512" fill="url(#sky)"/>
+
+  <!-- Stars -->
+  <circle cx="380" cy="80" r="1.2" fill="#fff" opacity="0.6"/>
+  <circle cx="420" cy="140" r="0.8" fill="#fff" opacity="0.4"/>
+  <circle cx="350" cy="160" r="1" fill="#fff" opacity="0.5"/>
+  <circle cx="100" cy="60" r="0.9" fill="#fff" opacity="0.5"/>
+  <circle cx="140" cy="120" r="0.7" fill="#fff" opacity="0.3"/>
+  <circle cx="460" cy="200" r="1.1" fill="#fff" opacity="0.4"/>
+
+  <!-- Moon glow -->
+  <circle cx="320" cy="160" r="100" fill="url(#moonGlow)" filter="url(#glowBlur)"/>
+
+  <!-- Moon -->
+  <circle cx="320" cy="160" r="65" fill="url(#moon)"/>
+
+  <!-- Moon craters -->
+  <circle cx="300" cy="140" r="8" fill="#d4ccb0" opacity="0.4"/>
+  <circle cx="340" cy="170" r="5" fill="#d4ccb0" opacity="0.3"/>
+  <circle cx="310" cy="180" r="4" fill="#d4ccb0" opacity="0.35"/>
+
+  <!-- Bamboo stems -->
+  <g stroke="#1a2a1a" stroke-width="3" fill="none" opacity="0.9">
+    <!-- Left bamboo -->
+    <line x1="60" y1="512" x2="60" y2="280"/>
+    <line x1="60" y1="340" x2="95" y2="310"/>
+    <line x1="60" y1="370" x2="30" y2="340"/>
+    <line x1="60" y1="410" x2="90" y2="385"/>
+    <line x1="60" y1="440" x2="25" y2="420"/>
+    <!-- Joints -->
+    <line x1="55" y1="370" x2="65" y2="370" stroke-width="5"/>
+    <line x1="55" y1="440" x2="65" y2="440" stroke-width="5"/>
+
+    <!-- Right bamboo -->
+    <line x1="460" y1="512" x2="460" y2="240"/>
+    <line x1="460" y1="310" x2="430" y2="280"/>
+    <line x1="460" y1="350" x2="490" y2="320"/>
+    <line x1="460" y1="400" x2="435" y2="375"/>
+    <line x1="455" y1="350" x2="465" y2="350" stroke-width="5"/>
+    <line x1="455" y1="400" x2="465" y2="400" stroke-width="5"/>
+  </g>
+
+  <!-- Bamboo leaves (left) -->
+  <g fill="#1a3a1a" opacity="0.85">
+    <path d="M95,310 Q120,290 110,280 Q100,295 95,310Z"/>
+    <path d="M95,310 Q115,305 110,295 Q100,304 95,310Z"/>
+    <path d="M30,340 Q15,320 25,310 Q28,328 30,340Z"/>
+    <path d="M90,385 Q110,370 105,360 Q95,375 90,385Z"/>
+    <path d="M25,420 Q10,405 20,390 Q22,410 25,420Z"/>
+  </g>
+
+  <!-- Bamboo leaves (right) -->
+  <g fill="#1a3a1a" opacity="0.85">
+    <path d="M430,280 Q410,260 420,250 Q425,268 430,280Z"/>
+    <path d="M490,320 Q505,305 498,293 Q493,310 490,320Z"/>
+    <path d="M435,375 Q415,360 420,350 Q428,365 435,375Z"/>
+  </g>
+
+  <!-- Figure standing under moon - small silhouette -->
+  <g transform="translate(270, 350)" opacity="0.9">
+    <!-- Body/robe -->
+    <path d="M-8,60 L-12,20 Q-15,0 0,-10 Q15,0 12,20 L8,60 Z" fill="#0a0a1a"/>
+    <!-- Head -->
+    <circle cx="0" cy="-18" r="10" fill="#0a0a1a"/>
+    <!-- Sleeve (arm raised looking at moon) -->
+    <path d="M-10,5 Q-25,-10 -20,-25 Q-15,-20 -5,0" fill="#0a0a1a"/>
+  </g>
+
+  <!-- Ground/mist -->
+  <ellipse cx="256" cy="480" rx="200" ry="40" fill="#1a2a3a" opacity="0.3" filter="url(#softBlur)"/>
+  <ellipse cx="256" cy="490" rx="250" ry="30" fill="#0d1520" opacity="0.5"/>
+</svg>
