@@ -1,8 +1,19 @@
-﻿# Distilled Memory — 可移植版 (v2)
+﻿# Distilled Memory — 可移植版 (v3)
 
 > 从 Codex 记忆系统蒸馏出的关键信息，不依赖原始记忆格式。
 
-## 核心交付原则（新增）
+## 用户速查
+
+| 属性 | 值 |
+|------|-----|
+| 偏好名称 | 怀民亦未寝 |
+| GitHub | Buruxianhecha |
+| 知识库仓库 | Buruxianhecha/codex-knowledge |
+| 主力 AI | DeepSeek API |
+| 主力语言 | Python |
+| 时区 | UTC+8 |
+
+## 核心交付原则
 
 | 原则 | 内容 |
 |------|------|
@@ -10,6 +21,7 @@
 | 用户优先 | 理论与实际冲突时，优先相信用户实际体验 |
 | 优先复现 | 用户反馈问题 → 先复现，再分析代码 |
 | 不假设用户错误 | 排查顺序：环境 → 兼容性 → 缓存 → 编码 → 路径 → 运行时 |
+| 知识自蒸馏 | 知识库必须自包含、可移植，换 AI 也能自举 |
 
 ## 活跃项目
 
@@ -19,6 +31,13 @@
 - **技术栈**: Flask + pdfplumber + PaddleOCR + GPT-4o + Tesseract + Supabase
 - **状态**: v1 可用，存在安全/工程问题待 v2 修复
 - **详细**: 见 `projects/2026-05-24-pdf-to-excel.md`
+
+### deepseek-video (v1 已完成)
+- **路径**: D:\Projects\deepseek-video
+- **描述**: DeepSeek API 平台宣传视频，HyperFrames 自动化生成
+- **技术栈**: HyperFrames + GSAP + Tailwind v4 + Kokoro TTS + Whisper
+- **状态**: v1 完成，有 MP4 渲染输出
+- **详细**: 见 `projects/2026-05-25-deepseek-video.md`
 
 ## 长期目标
 
@@ -38,6 +57,7 @@
 | 第二实现即抽象 | 同一接口第二次写 → 必须抽公共层 |
 | v1 硬化 | v1 完成后先加固（安全、配置、死代码），不加功能 |
 | 用户视角验收 | 交付前从真实用户角度验证，不凭代码推断结果 |
+| 知识自蒸馏 | 知识库要能给另一个 AI 直接自举，单文件可读 |
 
 ## 错误速查
 
@@ -50,6 +70,7 @@
 | Flask debug=True 上线 | 环境变量区分 dev/prod |
 | 下载接口无鉴权 | 所有用户数据路由加 @login_required |
 | 假设用户操作失误 | 先复现、先排查环境，不争论 |
+| 快捷方式图标不对 | 安装后从用户视角检查桌面快捷方式 |
 
 ## 设计决策速查
 
@@ -60,7 +81,8 @@
 | 本地+云端 | SQLite + Supabase 双写 | 离线可用 + 跨设备 |
 | Web vs CLI | Web (v1) | 用户友好，v2 加 CLI |
 | 交付标准 | 用户验证 > 代码正确 | 防止"理论上OK实际不行" |
+| 知识备份 | GitHub + 单文件 bundle | 可移植 > 格式精美 |
 
 ---
 
-*蒸馏自: Codex 记忆系统 + 用户质量原则 2026-05-25*
+*蒸馏自: Codex 记忆系统 + 用户质量原则 + 2026-05-25 会话*

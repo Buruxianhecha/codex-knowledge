@@ -1,20 +1,22 @@
-﻿# Knowledge Index — 完整知识索引 v3
+﻿# Knowledge Index — 完整知识索引 v4
 
-> 最后更新: 2026-05-25 | 总条目: 28 | 全部有效
+> 最后更新: 2026-05-26 | 总条目: 31 | 全部有效
 
 ---
 
-## 项目 (1)
+## 项目 (2)
 
 | 文件 | 项目 | 日期 | 状态 |
 |------|------|------|------|
 | [projects/2026-05-24-pdf-to-excel.md](projects/2026-05-24-pdf-to-excel.md) | PDF→Excel 转换工具 | 2026-05-24 | v1 完成 |
+| [projects/2026-05-25-deepseek-video.md](projects/2026-05-25-deepseek-video.md) | DeepSeek 宣传视频 | 2026-05-25 | v1 完成 |
 
-## 经验 (6)
+## 经验 (7)
 
 | 文件 | 经验 | 状态 | 关联 |
 |------|------|------|------|
 | [lessons/user-perspective-verification.md](lessons/user-perspective-verification.md) | 用户视角验收原则（6大核心原则） | `best_practice` | → templates/checklist/ + anti-patterns/ + mistakes/ |
+| [lessons/knowledge-portability.md](lessons/knowledge-portability.md) | 知识自蒸馏与可移植性 | `active` | → KNOWLEDGE_BUNDLE.md + compact/ |
 | [lessons/multi-engine-parallel-select.md](lessons/multi-engine-parallel-select.md) | 多引擎并行择优 > 串行降级 | `active` | → patterns/ + decisions/ |
 | [lessons/quality-gating.md](lessons/quality-gating.md) | 质量门控比完美解析更重要 | `active` | → patterns/ + empty-over-fake |
 | [lessons/empty-over-fake.md](lessons/empty-over-fake.md) | 空值优于假数据 | `active` | → quality-gating |
@@ -74,6 +76,14 @@
 | [templates/config/gitignore-python-web](templates/config/gitignore-python-web) | 配置 | 通用 |
 | [templates/structure/python-web-project.md](templates/structure/python-web-project.md) | 结构 | 通用 |
 
+## 失败案例 (3)
+
+| 文件 | 案例 | 门控规则 |
+|------|------|----------|
+| [bad-cases/gpt-system-prompt-unused.md](bad-cases/gpt-system-prompt-unused.md) | GPT prompt 定义但未传入 API | 所有 LLM 调用必须加集成测试 |
+| [bad-cases/multi-line-numbers-false-positive.md](bad-cases/multi-line-numbers-false-positive.md) | 多行数字被误判为噪音 | OCR 噪音过滤必须考虑表格上下文 |
+| [bad-cases/tesseract-japanese-char-limit.md](bad-cases/tesseract-japanese-char-limit.md) | Tesseract 截断 >10 字符 | OCR 输出需二次验证完整性 |
+
 ## 系统文件 (4)
 
 | 文件 | 用途 |
@@ -100,5 +110,8 @@
 | #database | 2 | sqlite-migration, local-remote-dual-write |
 | #refactoring | 3 | copy-paste-ocr-engines, dead-code-orphan, abstract-on-second |
 | #engineering | 2 | v1-hardening, hardcoded-paths |
-| #portability | 2 | hardcoded-paths, libs-vendoring |
+| #portability | 3 | hardcoded-paths, libs-vendoring, knowledge-portability |
 | #mindset | 2 | assuming-user-error, user-perspective-verification |
+| #video | 1 | deepseek-video |
+| #animation | 1 | deepseek-video |
+| #knowledge-management | 1 | knowledge-portability |
