@@ -39,6 +39,14 @@
 - **状态**: v1 完成，有 MP4 渲染输出
 - **详细**: 见 `projects/2026-05-25-deepseek-video.md`
 
+
+### morning-briefing (v1 已完成)
+- **路径**: %USERPROFILE%\Documents\Codex\briefings\
+- **描述**: 工作日晨间简报自动化，从 Outlook (Microsoft Graph) 拉取日历+邮件生成 Markdown 简报
+- **技术栈**: PowerShell + Microsoft Graph REST API + Windows Task Scheduler
+- **状态**: v1 完成，等待用户完成首次 Graph 授权
+- **详细**: 见 projects/2026-05-26-morning-briefing.md
+
 ## 长期目标
 
 ### G1: PDF → Excel 完整转化工具
@@ -85,4 +93,4 @@
 
 ---
 
-*蒸馏自: Codex 记忆系统 + 用户质量原则 + 2026-05-25 会话*
+*蒸馏自: Codex 记忆系统 + 用户质量原则 + 2026-05-26 会话*

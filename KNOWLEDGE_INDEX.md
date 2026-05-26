@@ -1,29 +1,31 @@
 ﻿# Knowledge Index — 完整知识索引 v4
 
-> 最后更新: 2026-05-26 | 总条目: 31 | 全部有效
+> 最后更新: 2026-05-26 | 总条目: 35 | 全部有效
 
 ---
 
-## 项目 (2)
+## 项目 (3)
 
 | 文件 | 项目 | 日期 | 状态 |
 |------|------|------|------|
 | [projects/2026-05-24-pdf-to-excel.md](projects/2026-05-24-pdf-to-excel.md) | PDF→Excel 转换工具 | 2026-05-24 | v1 完成 |
 | [projects/2026-05-25-deepseek-video.md](projects/2026-05-25-deepseek-video.md) | DeepSeek 宣传视频 | 2026-05-25 | v1 完成 |
+| [projects/2026-05-26-morning-briefing.md](projects/2026-05-26-morning-briefing.md) | Codex 晨间简报自动化 | 2026-05-26 | v1 完成 |
 
-## 经验 (7)
+## 经验 (8)
 
 | 文件 | 经验 | 状态 | 关联 |
 |------|------|------|------|
 | [lessons/user-perspective-verification.md](lessons/user-perspective-verification.md) | 用户视角验收原则（6大核心原则） | `best_practice` | → templates/checklist/ + anti-patterns/ + mistakes/ |
 | [lessons/knowledge-portability.md](lessons/knowledge-portability.md) | 知识自蒸馏与可移植性 | `active` | → KNOWLEDGE_BUNDLE.md + compact/ |
+| [lessons/rest-over-sdk-windows.md](lessons/rest-over-sdk-windows.md) | Windows 自动化：REST > SDK | `active` | → patterns/ |
 | [lessons/multi-engine-parallel-select.md](lessons/multi-engine-parallel-select.md) | 多引擎并行择优 > 串行降级 | `active` | → patterns/ + decisions/ |
 | [lessons/quality-gating.md](lessons/quality-gating.md) | 质量门控比完美解析更重要 | `active` | → patterns/ + empty-over-fake |
 | [lessons/empty-over-fake.md](lessons/empty-over-fake.md) | 空值优于假数据 | `active` | → quality-gating |
 | [lessons/abstract-on-second.md](lessons/abstract-on-second.md) | 第二个实现时就该抽象 | `active` | → mistakes/copy-paste |
 | [lessons/v1-hardening.md](lessons/v1-hardening.md) | v1 完成后的债务清理 | `active` | → mistakes/flask-debug + download-no-auth + dead-code |
 
-## 模式 (4)
+## 模式 (5)
 
 | 文件 | 模式 | 状态 | 关联 |
 |------|------|------|------|
@@ -31,8 +33,9 @@
 | [patterns/sqlite-migration.md](patterns/sqlite-migration.md) | 渐进式 Schema 迁移 | `verified` | ← templates/code/ |
 | [patterns/lightweight-supabase-client.md](patterns/lightweight-supabase-client.md) | 轻量 Supabase REST 客户端 | `active` | ← decisions/local-remote |
 | [patterns/output-quality-gate.md](patterns/output-quality-gate.md) | 输出质量门控 | `verified` | ← lessons/quality-gating + empty-over-fake |
+| [patterns/powershell-graph-devicecode-auth.md](patterns/powershell-graph-devicecode-auth.md) | PS + Graph Device Code 认证 | `active` | ← projects/morning-briefing |
 
-## 错误 (7)
+## 错误 (8)
 
 | 文件 | 错误 | 根因 | 关联 |
 |------|------|------|------|
@@ -43,6 +46,7 @@
 | [mistakes/gpt-system-prompt-unused.md](mistakes/gpt-system-prompt-unused.md) | GPT prompt 未生效 | 缺少集成测试 | → lessons/abstract-on-second |
 | [mistakes/flask-debug-true.md](mistakes/flask-debug-true.md) | Flask debug 上线 | 无部署检查 | → lessons/v1-hardening + download-no-auth |
 | [mistakes/download-no-auth.md](mistakes/download-no-auth.md) | 下载无鉴权 | 开发遗漏 | → lessons/v1-hardening + flask-debug-true |
+| [mistakes/encoding-string-replace-windows.md](mistakes/encoding-string-replace-windows.md) | PS 字符串替换损坏编码 | .NET UTF-8 转换路径不一致 | → projects/morning-briefing |
 
 ## 决策 (4)
 
@@ -115,3 +119,7 @@
 | #video | 1 | deepseek-video |
 | #animation | 1 | deepseek-video |
 | #knowledge-management | 1 | knowledge-portability |
+| #automation | 2 | morning-briefing, powershell-graph-devicecode-auth |
+| #powershell | 3 | morning-briefing, rest-over-sdk-windows, encoding-string-replace-windows |
+| #microsoft-graph | 2 | morning-briefing, powershell-graph-devicecode-auth |
+| #oauth | 1 | powershell-graph-devicecode-auth |
