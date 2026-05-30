@@ -12,6 +12,7 @@
 | 主力 AI | DeepSeek API |
 | 主力语言 | Python |
 | 时区 | UTC+8 |
+| 默认语言 | 简体中文 |
 
 ## 核心交付原则
 
@@ -22,6 +23,7 @@
 | 优先复现 | 用户反馈问题 → 先复现，再分析代码 |
 | 不假设用户错误 | 排查顺序：环境 → 兼容性 → 缓存 → 编码 → 路径 → 运行时 |
 | 知识自蒸馏 | 知识库必须自包含、可移植，换 AI 也能自举 |
+| 配置先审计 | Provider/API/模型映射变更前先备份、列出现状、再修改 |
 
 ## 活跃项目
 
@@ -39,13 +41,18 @@
 - **状态**: v1 完成，有 MP4 渲染输出
 - **详细**: 见 `projects/2026-05-25-deepseek-video.md`
 
-
 ### morning-briefing (v1 已完成)
 - **路径**: %USERPROFILE%\Documents\Codex\briefings\
 - **描述**: 工作日晨间简报自动化，从 Outlook (Microsoft Graph) 拉取日历+邮件生成 Markdown 简报
 - **技术栈**: PowerShell + Microsoft Graph REST API + Windows Task Scheduler
 - **状态**: v1 完成，等待用户完成首次 Graph 授权
 - **详细**: 见 projects/2026-05-26-morning-briefing.md
+
+### openclaw-provider-migration (经验沉淀)
+- **路径**: C:\Users\吴\.openclaw / D:\openclaw
+- **描述**: OpenClaw Provider 迁移、模型列表验证、`deepseek-v4-pro` 映射消失排障
+- **状态**: 配置经验已沉淀，敏感值不入库
+- **详细**: 见 `projects/2026-05-30-openclaw-provider-migration.md`
 
 ## 长期目标
 
@@ -66,6 +73,9 @@
 | v1 硬化 | v1 完成后先加固（安全、配置、死代码），不加功能 |
 | 用户视角验收 | 交付前从真实用户角度验证，不凭代码推断结果 |
 | 知识自蒸馏 | 知识库要能给另一个 AI 直接自举，单文件可读 |
+| Provider 名称不等于模型来源 | `openai` 可能只是兼容协议，真实后端要看配置 |
+| API 成本护栏 | 缓存、fallback、usage 异常会造成额度异常消耗，测试要分级 |
+| UI 迭代缓存失效 | 长对话反复小改单文件 UI 会放大 token 与额度消耗 |
 
 ## 错误速查
 
@@ -79,6 +89,7 @@
 | 下载接口无鉴权 | 所有用户数据路由加 @login_required |
 | 假设用户操作失误 | 先复现、先排查环境，不争论 |
 | 快捷方式图标不对 | 安装后从用户视角检查桌面快捷方式 |
+| Provider 迁移丢模型映射 | 对比 primary/fallback/allowed models，不只看模型清单 |
 
 ## 设计决策速查
 
@@ -90,7 +101,8 @@
 | Web vs CLI | Web (v1) | 用户友好，v2 加 CLI |
 | 交付标准 | 用户验证 > 代码正确 | 防止"理论上OK实际不行" |
 | 知识备份 | GitHub + 单文件 bundle | 可移植 > 格式精美 |
+| LLM Provider 命名 | 真实来源优先 | 避免 `openai/*` 混用导致模型路由误判 |
 
 ---
 
-*蒸馏自: Codex 记忆系统 + 用户质量原则 + 2026-05-26 会话*
+*蒸馏自: Codex 记忆系统 + 用户质量原则 + 2026-05-25/26 会话 + 2026-05-30 OpenClaw 配置经验*

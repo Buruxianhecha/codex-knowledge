@@ -42,3 +42,29 @@ PDF 中的不可读区域留空 `""`。填 "N/A" 或 0 让用户误以为有真�
 
 v1 跑通后立刻做: 删死代码、关 debug、统一配置、补鉴权、整理依赖。
 先加固，不加功能。
+
+---
+
+## 6. Provider 名称不等于真实模型来源
+
+**来源**: OpenClaw Provider 迁移 (2026-05-30)
+
+`openai` 可能只是 OpenAI-compatible 协议，不一定是 OpenAI 官方后端。
+模型是否存在要同时检查在线列表、本地 `models.json`、Chat/Agent/Codex/Fallback 映射和 UI 允许列表。
+
+---
+
+## 7. API 缓存与额度消耗要有护栏
+
+**来源**: OpenClaw 配置排查 + Tavily 验证 (2026-05-30)
+
+API 调用能成功不代表配置健康。缓存未命中、fallback 路由错误、raw content/advanced 等高消耗模式都可能造成额度异常消耗。
+测试分 smoke / functional / stress 三档，高消耗测试前要得到用户确认。
+
+---
+
+## 8. UI 长对话迭代会放大缓存失效成本
+
+**来源**: morning-briefing / weekly dashboard 迭代 (2026-05-26)
+
+反复小改单文件 UI 会让上下文和历史不断膨胀，导致缓存失效、额度异常消耗。超过 5-10 轮迭代时，应拆文件、批量提需求，或开新对话继续。

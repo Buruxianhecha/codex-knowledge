@@ -4,8 +4,9 @@
 > 这是一个自包含的工程经验库。将此文件完整提供给任何 AI（ChatGPT、Claude、Codex、Cursor 等），
 > 它即可理解用户的全部工程背景、偏好、经验和教训。
 >
-> 生成时间: 2026-05-26 02:30
+> 生成时间: 2026-05-30 08:20
 > 原始位置: D:\Codex-Knowledge
+> 增量: 已加入 2026-05-30 OpenClaw Provider 迁移、模型映射、API 成本护栏经验
 
 ---
 
@@ -957,4 +958,50 @@ goals.md 中写着"命令行程序 或 网页端上传工具"，最终选择了 
 ---
 
 *蒸馏自: Codex 记忆系统 2026-05-25 梦境整合*
+
+
+---
+
+
+================================================================================
+第八部分：2026-05-30 OpenClaw / LLM Provider 增量
+================================================================================
+
+## projects/2026-05-30-openclaw-provider-migration.md
+
+OpenClaw Provider 迁移与模型映射排障。核心事实：`deepseek-v4-pro` 没有从本地模型清单删除；它从默认 UI/入口中消失，是因为 primary/fallback/allowed models 从旧的 `openai/deepseek-v4-pro` 切换到了新网关模型。`openai` provider 在历史配置中曾承载 DeepSeek-compatible endpoint，迁移后指向 OpenAI-compatible gateway，导致 `openai/*` 命名空间语义改变。
+
+可复用规则：
+- Provider 迁移前备份主配置和 `models.json`。
+- 模型是否存在要分三层看：在线模型列表、本地模型清单、UI/默认映射。
+- 删除 provider 或插件前，先列出启用状态、引用关系和 fallback 链路。
+- 配置报告只展示脱敏后的 provider、base URL 类型、模型 ID、启用状态和映射关系。
+
+## lessons/provider-alias-vs-model-namespace.md
+
+Provider 名称不等于真实模型来源。`openai` 可能表示 OpenAI-compatible 协议，而不一定表示 OpenAI 官方服务。排查模型消失时，按顺序确认在线列表、本地清单、默认映射、允许列表和 provider 绑定。
+
+## lessons/api-cache-budget-guardrails.md
+
+API 调用能成功不代表配置健康。缓存未命中、fallback 路由错误或 high-depth/raw-content 测试可能造成额度异常消耗。测试分 smoke、functional、stress 三档；高消耗测试前要得到用户确认，并检查 usage/cache/fallback。
+
+## mistakes/model-mapping-lost-during-provider-migration.md
+
+错误症状：旧 primary 模型仍在本地模型清单，但 UI/默认入口不显示。根因：Provider 后端语义变化，primary/fallback/allowed models 被改到新网关。预防：迁移前后对比 provider、在线模型、本地清单和 Chat/Agent/Codex/Fallback 映射。
+
+## decisions/llm-provider-namespace-separation.md
+
+LLM Provider 名称应表达真实来源或网关角色：官方 OpenAI 用 `openai`，DeepSeek 用 `deepseek`，第三方 OpenAI-compatible 网关用 `openai-gateway` 或类似名称。本决策牺牲一点初次配置简洁性，换取长期路由清晰。
+
+## templates/checklist/llm-provider-migration-checklist.md
+
+核心检查：
+1. 备份主配置和模型清单。
+2. 列出所有 provider 和启用状态。
+3. 记录 primary/fallback/Chat/Agent/Codex 映射。
+4. 获取在线模型列表并对比本地 `models.json`。
+5. 检查 allowed/default models 是否过滤目标模型。
+6. 用最小 prompt 测试连接。
+7. 检查 usage/cache/fallback 成本风险。
+8. 提交前搜索并移除 `sk-`、`ghp_`、`github_pat_`、`botToken`、`Bearer` 等敏感值。
 

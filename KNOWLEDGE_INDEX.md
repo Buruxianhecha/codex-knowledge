@@ -1,29 +1,33 @@
-﻿# Knowledge Index — 完整知识索引 v4
+﻿# Knowledge Index — 完整知识索引 v5
 
-> 最后更新: 2026-05-26 | 总条目: 35 | 全部有效
+> 最后更新: 2026-05-30 | 总条目: 52 | 全部有效
 
 ---
 
-## 项目 (3)
+## 项目 (4)
 
 | 文件 | 项目 | 日期 | 状态 |
 |------|------|------|------|
 | [projects/2026-05-24-pdf-to-excel.md](projects/2026-05-24-pdf-to-excel.md) | PDF→Excel 转换工具 | 2026-05-24 | v1 完成 |
 | [projects/2026-05-25-deepseek-video.md](projects/2026-05-25-deepseek-video.md) | DeepSeek 宣传视频 | 2026-05-25 | v1 完成 |
 | [projects/2026-05-26-morning-briefing.md](projects/2026-05-26-morning-briefing.md) | Codex 晨间简报自动化 | 2026-05-26 | v1 完成 |
+| [projects/2026-05-30-openclaw-provider-migration.md](projects/2026-05-30-openclaw-provider-migration.md) | OpenClaw Provider 迁移与模型映射排障 | 2026-05-30 | 经验沉淀 |
 
-## 经验 (8)
+## 经验 (11)
 
 | 文件 | 经验 | 状态 | 关联 |
 |------|------|------|------|
 | [lessons/user-perspective-verification.md](lessons/user-perspective-verification.md) | 用户视角验收原则（6大核心原则） | `best_practice` | → templates/checklist/ + anti-patterns/ + mistakes/ |
 | [lessons/knowledge-portability.md](lessons/knowledge-portability.md) | 知识自蒸馏与可移植性 | `active` | → KNOWLEDGE_BUNDLE.md + compact/ |
 | [lessons/rest-over-sdk-windows.md](lessons/rest-over-sdk-windows.md) | Windows 自动化：REST > SDK | `active` | → patterns/ |
+| [lessons/cache-miss-ui-iteration.md](lessons/cache-miss-ui-iteration.md) | 迭代 UI 开发中的上下文膨胀与缓存失效 | `active` | → projects/morning-briefing + anti-patterns/god-file |
 | [lessons/multi-engine-parallel-select.md](lessons/multi-engine-parallel-select.md) | 多引擎并行择优 > 串行降级 | `active` | → patterns/ + decisions/ |
 | [lessons/quality-gating.md](lessons/quality-gating.md) | 质量门控比完美解析更重要 | `active` | → patterns/ + empty-over-fake |
 | [lessons/empty-over-fake.md](lessons/empty-over-fake.md) | 空值优于假数据 | `active` | → quality-gating |
 | [lessons/abstract-on-second.md](lessons/abstract-on-second.md) | 第二个实现时就该抽象 | `active` | → mistakes/copy-paste |
 | [lessons/v1-hardening.md](lessons/v1-hardening.md) | v1 完成后的债务清理 | `active` | → mistakes/flask-debug + download-no-auth + dead-code |
+| [lessons/provider-alias-vs-model-namespace.md](lessons/provider-alias-vs-model-namespace.md) | Provider 名称不等于真实模型来源 | `active` | → decisions/llm-provider-namespace-separation + mistakes/model-mapping |
+| [lessons/api-cache-budget-guardrails.md](lessons/api-cache-budget-guardrails.md) | API 缓存与额度消耗要有护栏 | `active` | → FRESHNESS + templates/checklist |
 
 ## 模式 (5)
 
@@ -35,7 +39,7 @@
 | [patterns/output-quality-gate.md](patterns/output-quality-gate.md) | 输出质量门控 | `verified` | ← lessons/quality-gating + empty-over-fake |
 | [patterns/powershell-graph-devicecode-auth.md](patterns/powershell-graph-devicecode-auth.md) | PS + Graph Device Code 认证 | `active` | ← projects/morning-briefing |
 
-## 错误 (8)
+## 错误 (9)
 
 | 文件 | 错误 | 根因 | 关联 |
 |------|------|------|------|
@@ -47,8 +51,9 @@
 | [mistakes/flask-debug-true.md](mistakes/flask-debug-true.md) | Flask debug 上线 | 无部署检查 | → lessons/v1-hardening + download-no-auth |
 | [mistakes/download-no-auth.md](mistakes/download-no-auth.md) | 下载无鉴权 | 开发遗漏 | → lessons/v1-hardening + flask-debug-true |
 | [mistakes/encoding-string-replace-windows.md](mistakes/encoding-string-replace-windows.md) | PS 字符串替换损坏编码 | .NET UTF-8 转换路径不一致 | → projects/morning-briefing |
+| [mistakes/model-mapping-lost-during-provider-migration.md](mistakes/model-mapping-lost-during-provider-migration.md) | Provider 迁移时丢失模型映射 | Provider 语义变化但默认映射未保留 | → lessons/provider-alias-vs-model-namespace |
 
-## 决策 (4)
+## 决策 (5)
 
 | 文件 | 决策 | 后果 | 关联 |
 |------|------|------|------|
@@ -56,6 +61,7 @@
 | [decisions/libs-vendoring.md](decisions/libs-vendoring.md) | vendoring vs pip | ❌环境无法复现 | → mistakes/hardcoded-paths |
 | [decisions/local-remote-dual-write.md](decisions/local-remote-dual-write.md) | SQLite+Supabase 双写 | ✅离线 ❌同步不全 | → patterns/lightweight-supabase |
 | [decisions/web-vs-cli.md](decisions/web-vs-cli.md) | Web vs CLI | ✅友好 ❌不能批量 | — |
+| [decisions/llm-provider-namespace-separation.md](decisions/llm-provider-namespace-separation.md) | LLM Provider 命名空间分离 | ✅路由清楚 ❌配置多一步 | → lessons/provider-alias-vs-model-namespace |
 
 ## 反模式 (6)
 
@@ -68,7 +74,7 @@
 | [anti-patterns/silent-exception-swallowing.md](anti-patterns/silent-exception-swallowing.md) | 静默吞异常 | 问题被隐藏 |
 | [anti-patterns/god-file.md](anti-patterns/god-file.md) | 上帝文件 | main.py 410行 |
 
-## 模板 (7)
+## 模板 (9)
 
 | 文件 | 类型 | 来源 |
 |------|------|------|
@@ -78,6 +84,8 @@
 | [templates/code/sqlite-migration-helper.py](templates/code/sqlite-migration-helper.py) | 代码 | patterns/sqlite-migration |
 | [templates/config/env-web-app.env](templates/config/env-web-app.env) | 配置 | 通用 |
 | [templates/config/gitignore-python-web](templates/config/gitignore-python-web) | 配置 | 通用 |
+| [templates/config/openclaw-provider-template.md](templates/config/openclaw-provider-template.md) | 配置 | OpenClaw Provider 脱敏模板 |
+| [templates/checklist/llm-provider-migration-checklist.md](templates/checklist/llm-provider-migration-checklist.md) | 检查清单 | lessons/provider-alias-vs-model-namespace |
 | [templates/structure/python-web-project.md](templates/structure/python-web-project.md) | 结构 | 通用 |
 
 ## 失败案例 (3)
@@ -123,3 +131,9 @@
 | #powershell | 3 | morning-briefing, rest-over-sdk-windows, encoding-string-replace-windows |
 | #microsoft-graph | 2 | morning-briefing, powershell-graph-devicecode-auth |
 | #oauth | 1 | powershell-graph-devicecode-auth |
+| #cache | 2 | cache-miss-ui-iteration, api-cache-budget-guardrails |
+| #openclaw | 5 | openclaw-provider-migration, provider-alias, model-mapping, namespace-separation, provider-template |
+| #llm | 6 | provider-alias, api-cache-budget, model-mapping, namespace-separation, migration-checklist, provider-template |
+| #provider | 5 | openclaw-provider-migration, provider-alias, model-mapping, namespace-separation, migration-checklist |
+| #model-routing | 4 | openclaw-provider-migration, provider-alias, model-mapping, namespace-separation |
+| #cost-control | 1 | api-cache-budget-guardrails |

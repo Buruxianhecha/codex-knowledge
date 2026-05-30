@@ -14,7 +14,14 @@ pdfplumber → Tesseract → PaddleOCR → GPT-4o，三路全跑，按列数评�
 
 ---
 
-## 二、经验 (5条)
+## 一点五、工具链项目: OpenClaw Provider 迁移 (2026-05-30)
+
+OpenClaw Provider/API 网关配置迁移，重点经验是模型“存在”分三层：在线模型列表、本地 `models.json`、UI/默认映射。
+`deepseek-v4-pro` 没有被删除，但 primary/fallback/allowed models 切到新网关后，旧入口从默认 UI 消失。
+
+---
+
+## 二、经验 (8条)
 
 ### 1. 多引擎并行择优 > 串行降级
 OCR 没有"绝对失败"，只有"产出质量不同"。全跑一遍，按可量化分数选最优。
@@ -33,6 +40,15 @@ AI/ML 管道产出必须在输出前过质量检查（填充率、列数、唯�
 
 ### 5. v1 完成后做硬化
 v1 完成后的动作不是加功能，是: 删死代码、关 debug、统一配置、补鉴权、整理依赖。
+
+### 6. Provider 名称不等于模型来源
+`openai` 可能只是兼容协议，不一定是 OpenAI 官方服务。模型路由要看 provider、协议、base URL 类型和真实后端。
+
+### 7. API 成本与缓存要有护栏
+连接测试用最小 prompt；高消耗测试要确认目的。检查 usage/cache/fallback，避免缓存未命中或路由错误造成额度异常消耗。
+
+### 8. UI 长对话迭代会放大缓存失效成本
+单文件 UI 反复小改会让上下文膨胀、缓存失效、额度异常消耗。超过 5-10 轮迭代时拆文件、批量提需求，或开新对话。
 
 ---
 
@@ -63,7 +79,7 @@ def migrate():
 
 ---
 
-## 四、错误教训 (6条)
+## 四、错误教训 (7条)
 
 ### 错误1: OCR 引擎复制粘贴
 根因: decisions/ocr-parallel (选了并行但没及时抽基类)
@@ -89,9 +105,13 @@ Werkzeug 调试控制台可执行任意 Python
 /download/<token> 没 @login_required
 预防: 所有用户数据路由加鉴权装饰器
 
+### 错误7: Provider 迁移丢模型映射
+模型仍在 `models.json`，但 primary/fallback/allowed models 被改走，UI 入口消失。
+预防: 迁移前后对比在线模型、本地清单、默认映射和允许列表。
+
 ---
 
-## 五、设计决策 (4条)
+## 五、设计决策 (5条)
 
 ### 决策1: OCR 并行择优 vs 串行降级
 选并行，按列数评分。✅准确率高，❌每次跑 GPT-4o 成本高。
@@ -104,6 +124,9 @@ Werkzeug 调试控制台可执行任意 Python
 
 ### 决策4: Web vs CLI
 选 Web。✅用户友好，❌不能批量。v2 加 CLI 模式。
+
+### 决策5: LLM Provider 命名空间分离
+Provider 名称表达真实来源或网关角色。✅路由清楚，❌配置多一步。
 
 ---
 
@@ -118,3 +141,5 @@ Werkzeug 调试控制台可执行任意 Python
 | #quality | 质量门控, 空值优于假数据 |
 | #refactoring | 复制粘贴, 死代码, 第二个实现抽象 |
 | #portability | 硬编码路径, vendoring |
+| #openclaw | Provider迁移, 模型映射, 配置验证 |
+| #llm | Provider命名, 模型路由, API成本护栏 |

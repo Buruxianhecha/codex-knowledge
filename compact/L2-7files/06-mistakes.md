@@ -25,3 +25,8 @@
 ## 6. 下载接口无鉴权
 **症状**: /download/<token> 没有 @login_required
 **预防**: 所有用户数据路由统一加鉴权装饰器
+
+## 7. Provider 迁移时丢失模型映射
+**症状**: 旧 primary 模型仍在 `models.json`，但 UI/默认入口不再显示
+**根因**: Provider 后端语义变化，primary/fallback/allowed models 被改到新网关
+**预防**: 迁移前后对比 provider、在线模型、本地清单、Chat/Agent/Codex/Fallback 映射

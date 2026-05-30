@@ -20,6 +20,10 @@
 **选**: Flask Web 应用
 **后果**: ✅ 用户友好  ❌ 不能批量 → v2 加 CLI
 
+### 5. LLM Provider 命名空间分离
+**选**: Provider 名称表达真实来源或网关角色
+**后果**: ✅ 模型路由清楚  ❌ 初次配置多一步
+
 ---
 
 ## 代码模板
@@ -54,4 +58,16 @@ class MultiEngineExtractor:
                     best_result, best_score = result, s
             except Exception: continue
         return (best_result, best_score)
+```
+
+### LLM Provider 迁移检查
+```text
+1. 备份主配置和 models.json
+2. 列出 enabled/disabled provider
+3. 获取在线模型列表
+4. 对比本地模型清单
+5. 检查 Chat/Agent/Codex/Fallback 映射
+6. 使用最小 prompt 做连接测试
+7. 检查 usage/cache/fallback 成本风险
+8. 提交前搜索 sk-, ghp_, github_pat_, botToken, Bearer
 ```

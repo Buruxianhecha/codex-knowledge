@@ -24,13 +24,24 @@
 
 | 类别 | 检查频率 | 示例 |
 |------|----------|------|
-| AI 模型 API | 每次使用前 | OpenAI API, GPT-4o 参数, pricing |
+| AI 模型 API | 每次使用前 | OpenAI API, Provider 映射, 模型列表, pricing/cache behavior |
 | Web 框架 | 新项目启动时 | Flask, FastAPI 最新版本和 breaking changes |
 | Python 生态 | 新项目启动时 | 依赖版本, 弃用警告 |
 | OCR 引擎 | 每次涉及 OCR 时 | PaddleOCR, Tesseract 版本 |
 | 部署方案 | 新项目部署前 | Supabase, Vercel 免费额度和限制 |
 | 安全实践 | 每次涉及安全时 | Flask debug 风险, 最新 CVE |
-| 第三方服务 | 每季度 | Supabase API 变更, 定价变化 |
+| 第三方服务 | 每季度 | Supabase API 变更, API 网关定价和模型路由 |
+
+### LLM Provider 特别规则
+
+Provider/API 网关配置属于高时效知识。每次迁移或排障时都要重新验证：
+
+- 当前 provider 名称是否仍对应预期后端。
+- 在线模型列表是否包含默认模型和 fallback 模型。
+- 本地 `models.json` 是否与在线列表一致。
+- Chat/Agent/Codex/Fallback 是否指向真实存在的模型。
+- usage、cache read/write、价格字段是否正常返回。
+- 是否有代理、环境变量或 fallback 把请求路由到其他模型。
 
 ## 三、不需要验证的类别
 
@@ -107,6 +118,7 @@ stability: high
 
 - **稳定知识用缓存**（算法、设计、原则）
 - **变动技术要验证**（API、框架、模型）
+- **Provider 映射要重查**（名称、后端、模型、fallback 可能随配置变化）
 - **检索后要蒸馏**（不复制粘贴）
 - **过时要标记**（不删除，指向替代方案）
 - **验证过的要升级**（active → verified → best_practice）

@@ -73,7 +73,7 @@ SUPABASE_URL=https://xxxxx.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 OCR_MODE=auto
 TESSERACT_PATH=C:\OCR\tesseract.exe
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=<api-key>
 ```
 
 ### .gitignore（Python Web）
@@ -111,4 +111,20 @@ project/
 ├── requirements.txt
 ├── README.md
 └── run.py
+```
+
+---
+
+## LLM Provider 迁移检查模板
+
+```text
+[ ] 备份主配置和模型清单
+[ ] 列出所有 provider 和启用状态
+[ ] 记录 primary/fallback/Chat/Agent/Codex 映射
+[ ] 获取在线模型列表
+[ ] 对比本地 models.json
+[ ] 检查 allowed/default models 是否过滤目标模型
+[ ] 最小 prompt 测试连接
+[ ] 检查 usage/cache/fallback 成本风险
+[ ] 搜索并移除 sk-, ghp_, github_pat_, botToken, Bearer 等敏感值
 ```

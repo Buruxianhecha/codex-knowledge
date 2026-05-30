@@ -44,21 +44,21 @@ D:\Codex-Knowledge\
 ├── .value-rules.md              ← 价值判断 + 交叉引用 + 演化
 ├── preferences/                 ← 用户画像
 ├── memory/                      ← 蒸馏记忆
-├── projects/       (1)          ← 项目总结
-├── lessons/        (5)          ← 长期经验
-├── patterns/       (4)          ← 可复用模式
-├── mistakes/       (6)          ← 错误教训
-├── decisions/      (4)          ← 设计决策
-└── templates/      (6)          ← 代码/配置/结构模板
+├── projects/       (4)          ← 项目总结
+├── lessons/        (11)         ← 长期经验
+├── patterns/       (5)          ← 可复用模式
+├── mistakes/       (9)          ← 错误教训
+├── decisions/      (5)          ← 设计决策
+└── templates/      (9)          ← 代码/配置/结构模板
 ```
 
 ## 知识状态一览
 
 | 状态 | 数量 | 说明 |
 |------|------|------|
-| `active` | 14 | 当前有效 |
+| `active` | 26 | 当前有效 |
 | `verified` | 3 | 多项目验证（多引擎择优、SQLite迁移、质量门控） |
-| `best_practice` | 0 | 尚无（需要 3+ 验证 + 3 月稳定） |
+| `best_practice` | 1 | 用户视角验收原则 |
 | `deprecated` | 0 | 尚无过时条目 |
 
 ## 用户速写
@@ -67,10 +67,11 @@ D:\Codex-Knowledge\
 - 实用主义编码风格，快速原型 → v1 硬化迭代
 - OCR/文档处理方向，Flask Web 应用
 - 不装 C 盘，在意品牌一致性
+- Codex/OpenClaw 默认简体中文；Provider/API 配置先审计、备份、验证
 
 ---
 
-*最后更新: 2026-05-25 20:37 | 项目: 1 | 条目: 23 | 状态: 全部有效*
+*最后更新: 2026-05-30 08:20 | 项目: 4 | 条目: 52 | 状态: 全部有效*
 
 ---
 
