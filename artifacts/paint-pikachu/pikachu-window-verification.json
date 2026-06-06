@@ -1,0 +1,16 @@
+{
+    "processId":  8516,
+    "windowTitle":  "Codex Canvas - Pikachu Verified Final",
+    "windowHandle":  44633078,
+    "windowLeft":  720,
+    "windowTop":  286,
+    "windowWidth":  1120,
+    "windowHeight":  820,
+    "expectedFormWidth":  1120,
+    "expectedFormHeight":  820,
+    "expectedCanvasWidth":  1000,
+    "expectedCanvasHeight":  700,
+    "screenshotPath":  "D:\\Codex-Knowledge\\artifacts\\paint-pikachu\\pikachu-window-verification.png",
+    "screenshotBytes":  52252,
+    "status":  "pass"
+}
