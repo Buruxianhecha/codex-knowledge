@@ -1,6 +1,6 @@
 ﻿# Knowledge Index — 完整知识索引 v5
 
-> 最后更新: 2026-05-30 | 总条目: 52 | 全部有效
+> 最后更新: 2026-06-11 | 总条目: 54 | 全部有效
 
 ---
 
@@ -12,6 +12,13 @@
 | [projects/2026-05-25-deepseek-video.md](projects/2026-05-25-deepseek-video.md) | DeepSeek 宣传视频 | 2026-05-25 | v1 完成 |
 | [projects/2026-05-26-morning-briefing.md](projects/2026-05-26-morning-briefing.md) | Codex 晨间简报自动化 | 2026-05-26 | v1 完成 |
 | [projects/2026-05-30-openclaw-provider-migration.md](projects/2026-05-30-openclaw-provider-migration.md) | OpenClaw Provider 迁移与模型映射排障 | 2026-05-30 | 经验沉淀 |
+
+## 技能 (2)
+
+| 文件 | 技能 | 适用场景 |
+|------|------|----------|
+| [skills/百度网盘备份.md](skills/百度网盘备份.md) | 百度网盘备份 | 本地文件备份到百度网盘并做云端校验 |
+| [skills/微信桌面自动发送.md](skills/微信桌面自动发送.md) | 微信桌面自动发送 | Windows 桌面微信自动发消息或图片 |
 
 ## 经验 (11)
 
