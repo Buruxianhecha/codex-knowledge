@@ -1,8 +1,8 @@
 ---
 status: active
-confidence: 0.9
-reuse_count: 0
-last_used: 2026-06-13
+confidence: 0.92
+reuse_count: 2
+last_used: 2026-06-15
 verified_in: [codex-diary, codex-knowledge]
 cross_refs:
   - patterns/duplicate-repo-source-of-truth-check.md
@@ -11,36 +11,22 @@ cross_refs:
   - templates/operation-diary-automation-checklist.md
 ---
 
-# 自动化写日记前先确认仓库源头
+# 自动化日记必须以实际仓库为准
 
-## 来源
+## 说明
 
-- 日期：2026-06-13
-- 场景：`写操作日记提醒` 自动化运行时，本机同时存在两个 `codex-diary` 仓库副本。
+自动化日记任务常常同时存在记忆、旧副本和当前工作仓库。记忆可以帮助快速定位，但不能直接当作最终事实。
 
 ## 经验
 
-自动化不能只根据目录名选择写入目标。日记、知识库、备份库这类长期仓库一旦出现多个本地副本，真正的 source of truth 应由“上次提交 + 远端同步状态 + 自动化记忆”共同决定。
+- 先读自动化记忆，只把它当作候选线索。
+- 再用文件系统确认真实仓库路径。
+- 如果记忆路径与实际路径冲突，必须以真实仓库为 source of truth。
+- 对于跨目录迁移过的日记仓库，`git log` 和 `git status` 比目录名更可靠。
+- 不要假设 `$env:CODEX_HOME` 一定可用；关键路径应保留显式回退方案。
 
-## 操作模式
+## 适用场景
 
-1. 先读自动化 memory，提取上次有效提交、路径和时间。
-2. 对候选仓库执行 `git status --short --branch`。
-3. 对候选仓库执行 `git log --oneline -n 8`。
-4. 选择包含上次有效提交且与远端同步的仓库。
-5. 写入前执行 `git pull --ff-only`。
-6. 读中文 Markdown 或 TOML 时显式指定 UTF-8，避免把终端显示问题误判为文件损坏。
-
-## 本次验证
-
-- `D:\CodexPlusPlus\codex-diary` 停在 `b493862 Add 2026-06-11 operation diary`。
-- `C:\Users\吴\Documents\Codex\2026-06-02\new-chat\codex-diary` 停在 `9dc2b6a Add 2026-06-12 operation diary`。
-- 自动化 memory 也指向 `9dc2b6a`，因此后者是本次写入目标。
-
-## 规则
-
-当自动化任务涉及“继续更新长期仓库”时，先确认仓库源头，再写文件。不要让当前工作目录决定长期数据的归属。
-
-## 标签
-
-#automation #diary #git #source-of-truth #windows
+- 自动化操作日记
+- 多副本仓库维护
+- 需要长期追加的 Git 日记仓库

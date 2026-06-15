@@ -1,52 +1,27 @@
 ---
 status: active
 confidence: 0.9
-reuse_count: 0
-last_used: 2026-06-13
-verified_in: [codex-diary]
-cross_refs:
-  - lessons/automation-diary-source-of-truth.md
-  - decisions/diary-repo-latest-commit-source.md
+reuse_count: 2
+last_used: 2026-06-15
 ---
 
-# 重复仓库 Source-of-Truth 检查模式
+# 双副本仓库的 source of truth 检查
 
-## 适用场景
+## Pattern
 
-本机出现多个同名或同远端仓库副本，需要决定本次应该在哪一个副本继续写入。
+当自动化记忆或历史记录里出现一个仓库路径，但文件系统里可能存在多个副本时，先做 source of truth 校验，再进行写入。
 
-## 流程
+## 步骤
 
-```text
-候选仓库列表
-  -> 读取自动化 memory / 最近任务记录
-  -> 对每个仓库查 git log 和 git status
-  -> 匹配上次有效提交
-  -> 确认当前分支与 origin 同步
-  -> git pull --ff-only
-  -> 只在最新副本写入
-```
+1. 从记忆中拿到候选路径。
+2. 用文件系统枚举实际存在的目录。
+3. 用 `git status --short --branch` 确认当前分支和脏改状态。
+4. 用 `git log --oneline -n 8` 确认历史连续性。
+5. 只对最终确认的那一个仓库执行写入和推送。
+6. 若 shell 环境变量失效，立刻回退到显式绝对路径。
 
-## 判断标准
+## 好处
 
-- 优先级一：包含上次有效提交。
-- 优先级二：当前分支与远端同步。
-- 优先级三：工作区干净。
-- 优先级四：路径与自动化 memory 一致。
-
-## 反例
-
-只因为某个路径更短、目录名更熟悉、修改时间更新，就把它当作写入目标。这会导致历史断裂，甚至把新日记提交到落后副本。
-
-## 验证命令
-
-```powershell
-rtk git -C '<repo>' status --short --branch
-rtk git -C '<repo>' log --oneline --decorate -n 8
-rtk git -C '<repo>' pull --ff-only
-```
-
-## 标签
-
-#git #automation #source-of-truth #workflow
-
+- 防止写到旧副本。
+- 防止误判任务完成。
+- 防止把知识沉淀到错误位置。

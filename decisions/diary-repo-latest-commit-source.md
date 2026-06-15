@@ -1,41 +1,30 @@
 ---
 status: active
-date: 2026-06-13
+date: 2026-06-15
 decision_owner: codex-automation
-confidence: 0.92
+confidence: 0.95
 cross_refs:
   - lessons/automation-diary-source-of-truth.md
   - patterns/duplicate-repo-source-of-truth-check.md
 ---
 
-# 日记仓库以最新提交副本为本次写入源头
+# 自动化日记仓库以实际 Git 仓库为准
 
-## 背景
+## Context
 
-`写操作日记提醒` 自动化运行时发现两个 `codex-diary` 本地副本：
+自动化记忆里可能保存旧路径，或者同名仓库存在多个副本。今天再次遇到这一类情况，而且 shell 环境变量也可能失效。
 
-- `D:\CodexPlusPlus\codex-diary`
-- `C:\Users\吴\Documents\Codex\2026-06-02\new-chat\codex-diary`
+## Decision
 
-两者远端均为 `https://github.com/Buruxianhecha/codex-diary.git`。
+日记仓库的最新提交源与写入目标，必须以当前文件系统里确认过的 Git 仓库为准，而不是以记忆中的路径为准。
 
-## 决策
+## Reason
 
-2026-06-13 本次日记写入 `C:\Users\吴\Documents\Codex\2026-06-02\new-chat\codex-diary`。
+- 防止路径漂移。
+- 防止写入旧副本。
+- 防止把 `main` 分支上的连续历史写断。
+- 防止在环境变量失效时误判可写路径。
 
-## 原因
+## Result
 
-- 该副本包含最新提交 `9dc2b6a Add 2026-06-12 operation diary`。
-- 自动化 memory 指向同一提交和路径。
-- 该副本 `main...origin/main` 干净同步。
-- `D:\CodexPlusPlus\codex-diary` 落后到 2026-06-11 的提交 `b493862`。
-
-## 后果
-
-- 今天的日记历史会接在 2026-06-12 之后，不会断链。
-- 后续应更新或废弃 `D:\CodexPlusPlus\codex-diary`，避免重复判断。
-
-## 标签
-
-#decision #codex-diary #git #automation
-
+今天的日记任务将继续落到 `C:\Users\吴\Documents\Codex\2026-06-02\new-chat\codex-diary`，并且显式绝对路径优先于不稳定环境变量。
