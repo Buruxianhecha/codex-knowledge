@@ -1,8 +1,8 @@
 ---
 status: active
 confidence: 0.92
-reuse_count: 2
-last_used: 2026-06-15
+reuse_count: 3
+last_used: 2026-06-21
 verified_in: [codex-diary, codex-knowledge]
 cross_refs:
   - patterns/duplicate-repo-source-of-truth-check.md
