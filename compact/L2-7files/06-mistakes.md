@@ -1,32 +1,21 @@
-﻿# Mistakes — 错误教训
+# Mistakes 压缩版 v4
 
----
+## 近期错误
 
-## 1. OCR 引擎复制粘贴
-**根因**: 选了并行方案但没及时抽象基类
-**预防**: 第二个实现时抽公共接口
+| 错误 | 根因 | 预防 |
+|------|------|------|
+| 豆包脚本成功但客户端未接纳 | 验证过早停止 | 宿主、功能、重启保持都检查 |
+| 李跳跳规则无导入证明 | 截断 JSON 做字符串修复 | 严格解析、golden sample、真实导入 |
+| 凡人中间红 CI | 相互依赖文件分批 push | 首次 push 前完整快照，报告带 SHA |
+| 极简时钟需求漂移 | 善意扩展覆盖排他要求 | 负向清单、DOM/文件树检查 |
+| 拾光测试站说成正式上线 | 混淆 preview 与 production | 结论服从最新深度验收 |
 
-## 2. 死代码残留
-**根因**: 删除路由时只删 @app.route 忘了删函数体
-**预防**: lint 自动检测 + 删除时全文搜索
+## 长期错误
 
-## 3. 硬编码路径
-**症状**: TESSERACT_EXE = "D:\OCR\tesseract.exe"
-**预防**: 环境变量/配置文件统一管理
-
-## 4. GPT SYSTEM_PROMPT 未生效
-**症状**: prompt 常量定义了但 API 调用时没传 system message
-**预防**: LLM API 调用加集成测试
-
-## 5. Flask debug=True 上线
-**风险**: Werkzeug 调试控制台可执行任意 Python
-**预防**: FLASK_ENV 环境变量区分 dev/prod
-
-## 6. 下载接口无鉴权
-**症状**: /download/<token> 没有 @login_required
-**预防**: 所有用户数据路由统一加鉴权装饰器
-
-## 7. Provider 迁移时丢失模型映射
-**症状**: 旧 primary 模型仍在 `models.json`，但 UI/默认入口不再显示
-**根因**: Provider 后端语义变化，primary/fallback/allowed models 被改到新网关
-**预防**: 迁移前后对比 provider、在线模型、本地清单、Chat/Agent/Codex/Fallback 映射
+- OCR 多实现复制粘贴。
+- GPT SYSTEM_PROMPT 定义但未传入。
+- 下载接口缺鉴权。
+- Flask debug 上线。
+- 硬编码路径和 PowerShell 编码误判。
+- Provider 迁移只看模型清单，漏掉默认/allowed 映射。
+- 把文档约定当当前 shell 能力。

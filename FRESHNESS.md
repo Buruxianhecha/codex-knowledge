@@ -1,124 +1,127 @@
-﻿# FRESHNESS.md — 知识保鲜规则
+# FRESHNESS.md 知识保鲜规则 v2
 
-> 知识库不是博物馆，是工具箱。工具必须保持锋利。
+> 稳定原则直接复用，变化技术与时间性事实在使用点重新验证。
 
----
+## 一、回答前流程
 
-## 一、回答前检查流程
-
-```
-用户提问
-    │
-    ├─ 知识库有相关条目？
-    │   ├─ 是 → 条目是否涉及有时效性的技术？
-    │   │   ├─ 是 → 联网验证 → 对比 → 更新或确认
-    │   │   └─ 否 → 直接使用
-    │   └─ 否 → 正常回答 + 判断是否值得入库
-    │
-    └─ 完成回答后 → 检查是否有需要标记过时的旧条目
+```text
+找到相关知识
+  -> 判断是否有时效性
+      -> 稳定原则：直接使用
+      -> 变化事实：查官方/一手来源
+  -> 对比旧结论
+  -> 保留、更新或标记过时
+  -> 记录验证日期和适用范围
 ```
 
-## 二、需要验证时效性的技术类别
+## 二、主动重验类别
 
-以下类别**主动验证**（联网检索最新信息）：
+| 类别 | 默认频率 | 检查内容 |
+|------|----------|----------|
+| AI 模型/API | 每次关键配置前 | 模型、参数、价格、缓存、usage、弃用 |
+| LLM Provider | 每次迁移/排障 | 真实后端、在线列表、本地清单、全部映射 |
+| Web/Python 生态 | 新项目或过期后 | 版本、breaking change、依赖和 CVE |
+| OCR 引擎 | 每次新项目 | 版本、语言包、输出变化 |
+| OAuth/认证 | 每次正式接入 | 平台流程、scope、callback、安全要求 |
+| 第三方平台自动化 | 每次运行前 | 平台规则、页面结构、风控和授权 |
+| GitHub 限额/Actions/Pages | 每次大上传或部署前 | 文件、对象、push、仓库、站点、带宽、runner |
+| 安全实践 | 每 3 个月或相关任务 | 新 CVE、框架建议、token 处理 |
+| 部署服务 | 每 6 个月或发布前 | 免费额度、限制、区域、构建和流量 |
+| 市场/价格数据 | 每次引用 | 时间、单位、盘中/收盘、修订和来源 |
+| 新闻/人物/组织事实 | 每篇稿件 | 资料截止日、身份变化、后续更正 |
 
-| 类别 | 检查频率 | 示例 |
-|------|----------|------|
-| AI 模型 API | 每次使用前 | OpenAI API, Provider 映射, 模型列表, pricing/cache behavior |
-| Web 框架 | 新项目启动时 | Flask, FastAPI 最新版本和 breaking changes |
-| Python 生态 | 新项目启动时 | 依赖版本, 弃用警告 |
-| OCR 引擎 | 每次涉及 OCR 时 | PaddleOCR, Tesseract 版本 |
-| 部署方案 | 新项目部署前 | Supabase, Vercel 免费额度和限制 |
-| 安全实践 | 每次涉及安全时 | Flask debug 风险, 最新 CVE |
-| 第三方服务 | 每季度 | Supabase API 变更, API 网关定价和模型路由 |
+## 三、稳定类别
 
-### LLM Provider 特别规则
+一般无需联网：
 
-Provider/API 网关配置属于高时效知识。每次迁移或排障时都要重新验证：
+- 算法和数据结构。
+- 设计模式与状态机不变量。
+- 用户明确偏好。
+- Debug 与证据方法。
+- “空值优于假数据”“结论不超过证据”“未验证不算完成”等工程原则。
 
-- 当前 provider 名称是否仍对应预期后端。
-- 在线模型列表是否包含默认模型和 fallback 模型。
-- 本地 `models.json` 是否与在线列表一致。
-- Chat/Agent/Codex/Fallback 是否指向真实存在的模型。
-- usage、cache read/write、价格字段是否正常返回。
-- 是否有代理、环境变量或 fallback 把请求路由到其他模型。
+稳定类别在出现反例或替代方案时重新评估。
 
-## 三、不需要验证的类别
+## 四、Provider 特别规则
 
-以下**直接用经验库**，不联网：
+Provider 名称不证明真实后端。每次迁移检查：
 
-| 类别 | 原因 |
-|------|------|
-| 算法/数据结构 | 不变 |
-| 设计模式 | 不变 |
-| 工程原则 | 不变（"第二个实现时抽象"永远成立） |
-| 用户偏好 | 只有用户自己能改变 |
-| Debug 方法论 | 不变 |
-| 代码组织原则 | 缓慢变化 |
+- provider 名称和 base URL 语义。
+- 在线模型列表。
+- 本地 `models.json`。
+- primary、fallback、Chat、Agent、Codex 和 allowed/default models。
+- usage、cache read/write 和价格字段。
+- 代理、环境变量或 fallback 是否改变路由。
 
-## 四、检索后的处理
+## 五、GitHub 限额快照
 
-不是"复制粘贴搜索结果"，而是：
+截至 2026-08-26，官方文档确认：
 
-### 对比
+- 浏览器上传单文件 25 MiB。
+- 普通 Git 单对象强制 100 MiB，官方推荐尽量不超过 1 MiB。
+- 单次 push 强制 2 GiB。
+- 仓库理想低于 1 GB，低于 5 GB属强烈建议。
+- GitHub Pages 发布站点不超过 1 GB，软带宽 100 GB/月，默认构建软限制 10 次/小时。
+
+这是一份快照，不是永久常量。使用前查看 GitHub 官方：repository limits、large files、adding a file、Pages limits。
+
+## 六、写作和研究保鲜
+
+- 每篇时间性研究写 `资料截止日`。
+- 后续引用旧稿时重新检查关键人物、组织、平台功能、法规和数字。
+- 材料哈希只证明版本一致，不能替代事实重验。
+- 新闻数量不能代替来源独立性。
+- 新证据推翻旧叙事时，保留旧稿时间背景并增加更正/替代关系。
+
+## 七、数值最终性
+
+时间序列数据至少记录：
+
+```text
+observed_at
+market_date
+timezone
+unit
+state: realtime | intraday | close | settlement | revised
+is_final
+source
+supersedes
 ```
-旧知识: Flask session secret 用 secrets.token_hex(32)
-新文档: Flask 3.x 推荐 secrets.token_urlsafe()
-→ 结论: 两者都安全，旧方案仍有效，无需更新
-```
 
-### 提炼
-```
-搜索结果: 5000 字 changelog
-提炼为: "Flask 3.1 废弃了 before_first_request，改用 init_app 中的 with app.app_context()"
-入库: 一条简洁的 lessons/ 条目
-```
+盘中值不得在没有最终确认时标成收盘。预测、实际和事后标注分开保存。
 
-### 更新
-```
-旧条目: patterns/xxx.md
-发现: 有更简洁的实现
-操作: 旧条目标记 superseded，指向新条目
-```
+## 八、检索后处理
 
-## 五、淘汰标记格式
+1. **对比**：旧结论和新来源是否冲突。
+2. **提炼**：只保留对使用有影响的变化。
+3. **更新**：修改当前条目并记录验证日期。
+4. **演化**：旧方案保留 `superseded/deprecated` 和替代路径。
+5. **引用**：记录一手/官方来源，不复制大段搜索结果。
 
-当旧方案不再适用时：
+## 九、过期动作
 
-```markdown
+```yaml
 ---
 status: deprecated
-since: 2026-05-25
-deprecated_since: 2026-06-15
-reason: Flask 3.1 废弃了 before_first_request
-migration_guide: lessons/flask3-upgrade.md
+deprecated_since: 2026-08-26
+reason: 具体失效原因
+replaced_by: lessons/new-rule.md
+last_verified: 2026-08-26
 ---
 ```
 
-## 六、稳定最佳实践的形成标准
+## 十、最佳实践晋升
 
-一条经验升级为"稳定最佳实践"需要：
+- 2 个以上项目成功应用可升级 `verified`。
+- 3 个以上项目且至少 3 个月未被推翻，才评估 `best_practice`。
+- 不依赖版本号，有对应检查清单或模板。
+- 失败案例和反证已纳入适用边界。
 
-- [ ] 在 2+ 个项目中成功应用
-- [ ] 至少 3 个月内未被推翻
-- [ ] 不依赖特定版本号
-- [ ] 有对应的代码模板
+## TL;DR
 
-满足后，在条目中标记：
-```markdown
----
-status: best_practice
-since: 2026-05-25
-verified_in: [project-a, project-b, project-c]
-stability: high
----
-```
-
-## 七、TL;DR 原则
-
-- **稳定知识用缓存**（算法、设计、原则）
-- **变动技术要验证**（API、框架、模型）
-- **Provider 映射要重查**（名称、后端、模型、fallback 可能随配置变化）
-- **检索后要蒸馏**（不复制粘贴）
-- **过时要标记**（不删除，指向替代方案）
-- **验证过的要升级**（active → verified → best_practice）
+- 稳定原则直接用。
+- 变化事实在使用点重验。
+- 研究写截止日和证据边界。
+- 数值写时间、单位和最终性。
+- 检索后蒸馏，不复制。
+- 过时标记，不删除。

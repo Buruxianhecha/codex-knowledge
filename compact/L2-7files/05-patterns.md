@@ -1,39 +1,25 @@
-﻿# Patterns — 可复用模式
+# Patterns 压缩版 v4
 
----
+## 多引擎择优
 
-## 1. 多引擎并行择优 [verified]
+多个引擎都能产出时并行执行，按可量化质量/成本评分选择，而不是模糊的“失败后降级”。
 
-```
-输入 → [引擎A]→评分A ┐
-     → [引擎B]→评分B ├→ max(评分) → 输出
-     → [引擎C]→评分C ┘
-```
-适用: 多种算法都能处理同一输入，质量取决于输入特征。
-代码: MultiEngineExtractor 类（见 templates）
+## 输出质量门控
 
----
+结果进入用户输出前检查结构、填充率、异常和完整性；不合格时留空或降级。
 
-## 2. 渐进式 Schema 迁移 [verified]
+## Auth Provider 边界
 
-```python
-def migrate():
-    cols = [row[1] for row in conn.execute("PRAGMA table_info(t)")]
-    if "new_field" not in cols:
-        conn.execute("ALTER TABLE t ADD COLUMN new_field TEXT DEFAULT ''")
-```
-检测→按需添加，幂等安全。不丢数据，可渐进升级。
+UI -> AuthService/AuthStore -> MockProvider/RealProvider。外部身份映射内部 userId，secret/token 只在服务端。
 
----
+## 单调存档事务
 
-## 3. 轻量 Supabase REST 客户端
+读取更晚快照 -> 拒绝旧页 -> 纯状态转换 -> 拒绝倒退 -> 同步写盘 -> 更新 UI。
 
-不用官方 SDK，httpx 直接调 REST API。自己管理 anon key 和 Bearer token。
-Auth + Storage + DB 全覆盖，零额外依赖。
+## 单文件 VM 测试壳
 
----
+提取 HTML 内联脚本，在 Node vm 注入最小 DOM/localStorage 和可控随机数。覆盖状态行为，不替代视觉/真机。
 
-## 4. 输出质量门控 [verified]
+## 证据账本
 
-原始数据 → 质量检查(填充率/结构完整性/异常检测) → 合格输出 / 不合格丢弃。
-适用于所有 AI/ML/OCR 管道。
+材料表记录来源、日期、定位和哈希；命题表记录支持、反证、允许措辞和禁止升级。多智能体共用同一 Schema。

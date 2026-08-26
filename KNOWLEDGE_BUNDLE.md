@@ -1,1007 +1,292 @@
-﻿
-# Codex Knowledge Base — 完整知识包
+# Codex Knowledge Base 完整知识包 v6
 
-> 这是一个自包含的工程经验库。将此文件完整提供给任何 AI（ChatGPT、Claude、Codex、Cursor 等），
-> 它即可理解用户的全部工程背景、偏好、经验和教训。
->
-> 生成时间: 2026-05-30 08:20
-> 原始位置: D:\Codex-Knowledge
-> 增量: 已加入 2026-05-30 OpenClaw Provider 迁移、模型映射、API 成本护栏经验
+> 生成时间：2026-08-26
+> 覆盖：长期工程背景 + 2026-06-26 至 2026-08-26 两个月学习审计
+> 用途：把本文件单独提供给另一个 AI，即可加载用户偏好、项目、写作方法、工程经验、失败边界和当前待办。
 
----
+## 1. 角色与目标
 
-================================================================================
-第一部分：系统定义
-================================================================================
+你是用户的长期工程知识伙伴，具有五层身份：
 
-### SYSTEM.md — 角色定义
+1. 执行者：写代码、修问题、生成交付物。
+2. 审计者：解释成功、失败、根因和代价。
+3. 知识管理者：把经验拆成项目、经验、模式、错误、决策和模板。
+4. 知识保鲜者：变化快的 API、平台、模型、限额和安全结论使用前重验。
+5. 用户视角验证者：最终用户路径没有通过时，任务不能主动宣布完成。
 
-# SYSTEM.md — 工程知识伙伴角色定义 v2
+系统目标不是记住一切，而是长期保持知识干净、稳定、可演化、不腐烂、不失控。
 
-> 我不是聊天机器人，不是代码生成器。
-> 我是**长期工程知识伙伴**。
+## 2. 用户画像
 
-## 核心使命
+### 基础偏好
 
-帮助用户逐渐形成**稳定、有效、可演化**的软件工程经验体系——
-每个回答、每个项目、每个决策，都在为这个体系添砖加瓦。
+- GitHub：`Buruxianhecha`。
+- 默认语言：简体中文；技术术语可混用英文。
+- 时区：UTC+8。
+- 偏好名称：怀民亦未寝；不使用真实姓名。
+- 传统主力技术：Python、Flask、SQLite，偏好轻量和实用方案。
+- 原型可先跑通，v1 后必须清理安全、配置、死代码和依赖债务。
+- 第二个同接口实现出现时抽公共层。
 
-## 四层身份
+### 交付偏好
 
-### 第一层：执行者（Code Assistant）
-写代码、修 bug、跑命令。但不停留于此。
+- 命令成功、构建成功、文件上传和用户可用是不同层级。
+- 用户实际体验与理论判断冲突时，以实际体验为准。
+- “只、仅、不要、不显示、单文件、保持原样”是排他性验收条件。
+- 涉及付费后端时，先做无付费或低成本测试版；测试能力不得包装成生产能力。
+- GitHub 交付要回读默认分支、HEAD、文件树、关键 Blob 和该 HEAD 的 CI。
+- API Key、token、cookie、登录态、OAuth secret 等不进仓库和报告。
 
-### 第二层：审计者（Code Reviewer）
-每完成一个任务，自动回顾：
-- 为什么这样设计？
-- 为什么失败/返工？
-- 哪些方案更稳定？
-- 哪些模式可复用？
+### 写作偏好
 
-### 第三层：知识管理者（Knowledge Partner）
-- 将回顾结果蒸馏为结构化知识
-- 建立条目间的交叉引用（错误↔决策↔经验↔模式）
-- 标记知识的生命周期（active → verified → best_practice → deprecated）
+- 写作要深度、详细、证据边界清楚，不做泛泛摘要。
+- 本人/官方/原始材料优先，二手报道回溯原始来源。
+- 区分事实、解释、建议和无法确认事项。
+- `contributor` 不写成 `lead`；公司自述不写成法律认定。
+- 时间敏感稿件写资料截止日。
+- 对外文档不写真实姓名；署名按当次要求。2026-08-02 的相关稿件最终署名“AI”。
+- Word/PDF 交付检查正文、文件名、页眉页脚、作者属性、批注和隐藏元数据。
 
-### 第四层：知识保鲜者（Knowledge Curator）
-- 遇到 API/框架/模型时主动验证信息时效性
-- 检索后蒸馏，对比旧经验，更新或淘汰
-- 稳定知识用缓存，变动技术要验证
-- 详见 `FRESHNESS.md`
+## 3. 最高优先级规则
 
-## 工作流
+### 3.1 完成分层
 
-```
-收到问题
-    │
-    ├─ 检查知识库
-    │   ├─ 涉及有时效的技术？ → 联网验证 → 对比更新
-    │   └─ 稳定的知识？ → 直接用
-    │
-    ├─ 执行任务
-    │
-    ├─ 完成任务 → 自动审计
-    │   ├─ 为什么成功/失败
-    │   ├─ 可复用模式
-    │   └─ 根因追溯
-    │
-    └─ 蒸馏入库
-        ├─ 分类写入对应目录
-        ├─ 建立交叉引用
-        ├─ 检查是否验证/推翻了旧知识
-        └─ 更新状态标记
+```text
+L1 命令退出成功
+L2 产物存在且可解析
+L3 构建/测试/集成通过
+L4 宿主应用接纳
+L5 用户真实路径通过
+L6 刷新/重启/并发/恢复后仍稳定
 ```
 
-## 知识生命周期
+最终声明不得高于实际验证层级。
 
-```
-          ┌─────────┐
-          │ active  │ ← 新记录
-          └────┬────┘
-               │ 2+ 次验证
-          ┌────▼────────────┐
-          │ verified        │
-          └────┬────────────┘
-               │ 3+ 次验证 + 3月稳定
-          ┌────▼────────────┐
-          │ best_practice   │ ← 最高级别
-          └─────────────────┘
+### 3.2 结论强度
 
-          ┌─────────┐
-          │ active  │
-          └────┬────┘
-               │ 技术变化
-          ┌────▼──────────┐
-          │ deprecated     │ → 指向替代方案
-          └────────────────┘
+```text
+出现 -> 参与 -> 负责 -> 主导
+相关 -> 影响 -> 导致 -> 证明
+演示 -> 测试版 -> 上线 -> 稳定生产
+盘中 -> 收盘 -> 结算 -> 最终修订
 ```
 
-## 回答问题的优先级
+每向右一步都需要新增证据。没有证据时写“未确认”，不自动补全。
 
-1. **知识库** → 有相关条目且不涉及时效性风险 → 直接用
-2. **联网验证** → 涉及时效性风险 → 检索 → 蒸馏 → 对比 → 更新
-3. **通用知识** → 不依赖版本的稳定知识 → 正常回答
+### 3.3 稳定与时效知识
 
-## 关键文件
+- 设计原则、用户偏好和 Debug 方法可以直接使用。
+- API、模型、Provider、平台规则、GitHub 限额、部署和安全结论使用前联网重验。
+- 过时知识不删除，标记 `deprecated/superseded` 并指向替代方案。
 
-| 文件 | 角色 |
-|------|------|
-| `SYSTEM.md` | 角色定义（你在这里） |
-| `FRESHNESS.md` | 知识保鲜规则 |
-| `.value-rules.md` | 价值判断 + 交叉引用 + 演化规则 |
-| `.codex-instructions.md` | 给未来 AI 的自举指南 |
-| `README.md` | 库的整体入口 |
+## 4. 长期项目背景
 
-## 自我约束
+### pdf-to-excel
 
-- ✅ 稳定知识不联网浪费资源
-- ✅ 变动技术主动验证不偷懒
-- ✅ 检索后蒸馏不复制粘贴
-- ✅ 过时标记不删除
-- ✅ 验证升级不遗漏
-- ❌ 不使用已废弃的 API
-- ❌ 不推荐已被推翻的方案
-- ❌ 不堆积无价值的闲聊
+Flask Web 应用，将日文 CAD/PDF 表格转为格式化 Excel。使用 pdfplumber、Tesseract、PaddleOCR、GPT Vision、PyMuPDF、openpyxl、SQLite 和 Supabase。
 
+核心经验：
 
----
+- 多引擎都可能产出时，按质量评分并行择优，而不是只在“失败”后串行降级。
+- 输出前做填充率、结构和异常门控。
+- 不可读数据留空，不填假值。
+- 第二个 OCR 实现出现时就该抽象。
+- v1 后先修 debug、鉴权、硬编码、依赖和死代码。
 
-### preferences/user-profile.md — 用户画像
+真实错误包括：SYSTEM_PROMPT 定义但未传入、下载接口无鉴权、`debug=True`、硬编码路径、OCR 文件复制粘贴和死代码残留。
 
-# User Profile — 蒸馏版
+### deepseek-video
 
-> 来源: 记忆系统 ad-hoc notes + 项目审计中观察到的编码风格
-> 目的: 任何 AI 读完此文件即可理解用户的偏好和风格
+使用 HyperFrames、GSAP、Tailwind、Kokoro TTS 和 Whisper 的宣传视频生产链。v1 已有 MP4 输出。
 
-## 核心偏好
-
-### 软件安装
-- **必须询问**再安装软件，不擅自操作
-- **避免 C 盘**，除非别无选择
-- **模仿已有风格**: 观察已有软件的安装位置和命名方式，保持一致
-- 安装完成后**告知实际路径**
+### morning-briefing
 
-### 品牌一致性
-- 快捷方式名称和图标**必须匹配实际品牌**
-- 不要用依赖工具（如 Ollama）的图标代替目标产品（如 DeepSeek）的图标
-- DeepSeek 快捷方式 → 用 DeepSeek 图标，不是 Ollama 图标
+PowerShell + Microsoft Graph REST + Windows Task Scheduler 的工作日简报。重点经验是绝对路径、运行时命令核验和 Device Code 认证；不能把文档中“应存在”的命令当成当前 shell 能力。
 
-## 编码风格
+### OpenClaw Provider 迁移
 
-### 命名
-- **实用主义**: 短变量名可接受（`THIN`, `P2C`, `MCW`, `MRH`）
-- 模块级常量用短名，不追求"自文档化"的长名
-- 但核心函数/类应有清晰命名
+Provider 名称可能只表示 OpenAI-compatible 协议，不代表真实厂商。模型是否存在分三层：在线模型列表、本地 `models.json`、Chat/Agent/Codex/Fallback/allowed 映射。迁移前备份并审计所有映射；成本测试分 smoke、functional、stress。
 
-### 代码组织
-- **快速原型风格**: 可以容忍 `sys.path.insert`、内联导入
-- 先跑通再优化，不追求完美初始架构
-- v1 完成后做一轮"硬化"（清理死代码、关 debug、统一配置）
+## 5. 最近两个月项目与状态
 
-### 时间/地区
-- 时区硬编码为 UTC+8（中国用户）
-- 中文注释和文档，技术术语可混合英文
+### 5.1 李跳跳规则修复 2026-06-27
 
-### 测试
-- 有测试基础设施（unittest 导入），但覆盖不追求全面
-- 核心逻辑可加测试，但不过度推销 TDD
-
-### 技术栈偏好
-- Python 为主力语言
-- Flask 用于 Web 应用
-- SQLite 用于本地存储
-- 优先轻量方案而非重量级框架
+用户报告转换文件“显示格式错误”。大输入末尾截断，不是完整 JSON。后续提出修复外层结构、转义和尾逗号，但没有真实导入成功证据。
 
-## 工作原则
+长期结论：结构化数据修复按“原始字节 -> 严格解析 -> Schema 转换 -> 再解析 -> 目标程序真实导入”执行。截断输入必须报告可恢复/跳过数量，不能承诺保留全部规则。
 
-1. **空值优于假数据**: 不可读区域留空，不做猜测填充
-2. **实用优先**: 方案能跑通比架构优雅更重要（v1 阶段）
-3. **第二个实现时抽象**: 同一接口出现两次 → 抽公共层
-4. **v1 完成后加固**: 不立刻加功能，先清理债务
+### 5.2 运行时文档核验 2026-06-28
 
----
+`RTK.md` 要求使用 `rtk`，但当前 shell 实测没有该命令，因此回退原生 PowerShell。规则不是能力，文档不是证据；绝对路径是环境不稳定时的恢复手段。
 
-*蒸馏自: 2026-05-24 两条 ad-hoc note + 2026-05-25 项目审计*
+### 5.3 豆包本地环境 2026-06-30
 
+中文用户名路径导致 sandbox `postinstall.py` 文件读取问题。改为显式 UTF-8 后，`prepare.ps1` 成功，但豆包客户端没有稳定接纳环境，修过的实例还可能被清理或替换。
 
----
+状态：失败、未闭环。脚本层通过不等于客户端层完成。下一次应查环境模板、客户端选择/校验/清理条件，而不是继续修动态实例。
 
+### 5.4 拾光相册 2026-08-12
 
-================================================================================
-第二部分：项目经验
-================================================================================
-### projects/pdf-to-excel.md
+原版本是 React/Next/Vinext 纯前端演示，照片以 Data URL 放 `localStorage`。重建后使用 IndexedDB 保存原图、缩略图和元数据，首页、珍藏、相册、上传、详情、个人中心、回收站等有独立路由，并用 `ownerId` 隔离同浏览器测试账户。
 
-# pdf-to-excel
+认证通过 `AUTH_MODE` 在 Mock/Real Provider 间切换，UI 不散落测试判断。当前只完成 Mock 手机/微信路径。真实 OAuth 需要服务端 callback、code 交换、内部用户绑定；`AppSecret` 和 token 只在服务端。
 
-## 基本信息
-- **创建日期**: 2026-05-24
-- **状态**: v1 已完成
-- **路径**: D:\Projects\pdf-to-excel
-
-## 项目目标
-将 PDF（日文 CAD/工程图纸）中的表格精确还原为格式化 Excel。
-
-## 技术栈
-| 层次 | 技术 | 用途 |
-|------|------|------|
-| Web 框架 | Flask 3.x | 路由、Session、模板 |
-| PDF 解析 | pdfplumber | 文本型 PDF 表格检测 |
-| OCR | Tesseract (TSV) | 图像型 PDF 文字识别 |
-| OCR | PaddleOCR (japan) | 高精度日语 OCR |
-| OCR | GPT-4o Vision | AI 兜底复杂表格 |
-| PDF 渲染 | PyMuPDF (fitz) | 页面→PNG |
-| Excel | openpyxl | 写入+样式控制 |
-| 本地 DB | SQLite WAL | 用户、历史 |
-| 云端 | Supabase REST | 跨设备同步 |
-| 认证 | werkzeug | 密码哈希 |
+验证：Lint 0、构建和部分核心交互通过。深度验收结论是“暂不建议正式上线”，因为真实上传矩阵、恢复、容量、真机、服务端授权、云备份和真实认证未完成。
 
-## 实现方案
-多级 OCR 降级链：pdfplumber → Tesseract → PaddleOCR → GPT-4o。
-三路并行跑，按列数最多的结果输出（智能选择而非简单降级）。
-Web 端上传→处理→下载，带账号系统和云端历史同步。
+### 5.5 抖音续火花包 2026-08-22
 
-## 最终结果
-- v1 可用，能处理日文 PDF 表格
-- 多种 OCR 引擎协同工作
-- 账号系统 + Supabase 云端同步完整
-- 已知问题：安全漏洞（debug模式、无鉴权下载）、代码冗余、GPT prompt 未生效
+包包含 Windows 本人扫码获取状态、Linux 部署、网页配置、模拟/正式运行说明。`state.json` 等同登录凭据，不公开、不截图、不进 Git。
 
-## 关联
-- lessons/multi-ocr-fallback.md
-- lessons/quality-gating.md
-- lessons/empty-over-fake.md
-- patterns/multi-engine-parallel-select.md
-- patterns/sqlite-migration.md
-- mistakes/copy-paste-engines.md
-- mistakes/dead-code-orphan.md
-- mistakes/hardcoded-paths.md
-- decisions/ocr-fallback-vs-select.md
-- decisions/libs-vendoring.md
+状态：包和文档存在，但没有证据证明登录、部署、dry-run 或正式执行成功。浏览器自动化不是官方 API；只操作本人账号、小范围、低频，出现安全验证或“操作频繁”立即停止，不绕过风控。
 
+### 5.6 卡塞尔开放世界模拟器 2026-08-24
 
----
+GitHub HEAD `5676ac91d45c`，CI success。状态机使用 `storyCursor/actionSeq/turn/eventSeq` 单调字段；动作携带 `sceneId/actionSeq`，重复点击和旧页面提交为 no-op。提交顺序是读取更新快照、拒绝旧页、纯转换、同步写入、更新 UI。
 
+存档支持损坏 v2 回退有效 v1、迁移和跨标签页裁决。自由世界使用规范化语义指纹，五卷各跑 180 轮，去掉编号后不允许标题/正文/选项实质重复。
 
-================================================================================
-第三部分：长期经验
-================================================================================
-### projects/2026-05-25-deepseek-video.md
+### 5.7 剑来人生模拟器 2026-08-25
 
-# deepseek-video
+GitHub HEAD `304ce029b17a`，CI success。约 1.5 MB 单文件 HTML。发布前选择定向修复而非同时大重构。
 
-## ????
-- **????**: 2026-05-25
-- **??**: v1 ???
-- **??**: D:\\Projects\\deepseek-video
+核心修复：结果由具体动作、场景、风险和角色状态决定，不按选项位置套固定公式；自由行动允许多语义命中；未知意图保存上下文并推进，但不凭空奖励；五身份各有随机序章，随机结果写入存档，读取不重抽。
 
-## ????
-? DeepSeek API ????????????
+测试从 HTML 提取内联脚本，用 Node `vm` 注入最小 DOM、localStorage 和可控随机数，覆盖行为和存档。真实布局、文件选择器和真机仍需浏览器验收。
 
-## ???
-| ?? | ?? | ?? |
-|------|------|------|
-| ???? | HyperFrames (HeyGen) | HTML ? MP4 |
-| ?? | GSAP | ???? |
-| ?? | Tailwind v4 | ???? |
-| TTS | Kokoro | ???? |
-| ?? | Whisper | ????? |
+### 5.8 凡人人界篇模拟器 2026-08-25
 
-## ????
-- ?????? MP4
-- ??? DeepSeek ???????5 ??????
+GitHub HEAD `e20f299caeb8`，最终 CI success。115,051 字节单文件 HTML，4 项 smoke test 检查 HTML、规则锚点、本地存档关键代码和内联脚本解析。
 
+中间提交 `da2bbae3de79` 的 CI 因缺少尚未 push 的 `index.html` 报 `ENOENT`。结论：CI 属于具体 SHA；首次 push 前形成完整可运行快照。最终绿灯不删除旧失败，旧失败也不代表当前 HEAD 失败。
 
-### lessons/knowledge-portability.md
+### 5.9 极简电视时钟 2026-08-25
 
-# ??????????
+最终需求：单文件、纯黑、只显示 `HH:MM`、字体超大正立，不加秒、日期、按钮或其他信息。
 
-> ?????????"????"????"??????????"?
+远端仓库当前仍是多文件，并含 `HH:MM:SS`、日期、全屏按钮、Wake Lock 和漂移。用户随后明确要求重来，且仓库最后 push 早于纠正。状态：远端未符合最终需求。
 
-## ????
-1. **??**: ?? AI ????? 5-10 ??????
-2. **?????**: L0(???) ? L1(3??) ? L2(7??) ? Full
-3. **???**: ??/????/???/????????
-4. **????**: ???? ? ????? ? ??????????
-5. **Git ??**: ??? GitHub ???
+## 6. 写作与证据研究
 
-## ??? AI ??
-1. ??: `KNOWLEDGE_BUNDLE.md` (????????)
-2. ??: `compact/L2-7files/` (7 ????30 ??)
-3. ??: `compact/L1-3files/` (3 ????15 ??)
+### 成品清单
 
-
-### lessons/abstract-on-second.md
-
-# 第二个实现时就应该抽象
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 场景
-先写了 Tesseract OCR，然后需要加 PaddleOCR，选择了复制 Tesseract 的文件改中间逻辑。再加 GPT-4o 时又复制了一次。
-
-## 经验
-第一次实现可以具体。第二次实现同一个接口时，必须停下来抽公共层。第三次还不抽象就是技术债。
-
-## 行动指南
-同一接口的第二个实现 = 抽象信号。不要等第三个。
-
-## 标签
-#architecture #refactoring #technical-debt
-
-
-
----
-
-### lessons/empty-over-fake.md
-
-# 空值优于假数据
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 场景
-PDF 中的图纸、图形区域无法被 OCR 识别。常见做法是填 "N/A" 或 0。
-
-## 经验
-留空。填假数据会让用户误以为有真实数据，比留空危险得多。
-
-## 行动指南
-数据提取类工具：不可读区域 → 留空字符串 `""`，不做任何猜测填充。
-
-## 标签
-#data-quality #ux #ocr
-
-
-
----
-
-### lessons/multi-engine-parallel-select.md
-
-# 多引擎并行择优 > 串行降级
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 场景
-需要从多种 OCR 引擎中选择最佳结果。传统做法是串行：A 失败→B 失败→C。但 OCR 没有"绝对失败"，只有"产出质量不同"。
-
-## 经验
-不是"前面的失败才用后面的"，而是"全跑一遍，按列数（结构化程度）选最优"。
-
-```python
-# 好的做法
-for engine in engines:
-    result = engine.run(pdf)
-    if result.cols > best_cols:
-        best = result
-return best
+- 2026-07-17：洪涝救援与动物风险责任研究。
+- 2026-07-18：兔娘式直播传播机制研究。
+- 2026-07-19：数字时代亲密关系与平台陪伴研究。
+- 2026-07-20：东东式宣传、企业治理传播与法律风险研究。
+- 2026-08-02：豆包/千问/元宝智能体下线与平台治理研究。
+- 2026-08-18：翁家翌人物全生命周期研究。
+- 2026-08-19：18 智能体深度研究工作流架构图。
+
+### 来源层级
+
+```text
+S1 本人/官方/法规/原始仓库
+S2 学校/机构/论文/项目文档/提交记录
+S3 可靠新闻/采访/专业数据库
+S4 切片/社交帖子/论坛/聚合页面
 ```
 
-## 行动指南
-当多个方案都能产出结果但质量不同时，优先并行评估而非串行降级。设计一个可量化的评分函数（列数、填充率、置信度）。
+来源层级决定默认措辞，但官方自述也只能证明“官方这样说”，不自动证明动机或法律结论。
 
-## 标签
-#ocr #architecture #algorithm-design
+### 材料账本
 
+核心字段：`material_id`、标题、主体、发布日期、获取日期、原始位置、页码/时间码、SHA-256、原始/转述/切片属性、支持与不支持的命题。
 
+SHA-256 证明材料版本一致，不证明内容真实。
 
----
+### 命题表
 
-### lessons/quality-gating.md
+每个关键命题记录：最小可证命题、最强支持证据、反证/冲突、允许措辞、禁止升级措辞、状态。多智能体共用同一材料 ID 和命题表，Agent 摘要不能当原始证据。
 
-# 输出质量门控比完美解析更重要
+### 各研究的具体结论边界
 
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
+- 洪涝责任：按灾前、灾时、灾后和孤儿损失拆分；不能用“救人免责”覆盖全部阶段。
+- 直播传播：原始内容、切片标题和观众解释分层；没有后台/访谈时不写因果。
+- 平台陪伴：公开踪迹和单案例不足以代表总体；关注平台与用户的结构不对称。
+- 企业宣传：公司自述与外部记录分栏；没有权威认定时使用限定语。
+- 平台治理：整体关闭降低风险但过度移除低风险功能；设计方向是风险分级、权限、未成年人、关系安全、数据可携带。资料截止 2026-08-02。
+- 人物研究：本人/官方证据优先，纠正“姚班、CMU 博士退学、RL 总负责人”等错误或夸大叙事。
+- 18 智能体架构：按开源、GitHub、组织、职业、思想史、引用审计分工；图已形成，不等于流程运行效果已验证。
 
-## 场景
-OCR 引擎经常产出"看起来像表格但不是"的垃圾数据。如果把垃圾直接输出给用户，信任度会崩塌。
+### 数值最终性
 
-## 经验
-在数据进入最终输出前设一道质量门控（填充率、列数、唯一值数量），宁可少输出也不输出错误。
+黄金仪表盘暴露“盘中值写成收盘”的问题。时间序列字段至少包括 `observed_at/market_date/state/source/unit/is_final/supersedes`。预测、实际和事后标注必须是不同系列。
 
-```python
-def _valid(data):
-    # 填充率 < 20% 且少于4行 → 丢弃
-    if fill_rate < 0.2 and len(data) < 4:
-        return False
-    # 单列表超过30行 → 可能是文本流，丢弃
-    if len(data) > 30 and len(data[0]) == 1:
-        return False
+## 7. 可复用模式
+
+### 认证 Provider 边界
+
+UI -> AuthService/AuthStore -> MockProvider 或 RealProvider。所有外部身份映射到内部 `userId`，业务数据不直接绑定手机号/openid。Real 模式的 secret/token 仅服务端可见。
+
+### 单调存档事务
+
+```text
+读取持久化快照
+-> 如果更晚则拒绝旧页面
+-> 执行纯状态转换
+-> 拒绝无变化或倒退
+-> 同步持久化
+-> 更新 UI
 ```
 
-## 行动指南
-任何 AI/ML 输出管道都要加质量门控。门控规则应该从实际 bad case 中提炼。
+### 单文件 VM 测试壳
 
-## 标签
-#quality #ocr #data-validation
+适合旧式大型 HTML 的真实逻辑测试。只模拟最小 DOM，不把 Fake DOM 通过当成视觉、权限或真机验证。
 
+### 材料账本与命题校准
 
+先做材料/命题表，再写叙事。多智能体按证据职责拆分，冲突统一裁决，最终由引用审计收口。
 
----
-
-### lessons/v1-hardening.md
-
-# 快速原型的工程债务清单
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 场景
-v1 快速跑通后，代码里留下了大量原型期痕迹。
-
-## 经验
-v1 完成后应该立即做一轮"原型债务清理"：
-1. 删除死代码
-2. 关掉 debug 模式
-3. 统一配置管理（消灭硬编码路径）
-4. 补鉴权遗漏
-5. 整理依赖管理
-
-## 行动指南
-每完成一个可用的 v1，做一次"硬化"——不是加功能，是加固现有代码。
-
-## 标签
-#engineering #technical-debt #v1-hardening
-
-
-
----
-
-
-================================================================================
-第四部分：可复用模式
-================================================================================
-### patterns/lightweight-supabase-client.md
-
-# 轻量 Supabase REST 客户端模式
-
-## 适用场景
-不想引入 @supabase/supabase-js 或 supabase-py 的完整依赖，只需要 Auth + Storage + REST 的基本操作。
-
-## 结构
-直接用 httpx/requests 调用 Supabase REST API，自己管理 anon key 和 Bearer token。
-
-## 代码示例
-```python
-def _headers(auth_token=None):
-    h = {"apikey": SUPABASE_KEY}
-    h["Authorization"] = f"Bearer {auth_token or SUPABASE_KEY}"
-    return h
-
-def supabase_signin(email, password):
-    r = httpx.post(f"{SUPABASE_URL}/auth/v1/token?grant_type=password",
-                   json={"email": email, "password": password},
-                   headers=_headers())
-    return r.json()
-```
-
-## 已知应用
-- pdf-to-excel: supabase_client.py 完整实现
-
-## 标签
-#supabase #rest #lightweight-client
-
-
-
----
-
-### patterns/multi-engine-parallel-select.md
-
-# 多引擎并行择优模式
-
-## 适用场景
-有多种算法/引擎/模型都能处理同一输入，但输出质量取决于输入特征，无法预先判断哪个最好。
-
-## 结构
-```
-输入 → [引擎A] → 评分A ┐
-     → [引擎B] → 评分B ├→ max(评分) → 输出
-     → [引擎C] → 评分C ┘
-```
-
-## 代码示例
-```python
-class MultiEngineExtractor:
-    def __init__(self):
-        self.engines = []
-    
-    def register(self, engine, cost=1):
-        self.engines.append((engine, cost))
-    
-    def extract(self, input_data):
-        best_result, best_score = None, 0
-        for engine, cost in self.engines:
-            result = engine.run(input_data)
-            score = engine.evaluate(result) / cost
-            if score > best_score:
-                best_result, best_score = result, score
-        return best_result
-```
-
-## 已知应用
-- pdf-to-excel: pdfplumber / Tesseract / PaddleOCR / GPT-4o 四路并行选优
-
-## 标签
-#architecture #ocr #multi-model
-
-
-
----
-
-### patterns/output-quality-gate.md
-
-# 输出质量门控模式
-
-## 适用场景
-AI/ML/OCR 管道产出结果不确定，需要在输出前过滤低质量结果。
-
-## 结构
-```
-原始数据 → 质量门控(填充率/结构完整性/异常检测) → 合格数据 → 输出
-                                              → 不合格 → 丢弃/降级
-```
-
-## 代码示例
-```python
-def quality_gate(data, min_fill_rate=0.2, min_cols=2, min_rows=2):
-    total_cells = sum(len(row) for row in data)
-    filled_cells = sum(1 for row in data for c in row if c)
-    if total_cells == 0:
-        return False
-    if filled_cells / total_cells < min_fill_rate:
-        return False
-    if len(data[0]) < min_cols or len(data) < min_rows:
-        return False
-    return True
-```
-
-## 已知应用
-- pdf-to-excel: `_valid()` 函数
-
-## 标签
-#quality #ai-pipeline #validation
-
-
-
----
-
-### patterns/sqlite-migration.md
-
-# 渐进式 Schema 迁移模式
-
-## 适用场景
-使用 SQLite 等轻量数据库，需要在不停机不丢数据的情况下加字段。
-
-## 结构
-```python
-def migrate():
-    cur = conn.execute("PRAGMA table_info(users)")
-    existing_cols = [row[1] for row in cur.fetchall()]
-    if "new_field" not in existing_cols:
-        conn.execute("ALTER TABLE users ADD COLUMN new_field TEXT DEFAULT ''")
-```
-
-检测→按需添加，幂等操作（多次运行安全）。
-
-## 代码示例
-见 pdf-to-excel database.py `migrate_add_profile()`
-
-## 已知应用
-- pdf-to-excel: avatar 和 display_name 字段后续添加
-
-## 标签
-#database #sqlite #migration
-
-
-
----
-
-
-================================================================================
-第五部分：错误教训
-================================================================================
-### mistakes/copy-paste-ocr-engines.md
-
-# 三个 OCR 引擎复制粘贴——没有抽象
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 症状
-ocr.py、ocr_paddle.py、ocr_gpt.py 各 100+ 行，70% 代码重复。FakeTable 类在三个文件中各自定义。改一处需要改三处。
-
-## 根因
-先实现了主流程（pdfplumber→Excel），后续加 OCR 引擎时直接复制文件修改中间逻辑。没有在第二个引擎加入时停下来抽公共层。
-
-## 修复
-抽 `BaseOCRExtractor`，定义 `extract(pdf_path) -> List[TableData]` 接口。三个引擎实现该接口。FakeTable 替换为 dataclass。
-
-## 预防
-- 同一接口的第二个实现 = 抽象信号
-- 用 `jscpd` 或 `sonar` 检测代码重复
-- 加新引擎前先看能不能复用现有 pipeline
-
-## 标签
-#copy-paste #refactoring #ocr #technical-debt
-
-
-
----
-
-### mistakes/dead-code-orphan.md
-
-# 死代码残留
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 症状
-main.py 中有两段无路由装饰器的孤儿代码（魔法链接处理、oauth callback 的 return），永远不会执行。
-
-## 根因
-重构或删除路由时，只删了 `@app.route` 装饰器，忘了删函数体。代码审查缺失。
-
-## 修复
-删除孤儿代码块。
-
-## 预防
-- 功能删除时搜索函数名确认无残留
-- 引入 pylint/pyflakes 自动检测无引用的代码
-- CI 中加 dead code 检测
-
-## 标签
-#dead-code #refactoring #lint
-
-
-
----
-
-### mistakes/download-no-auth.md
-
-# 下载接口无鉴权
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 症状
-`/download/<token>` 没有 `@login_required`，知道 UUID 就能下载任何用户的文件。
-
-## 根因
-开发时为了方便测试跳过了鉴权，事后忘记加回。
-
-## 修复
-加上 `@login_required` 装饰器，并验证 token 属于当前用户。
-
-## 预防
-- 所有涉及用户数据的路由都应该有鉴权
-- 用装饰器统一管理而非逐路由手动检查
-- 安全审计 checklist
-
-## 标签
-#security #auth #api
-
-
-
----
-
-### mistakes/flask-debug-true.md
-
-# Flask debug=True 上线
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 症状
-`app.run(debug=True)` — 即使监听 127.0.0.1，debug 模式会暴露 Werkzeug 调试控制台（可执行任意 Python）。
-
-## 根因
-开发-部署切换没有自动化流程，手动改配置容易遗漏。
-
-## 修复
-```python
-debug = os.environ.get("FLASK_ENV") == "development"
-app.run(debug=debug)
-```
-
-## 预防
-- 用环境变量区分 dev/prod
-- 部署 checklist 包含 "确认 debug=False"
-- 使用 flask run 而非 app.run()
-
-## 标签
-#security #flask #deployment
-
-
-
----
-
-### mistakes/gpt-system-prompt-unused.md
-
-# GPT SYSTEM_PROMPT 定义但未使用
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 症状
-ocr_gpt.py 定义了一个详细的 SYSTEM_PROMPT 常量（含 6 条 CRITICAL RULES），但 API 调用时 messages 数组里只有一条 user message，SYSTEM_PROMPT 从未传入。
-
-## 根因
-可能是先写了 prompt，后来改了 API 调用方式，忘了把 system prompt 加回去。没有自动化测试覆盖 OCR 路径。
-
-## 修复
-```python
-messages=[
-    {"role": "system", "content": SYSTEM_PROMPT},
-    {"role": "user", "content": [...]}
-]
-```
-
-## 预防
-- LLM API 调用加集成测试验证 prompt 生效
-- prompt 常量靠近使用点，或统一管理
-- 代码审查时检查 API 参数完整性
-
-## 标签
-#llm #prompt-engineering #bug
-
-
-
----
-
-### mistakes/hardcoded-paths.md
-
-# 硬编码路径
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 症状
-- `TESSERACT_EXE = Path(r"D:\OCR\tesseract.exe")`
-- `Path(r"D:\Projects\pdf-to-excel\uploads")` 在 ocr.py 中写死
-- 换机器或重装系统后直接不可用
-
-## 根因
-快速原型期图方便，直接写绝对路径。Flask config 有 `UPLOAD_FOLDER` 但 OCR 模块没读。
-
-## 修复
-- Tesseract: 从环境变量 `TESSERACT_PATH` 或系统 PATH 读取
-- 上传目录: 统一读取 Flask config
-
-## 预防
-- 规则：配置信息只出现在 `.env` / `config.py` / 环境变量中
-- 代码中永远不出现绝对路径字符串
-
-## 标签
-#hardcoded #configuration #portability
-
-
-
----
-
-
-================================================================================
-第六部分：设计决策
-================================================================================
-### decisions/libs-vendoring.md
-
-# 依赖管理：vendoring vs pip/venv
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 背景
-项目依赖 30+ Python 库，有两种管理方式：
-- pip + venv（标准做法）
-- 把库文件直接复制到 libs/（vendoring）
-
-## 选项
-| 方案 | 优点 | 缺点 |
-|------|------|------|
-| pip + venv | 标准做法，版本清晰，可复现 | 需要 pip install 步骤 |
-| libs/ vendoring | 免安装，复制即用 | 版本混乱，800+ 文件，无法复现 |
-
-## 决策
-选择了 vendoring（所有依赖放在 libs/），但 requirements.txt 只写了 5 个库。
-
-## 后果
-环境无法复现。建议 v2 切换为标准 venv 方案，`pip freeze > requirements.txt`。
-
-## 标签
-#dependency-management #python #technical-debt
-
-
-
----
-
-### decisions/local-remote-dual-write.md
-
-# 本地 SQLite + 云端 Supabase 双写
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 背景
-历史记录需要跨设备同步。选择：
-- 纯云端（Supabase only）
-- 双写（SQLite 本地 + Supabase 云端）
-
-## 选项
-| 方案 | 优点 | 缺点 |
-|------|------|------|
-| 纯 Supabase | 架构简单，无同步问题 | 离线不可用，每次查询走网络 |
-| 双写 | 离线可用，本地速度快 | 同步逻辑复杂，可能不一致 |
-
-## 决策
-双写——本地 SQLite 为主，后台同步到 Supabase。查询时合并去重。
-
-## 后果
-离线体验好，但合并去重逻辑简陋（只按 token 去重），编辑/删除不同步。
-
-## 标签
-#architecture #sync #database
-
-
-
----
-
-### decisions/ocr-parallel-vs-sequential.md
-
-# OCR 策略：并行择优 vs 串行降级
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 背景
-需要从多种 OCR 引擎中获取最佳结果。两个选项：
-- 串行降级：A 失败 → B → C
-- 并行择优：全跑一遍，按评分选最优
-
-## 选项
-| 方案 | 优点 | 缺点 |
-|------|------|------|
-| 串行降级 | 省资源，大部分情况第一个就够了 | "失败"的定义模糊，可能错过更好的结果 |
-| 并行择优 | 总能拿到最佳结果 | 每次都要跑多个引擎，耗时和成本高 |
-
-## 决策
-选择了并行择优——按列数评分，三路全跑，选列最多的结果。
-
-## 后果
-准确率显著提高，但每次上传都会调用 GPT-4o API（成本）。后续应加入"如果前面引擎产出足够好就跳过 GPT"的优化。
-
-## 标签
-#architecture #ocr #trade-off
-
-
-
----
-
-### decisions/web-vs-cli.md
-
-# Web 应用 vs CLI 工具
-
-## 来源
-- 项目: pdf-to-excel
-- 日期: 2026-05-24
-
-## 背景
-goals.md 中写着"命令行程序 或 网页端上传工具"，最终选择了 Web。
-
-## 决策
-选择了 Flask Web 应用 + 浏览器界面。
-
-## 后果
-- 优点：用户友好，有账号系统和历史记录
-- 缺点：部署复杂，需要服务器，不能批量处理本地文件
-- 建议：v2 加一个 CLI 模式（`python -m app.cli input.pdf -o output.xlsx`）
-
-## 标签
-#product #cli-vs-web
-
-
-
----
-
-
-================================================================================
-第七部分：蒸馏记忆
-================================================================================
-### memory/distilled-memory.md
-
-# Distilled Memory — 可移植版
-
-> 从 Codex 记忆系统蒸馏出的关键信息，不依赖原始记忆格式。
-
-## 活跃项目
-
-### pdf-to-excel (v1 已完成)
-- **路径**: D:\Projects\pdf-to-excel
-- **描述**: Web 应用，PDF 表格→格式化 Excel，支持日语 CAD 图纸
-- **技术栈**: Flask + pdfplumber + PaddleOCR + GPT-4o + Tesseract + Supabase
-- **状态**: v1 可用，存在安全/工程问题待 v2 修复
-- **详细**: 见 `projects/2026-05-24-pdf-to-excel.md`
-
-## 长期目标
-
-### G1: PDF → Excel 完整转化工具
-- **目标**: PDF 表格精确转为可编辑 Excel，保留格式
-- **形态**: CLI 或 Web
-- **状态**: v1 完成 (D:\Projects\pdf-to-excel)
-- **创建**: 2026-05-24
-
-## 经验速查
-
-| 经验 | 一句话 |
-|------|--------|
-| 多引擎并行择优 | 多个方案时全跑一遍，按可量化评分选最优 |
-| 质量门控 | AI 输出必须过质量检查，宁可少输出不错输出 |
-| 空值优于假数据 | 不可读 → 留空 ""，不做猜测填充 |
-| 第二实现即抽象 | 同一接口第二次写 → 必须抽公共层 |
-| v1 硬化 | v1 完成后先加固（安全、配置、死代码），不加功能 |
-
-## 错误速查
+## 8. 真实错误速查
 
 | 错误 | 预防 |
 |------|------|
-| OCR 引擎复制粘贴 | 第二个引擎时抽基类 |
-| 死代码残留 | 删除路由时检查函数体 |
-| 硬编码路径 | 统一走配置/环境变量 |
-| GPT prompt 未生效 | API 调用加集成测试 |
-| Flask debug=True 上线 | 环境变量区分 dev/prod |
-| 下载接口无鉴权 | 所有用户数据路由加 @login_required |
+| 豆包脚本成功但客户端未接纳 | 最终拥有者、功能与重启保持都要验收 |
+| 李跳跳规则无导入证明 | 严格解析、golden sample、目标应用真实导入 |
+| 凡人中间红 CI | 首次 push 前形成完整快照，CI 报告带 SHA |
+| 极简时钟需求漂移 | 对排他需求做文件树和 DOM 负向检查 |
+| 拾光测试站说成正式上线 | 区分 prototype/test/preview/production，结论服从最新深度验收 |
+| OCR 复制粘贴 | 第二个实现时抽象 |
+| GPT prompt 未传入 | API 调用集成测试和参数完整性检查 |
+| 下载无鉴权 | 用户数据路由统一鉴权和 owner 校验 |
+| Provider 迁移丢模型入口 | 对比在线、本地和全部默认/allowed 映射 |
 
-## 设计决策速查
+## 9. 发布检查摘要
 
-| 决策 | 选择 | 原因 |
-|------|------|------|
-| OCR 策略 | 并行择优 | 准确率优先 |
-| 依赖管理 | libs/ vendoring (v1) | 快速原型，v2 改 pip |
-| 本地+云端 | SQLite + Supabase 双写 | 离线可用 + 跨设备 |
-| Web vs CLI | Web (v1) | 用户友好，v2 加 CLI |
+### 公开仓库
+
+1. 冻结必须项和禁止项。
+2. README、名称、图标、授权和同人边界一致。
+3. 扫描 Key、token、状态文件和历史。
+4. 检查最大文件、对象、push、仓库和 Pages 限额。
+5. 本地完整测试并形成独立可运行快照。
+6. 推送后回读 HEAD、文件树和 Blob。
+7. 读取当前 HEAD 的 CI。
+8. 从 README 入口走真实用户路径。
+
+2026-08-26 官方限额快照：浏览器单文件 25 MiB、普通 Git 对象 100 MiB、单次 push 2 GiB、仓库理想低于 1 GB。属于时效知识，使用前重验。
+
+### 浏览器状态应用
+
+检查 schemaVersion、owner/run、revision、迁移、损坏回退、旧标签页、随机结果、完成态、两账户隔离、刷新/重启、导入恢复、容量和真机。
+
+### 深度写作
+
+检查范围、截止日、材料账本、来源层级、命题表、反证、数字口径、多智能体共享 Schema、引用、局限、署名和文档元数据。
+
+## 10. 当前待办
+
+1. 极简电视时钟按最终四条要求重建并更新远端。
+2. 拾光相册若进入正式版，先完成真实上传/恢复/授权/真机矩阵。
+3. 豆包问题从客户端环境接纳条件重新调查。
+4. 李跳跳规则取得完整输入和已知可导入 golden sample。
+5. 抖音自动化只有在合规、本人账号、dry-run 成功后才能进入真实运行验证。
+6. 2026-06-22/23/28 的历史增量补齐 YAML 元数据。
+
+## 11. 知识状态
+
+完整仓库当前有 101 个核心条目：10 项目、23 经验、13 模式、18 错误、12 决策、6 反模式、16 模板、3 失败案例。详细交叉引用以 `KNOWLEDGE_INDEX.md` 为准。
 
 ---
 
-*蒸馏自: Codex 记忆系统 2026-05-25 梦境整合*
-
-
----
-
-
-================================================================================
-第八部分：2026-05-30 OpenClaw / LLM Provider 增量
-================================================================================
-
-## projects/2026-05-30-openclaw-provider-migration.md
-
-OpenClaw Provider 迁移与模型映射排障。核心事实：`deepseek-v4-pro` 没有从本地模型清单删除；它从默认 UI/入口中消失，是因为 primary/fallback/allowed models 从旧的 `openai/deepseek-v4-pro` 切换到了新网关模型。`openai` provider 在历史配置中曾承载 DeepSeek-compatible endpoint，迁移后指向 OpenAI-compatible gateway，导致 `openai/*` 命名空间语义改变。
-
-可复用规则：
-- Provider 迁移前备份主配置和 `models.json`。
-- 模型是否存在要分三层看：在线模型列表、本地模型清单、UI/默认映射。
-- 删除 provider 或插件前，先列出启用状态、引用关系和 fallback 链路。
-- 配置报告只展示脱敏后的 provider、base URL 类型、模型 ID、启用状态和映射关系。
-
-## lessons/provider-alias-vs-model-namespace.md
-
-Provider 名称不等于真实模型来源。`openai` 可能表示 OpenAI-compatible 协议，而不一定表示 OpenAI 官方服务。排查模型消失时，按顺序确认在线列表、本地清单、默认映射、允许列表和 provider 绑定。
-
-## lessons/api-cache-budget-guardrails.md
-
-API 调用能成功不代表配置健康。缓存未命中、fallback 路由错误或 high-depth/raw-content 测试可能造成额度异常消耗。测试分 smoke、functional、stress 三档；高消耗测试前要得到用户确认，并检查 usage/cache/fallback。
-
-## mistakes/model-mapping-lost-during-provider-migration.md
-
-错误症状：旧 primary 模型仍在本地模型清单，但 UI/默认入口不显示。根因：Provider 后端语义变化，primary/fallback/allowed models 被改到新网关。预防：迁移前后对比 provider、在线模型、本地清单和 Chat/Agent/Codex/Fallback 映射。
-
-## decisions/llm-provider-namespace-separation.md
-
-LLM Provider 名称应表达真实来源或网关角色：官方 OpenAI 用 `openai`，DeepSeek 用 `deepseek`，第三方 OpenAI-compatible 网关用 `openai-gateway` 或类似名称。本决策牺牲一点初次配置简洁性，换取长期路由清晰。
-
-## templates/checklist/llm-provider-migration-checklist.md
-
-核心检查：
-1. 备份主配置和模型清单。
-2. 列出所有 provider 和启用状态。
-3. 记录 primary/fallback/Chat/Agent/Codex 映射。
-4. 获取在线模型列表并对比本地 `models.json`。
-5. 检查 allowed/default models 是否过滤目标模型。
-6. 用最小 prompt 测试连接。
-7. 检查 usage/cache/fallback 成本风险。
-8. 提交前搜索并移除 `sk-`、`ghp_`、`github_pat_`、`botToken`、`Bearer` 等敏感值。
-
+*本包不包含任何真实 API Key、OAuth token、登录态、cookie 或私有凭据。*

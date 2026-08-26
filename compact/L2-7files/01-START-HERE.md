@@ -1,35 +1,30 @@
-﻿# Codex Knowledge — 快速启动
+# Codex Knowledge 七文件快速启动 v4
 
-> 这是用户的工程经验库压缩版。3 个文件覆盖全部知识。
+> 更新时间：2026-08-26。七文件把用户、旧项目、经验、模式、错误、决策和模板分开。
 
-## 用户画像
+## 最高优先级
 
-- 中文为主，Python 技术栈，Windows 系统
-- 编码风格: 实用主义，短变量名可接受，快速原型 → v1 硬化迭代
-- 关键偏好: 软件不装 C 盘，快捷方式图标匹配真实品牌
-- 核心原则: 空值优于假数据，第二个实现时必须抽象，配置变更先审计
-- Codex/OpenClaw 默认使用简体中文；敏感 Key/token 不进知识库
+- 未验证 = 未完成。
+- 用户实际高于理论推断。
+- 结论强度匹配证据强度。
+- “只/仅/不要/单文件”是排他合同。
+- 空值优于假数据。
+- 敏感凭据和真实姓名不进公开交付。
 
-## 活跃项目
+## 近期新增范围
 
-### pdf-to-excel (v1 完成, D:\Projects\pdf-to-excel)
-Web 应用，PDF 表格 → 格式化 Excel。Flask + pdfplumber + PaddleOCR + GPT-4o + Tesseract + Supabase。
-
-### OpenClaw Provider 迁移经验 (2026-05-30)
-Provider/API 网关配置和模型映射排障。重点：Provider 名称不等于真实模型来源，模型是否存在要同时看在线列表、本地清单和 UI/默认映射。
+- 2026-06-26 至 08-26 的技术项目、写作研究和失败审计。
+- 卡塞尔、剑来、凡人、拾光相册、豆包环境、抖音部署包、极简时钟。
+- 洪涝责任、直播传播、平台陪伴、企业宣传、智能体治理、人物研究和多智能体研究工作流。
 
 ## 阅读顺序
 
-1. 本文件 — 快速了解全局
-2. `02-core-knowledge.md` — 全部经验/模式/错误/决策
-3. `03-templates.md` — 可复用代码和配置
+1. `01-START-HERE.md`
+2. `02-user-profile.md`
+3. `03-project-pdf-to-excel.md`
+4. `04-lessons.md`
+5. `05-patterns.md`
+6. `06-mistakes.md`
+7. `07-decisions-templates.md`
 
-## 何时联网验证
-
-- OpenAI API / GPT 模型 / Provider 映射 (参数、定价、模型列表、缓存)
-- Flask / Python 依赖 (版本 breaking changes)
-- PaddleOCR / Tesseract (新版本)
-- Supabase (免费额度、API 变更)
-- 安全相关 (CVE、最佳实践)
-
-稳定知识直接用，变动技术要验证。
+完整细节仍以仓库的 `KNOWLEDGE_BUNDLE.md`、`KNOWLEDGE_INDEX.md` 和两个月总审计为准。

@@ -1,35 +1,28 @@
-﻿# Codex Knowledge — 快速启动
+# Codex Knowledge 三文件快速启动 v4
 
-> 这是用户的工程经验库压缩版。3 个文件覆盖全部知识。
+> 更新时间：2026-08-26。三文件覆盖用户偏好、核心知识和检查清单。
 
-## 用户画像
+## 用户速写
 
-- 中文为主，Python 技术栈，Windows 系统
-- 编码风格: 实用主义，短变量名可接受，快速原型 → v1 硬化迭代
-- 关键偏好: 软件不装 C 盘，快捷方式图标匹配真实品牌
-- 核心原则: 空值优于假数据，第二个实现时必须抽象，配置变更先审计
-- Codex/OpenClaw 默认使用简体中文；敏感 Key/token 不进知识库
+- 简体中文、UTC+8、GitHub `Buruxianhecha`，不使用真实姓名。
+- 实用主义、轻量优先、先原型后硬化。
+- 用户实际高于理论；结论不超过证据；排他性最小需求禁止默认扩展。
+- 写作要求深度、来源分层、冲突保留、引用和元数据检查。
+- Key、token、cookie、登录态和 AppSecret 不入库。
 
-## 活跃项目
+## 近期重点
 
-### pdf-to-excel (v1 完成, D:\Projects\pdf-to-excel)
-Web 应用，PDF 表格 → 格式化 Excel。Flask + pdfplumber + PaddleOCR + GPT-4o + Tesseract + Supabase。
-
-### OpenClaw Provider 迁移经验 (2026-05-30)
-Provider/API 网关配置和模型映射排障。重点：Provider 名称不等于真实模型来源，模型是否存在要同时看在线列表、本地清单和 UI/默认映射。
+- 三个浏览器模拟器：状态机、存档、语义结算、测试与 GitHub 发布。
+- 拾光相册：IndexedDB 和认证 Provider，仍是测试版。
+- 7 项写作研究：材料账本、命题强度、冲突裁决和引用审计。
+- 真实未闭环：豆包客户端、李跳跳导入、抖音实际部署、极简时钟远端版本。
 
 ## 阅读顺序
 
-1. 本文件 — 快速了解全局
-2. `02-core-knowledge.md` — 全部经验/模式/错误/决策
-3. `03-templates.md` — 可复用代码和配置
+1. `01-START-HERE.md`
+2. `02-core-knowledge.md`
+3. `03-templates.md`
 
-## 何时联网验证
+## 何时重验
 
-- OpenAI API / GPT 模型 / Provider 映射 (参数、定价、模型列表、缓存)
-- Flask / Python 依赖 (版本 breaking changes)
-- PaddleOCR / Tesseract (新版本)
-- Supabase (免费额度、API 变更)
-- 安全相关 (CVE、最佳实践)
-
-稳定知识直接用，变动技术要验证。
+API、模型、Provider、平台规则、GitHub 限额、依赖、部署与安全结论使用前联网重验。设计原则、用户偏好和证据方法直接使用。
