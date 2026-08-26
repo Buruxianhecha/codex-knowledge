@@ -1,20 +1,15 @@
-﻿# C 盘安全规则
+---
+status: active
+confidence: 0.99
+reuse_count: 1
+last_used: 2026-08-26
+verified_in: [windows-workflows]
+expires_after: none
+---
+# C 盘安全规则
 
-## 规则
+未经明确确认，不擅自删除或覆盖 Windows 系统盘上的系统文件、程序目录和用户配置。
 
-**C 盘系统文件保护**：不得擅自删除或写入 C 盘文件，涉及以下操作时必须先询问用户确认：
+公开知识库不得记录具体 Windows 用户名路径。需要表达用户工作区时使用 `%USERPROFILE%\Documents\Codex\`、`%LOCALAPPDATA%\Temp\` 或当前任务中明确且已核验的工作目录。
 
-- 删除 C 盘任何文件（特别是 Windows 系统目录、Program Files、用户配置等）
-- 在 C 盘系统目录写入新文件
-- 修改 C 盘系统配置文件
-
-## 例外
-
-以下 C 盘路径的操作可以默认允许（用户工作区）：
-- `C:\Users\吴\Documents\Codex\` 及其子目录
-- `C:\Users\吴\AppData\Local\Temp\` 临时文件
-- 用户明确指定的 C 盘工作目录
-
-## 来源
-
-2026-05-27 用户指令：*"不得擅自删除我C盘关于电脑系统的文件，在删除C盘文件或者写入C盘文件时需要经过询问我的同意"*
+即使使用环境变量，删除/覆盖前也要检查解析后的真实目标。

@@ -1,34 +1,17 @@
 ---
 status: active
-confidence: 0.93
-reuse_count: 0
-last_used: 2026-06-21
+confidence: 0.94
+reuse_count: 1
+last_used: 2026-06-28
+verified_in: [automation-diary-workflow]
+expires_after: none
 cross_refs:
-  - patterns/automation-source-of-truth-check.md
+  - patterns/2026-06-28-absolute-path-first-and-runtime-check.md
   - decisions/automation-source-of-truth-first.md
-  - mistakes/env-var-assumption-on-windows.md
+  - mistakes/2026-06-22-env-var-assumption-on-windows.md
 ---
-
 # 自动化记忆路径先验核验
 
-## Lesson
+自动化记忆不要默认依赖 `$CODEX_HOME` 或旧会话路径。先在当前文件系统确认目标文件和仓库，再把环境变量/记忆路径当线索。
 
-自动化记忆不要默认依赖 `$CODEX_HOME` 拼接结果。Windows/PowerShell 下更稳的做法是先确认记忆文件的绝对路径，再把环境变量当成可选回退。
-
-## Why
-
-- `CODEX_HOME` 可能为空或未按预期注入。
-- 相对/拼接路径容易在不同 shell 上失效。
-- 先核验绝对路径可以减少“看起来能用、实际读错位置”的风险。
-
-## When to use
-
-- 读取 automation memory。
-- 生成日记、知识同步、恢复上下文。
-- 任意需要从本地固定路径读取工作状态的任务。
-
-## Related checks
-
-- `git status --short --branch`
-- `git log --oneline -n 5`
-- 记忆文件是否位于真实可访问的绝对路径
+绝对路径本身也会过期，所以需要 source-of-truth 与运行时能力双重核验。

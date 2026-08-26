@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Validate codex-knowledge structure, metadata, links, lifecycle and privacy.
 
-Stdlib-only so the same audit can run locally and in GitHub Actions.
-Warnings document legacy debt; errors represent contradictions or broken invariants.
+Stdlib-only so the same audit runs locally and in GitHub Actions.
+Errors are contradictions/broken invariants. Warnings are tracked legacy debt.
 """
 from __future__ import annotations
 
@@ -134,10 +134,17 @@ def validate_counts() -> None:
         elif int(m2.group(1)) != actual[folder]:
             err(f"INDEX count mismatch for {folder}: declared {m2.group(1)}, actual {actual[folder]}")
 
-    for filename, text in (("README.md", readme), ("KNOWLEDGE_INDEX.md", index), ("KNOWLEDGE_BUNDLE.md", bundle)):
-        nums = [int(x) for x in re.findall(r"(?:核心条目[:：]?\s*|合计\s*\|\s*|当前有\s*)(\d+)", text)]
-        if nums and any(x != total for x in nums):
-            err(f"{filename} total count disagrees with actual {total}: {nums}")
+    canonical_totals = {
+        "README.md": (readme, r"\|\s*合计\s*\|\s*(\d+)\s*\|"),
+        "KNOWLEDGE_INDEX.md": (index, r"核心条目[:：]\s*(\d+)"),
+        "KNOWLEDGE_BUNDLE.md": (bundle, r"当前有\s*(\d+)\s*个核心条目"),
+    }
+    for filename, (text, pattern) in canonical_totals.items():
+        m = re.search(pattern, text)
+        if not m:
+            err(f"{filename} missing canonical total count")
+        elif int(m.group(1)) != total:
+            err(f"{filename} total count mismatch: declared {m.group(1)}, actual {total}")
 
 
 def validate_metadata() -> None:
@@ -170,10 +177,9 @@ def validate_metadata() -> None:
                 verified_in = parse_inline_list(str(verified_in))
             reuse = int_value(meta.get("reuse_count", -1))
 
-            # Patterns require successful reuse in >=2 independent contexts.
-            if folder == "patterns" and status == "verified" and len(verified_in) < 2:
+            if folder == "patterns" and status == "verified" and len(set(verified_in)) < 2:
                 err(f"pattern promoted too early: {rel}: verified_in={verified_in}")
-            if status == "best_practice" and (len(verified_in) < 3 or reuse < 3):
+            if status == "best_practice" and (len(set(verified_in)) < 3 or reuse < 3):
                 err(f"best_practice lacks reuse evidence: {rel}: verified_in={verified_in}, reuse_count={reuse}")
 
             refs = meta.get("cross_refs", [])
@@ -183,7 +189,6 @@ def validate_metadata() -> None:
                     if target and not (ROOT / target).exists():
                         err(f"broken cross_ref: {rel} -> {target}")
 
-    # Decision entries should explicitly carry architecture cost metadata.
     for path in all_files(ROOT / "decisions"):
         if path.suffix.lower() != ".md":
             continue
@@ -250,7 +255,7 @@ def validate_privacy() -> None:
         "GitHub token": re.compile(r"\bghp_[A-Za-z0-9]{20,}\b|\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
         "OpenAI-like secret": re.compile(r"\bsk-[A-Za-z0-9_-]{24,}\b"),
     }
-    win_user = re.compile(r"\b[A-Za-z]:\\Users\\([^\\\s/]+)", re.I)
+    win_user = re.compile(r"\b[A-Za-z]:\\Users\\([^\\\s/`]+)", re.I)
     unix_user = re.compile(r"/(?:Users|home)/([^/\s]+)/")
     placeholders = {"user", "username", "name", "example", "yourname", "<user>", "<username>"}
 
