@@ -15,10 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
       - name: Validate knowledge base
+        if: ${{ always() && steps.checkout.outcome == 'success' }}
         run: python3 scripts/validate_knowledge.py
       - name: Protect source knowledge from destructive compaction
+        if: ${{ always() && steps.checkout.outcome == 'success' }}
         run: python3 scripts/check_source_regression.py
