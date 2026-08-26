@@ -87,7 +87,7 @@ cross_refs:
 - 路径规范化、空格和非 ASCII 字符。
 - Windows PowerShell 与 PowerShell 7 的差异。
 
-不要用具体 `C:\Users\<真实用户名>` 作为修复；公开文档统一用 `%USERPROFILE%` 或 `C:\Users\<non-ASCII-user>` 表示测试维度。
+不要写死任何具体用户主目录。公开文档统一用 `%USERPROFILE%`；需要覆盖非 ASCII 场景时，把它作为测试维度描述为 `<NON_ASCII_HOME_TEST_CASE>`，而不是写出 `C:\Users\...` 形式的用户名示例。
 
 ## 可复用结论
 
