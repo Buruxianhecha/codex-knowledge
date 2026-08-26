@@ -1,6 +1,6 @@
 ---
 status: active
-confidence: 0.96
+confidence: 0.97
 reuse_count: 0
 last_used: 2026-08-26
 verified_in:
@@ -12,8 +12,10 @@ verified_in:
 expires_after: 2026-11-26
 cross_refs:
   - projects/2026-06-30-doubao-local-environment-repair.md
-  - projects/2026-08-19-evidence-research-workflow.md
   - projects/2026-08-12-shiguang-album.md
+  - projects/2026-08-19-evidence-research-workflow.md
+  - projects/2026-08-20-article-shelf-engagement-system.md
+  - projects/2026-08-21-bim-structural-drawing-input.md
   - projects/2026-08-25-browser-simulator-release-series.md
   - lessons/application-acceptance-over-command-success.md
   - lessons/claim-strength-must-match-evidence.md
@@ -21,6 +23,10 @@ cross_refs:
   - lessons/interactive-systems-need-semantic-invariants.md
   - lessons/verification-claims-must-match-test-depth.md
   - lessons/minimal-requirements-are-a-contract.md
+  - lessons/engagement-time-must-measure-active-state.md
+  - lessons/reference-editing-is-constrained-transformation.md
+  - lessons/drawing-values-derive-from-reference-planes.md
+  - lessons/complex-prompts-are-executable-specifications.md
 ---
 
 # 2026-06-26 至 2026-08-26 两个月学习总审计
@@ -68,13 +74,16 @@ cross_refs:
 | 2026-08-12 | 拾光相册测试站 | React/Next/Vinext 前端重建，IndexedDB、真实路由和账户隔离已实现；深度验收结论为“暂不建议上线” | 测试版完成，非正式产品 | 本地持久化不是云备份；模拟认证不是生产认证；上线结论必须服从完整验收 |
 | 2026-08-18 | 翁家翌人物全生命周期研究 | 最终文档存在；以本人/官方一手材料校正“姚班、CMU 退学、RL 总负责人”等错误或夸大叙事 | 已成稿 | `contributor` 不能写成 `lead`，人物研究优先本人和官方证据 |
 | 2026-08-19 | 18 智能体深度研究工作流 | 架构图存在，拆分 GitHub、开源、组织、职业、思想史与引用审计角色 | 设计完成、运行未证实 | 多智能体研究要按证据职责拆分，并由统一引用审计收口 |
+| 2026-08-20 | 文章货架签到与真实阅读时长 | 明确禁止“页面打开时间=阅读时间”；要求文章路由/前台/焦点/非 idle/有效 Session 同时满足；签到需连续/月历/累计/补签/全勤等 | 规格明确、实现未验证 | 行为时间先定义 active state；签到应使用幂等账本而不是布尔值 |
+| 2026-08-21 | BIM/结构图纸输入与日文术语 | 连续判读梁、基础、楼板、上/下増打、标高、尺寸和断面；多次追问固定值与渐变厚度 | 方法已蒸馏 | 先确认 reference plane、offset、几何和局部范围；不能把单断面值当通用常数 |
 | 2026-08-22 | 抖音自动续火花部署包 | Windows 登录态抓取、Linux 部署、网页配置、模拟/正式运行流程已写好；无实际登录、部署或正式运行成功证据 | 包已准备，部署未验证 | 登录态等同凭据；先 dry-run；风控提示出现即停止；不得把操作手册当执行日志 |
 | 2026-08-24 | 卡塞尔开放世界模拟器 | GitHub HEAD `5676ac91d45c`；CI 成功；加入单调进度、旧页面拒绝、180 轮内容指纹测试 | 远端验证 | 交互状态必须单调前进；内容变化要按语义指纹验证，不能只改编号 |
 | 2026-08-25 | 剑来人生模拟器 | 9 个分阶段提交；HEAD `304ce029b17a`；CI 成功；语义化选择、五身份随机序章、多存档与死亡状态回归 | 远端验证 | 结果应由动作语义而非选项位置决定；随机结果抽样后必须持久化 |
 | 2026-08-25 | 凡人人界篇模拟器 | HEAD `e20f299caeb8`；最终 CI 成功；此前 CI 因先推测试与工作流、尚无 `index.html` 而失败 | 远端验证、有中间失败 | CI 判断必须绑定具体 SHA；依赖文件要原子发布或先在本地形成完整快照 |
 | 2026-08-25 | 极简电视时钟 | 用户要求单文件、纯黑、仅 `HH:MM`；仓库 HEAD 仍是多文件且含秒、日期和按钮，用户随后要求重来 | 仓库版本不符合最终需求 | “只显示”“单文件”“不要其他信息”是排他合同，不能用善意扩展覆盖 |
 | 2026-08-25 | GitHub 上传与限额核验 | 官方文档确认浏览器单文件 25 MiB、普通 Git 单对象 100 MiB、单次 push 2 GiB；仓库建议尽量低于 1 GB | 已联网核验 | 上传前应按文件、对象、push、仓库、Pages 五个层级检查限制 |
-| 2026-08-26 | 本知识库更新 | 汇总会话、日记、成品和远端仓库并建立交叉引用 | 当前审计 | “所有学到的”应包含成功、失败、写作方法和没有被验证的边界 |
+| 2026-08-25 | 参考模板/图像的反复定点修改 | 多次出现“用原模板”“只改文字/位置”“不要顺手改其他部分”的纠正 | 需求模式反复验证 | 编辑任务要同时检查改动目标和未指定区域，属于约束式变换而不是重新设计 |
+| 2026-08-26 | 本知识库更新 | 汇总会话、日记、成品和远端仓库并建立交叉引用；第二轮补入产品行为计量、BIM、提示词和多智能体方法 | 当前审计 | “所有学到的”应包含成功、失败、写作、领域方法、产品规则和未验证边界 |
 
 ## 一、运行时与交付闭环
 
@@ -92,7 +101,7 @@ cross_refs:
 
 因此，未来报告必须写清“验证到了哪一层”，而不是统一使用“完成”。
 
-## 二、写作与研究方法
+## 二、写作、研究与复杂提示词
 
 本期写作不是附属工作，而是形成了一套可复用的证据工程：
 
@@ -104,8 +113,55 @@ cross_refs:
 6. **负面证据保留**：查不到、口径冲突、样本不足和资料截止日必须进入正文或局限。
 7. **身份与元数据检查**：正文署名、文件名、作者属性和导出 PDF 元数据都不能泄露不应出现的真实姓名。
 8. **多智能体收口**：角色可并行查证，但最终必须由统一的事实表和引用审计合并，不能直接拼接多份答案。
+9. **复杂提示词规格化**：大型提示词应包含目标、现状、必须项、禁止项、状态模型、不变量、输出契约、验证矩阵和失败处理。
 
-## 三、浏览器本地应用的状态工程
+凡人、剑来等互动模拟器进一步说明：只写世界观会产生时间倒退、刷新复活、鬼打墙和换皮重复。真正可运行的提示词需要把时间、寿元、资源、随机结果、存档和结局都写成状态合同。
+
+## 三、真实行为时间与签到
+
+文章货架把“计时器”升级成了行为计量问题。核心公式是：
+
+```text
+readingActive = articleRoute && visible && focused && !idle && validSession
+```
+
+只有 active 区间累计；切后台、失焦、长时间无操作、离开文章或 Session 结束都暂停。系统休眠后的超长 delta 要 clamp，多标签页要避免双算，写入 chunk 要幂等，日统计要绑定业务时区。
+
+签到同样不应只有一个 `checked=true`。使用 `(userId, businessDate)` 幂等账本，连续天数/月历/全勤从账本推导，补签和奖励领取保留来源和事务记录。
+
+当前只有设计规则，未取得实现与部署验收证据。
+
+## 四、BIM / 结构图纸的参考面方法
+
+连续的梁、基础、楼板和増打输入讨论暴露了一个共同根因：没有先统一“图纸基准、构件几何、offset、局部附加几何”。
+
+可靠顺序：
+
+```text
+平面定位
+-> 对应断面/详图
+-> reference plane / 标高基准
+-> 名义尺寸
+-> offset
+-> 上/下増打及范围
+-> 软件 3D/断面复核
+```
+
+“上端 0、厚 2600”只有在没有 offset/局部加厚/基准转换时才必然推出下端 `-2600`。断面上的 `下増 500` 或 `上増打 50` 也只能证明对应位置，不自动证明全长固定。渐变厚度应按起终点/坡度/分段表达。
+
+## 五、约束式编辑
+
+图像、海报、证件照、设备文字替换和网站整改反复验证：
+
+```text
+Must change
+Must preserve
+May adapt minimally
+```
+
+用户说“用原来的模板”“只改这里”“修改现有项目，不是重建”时，未点名区域默认受保护。验收既检查目标变化，也要做负向 diff，确认其他区域没有被“顺手优化”。
+
+## 六、浏览器本地应用的状态工程
 
 卡塞尔、剑来和拾光相册共同验证了：浏览器存储不是“随手塞 JSON”，而是一个需要版本、事务和隔离的数据库。
 
@@ -119,7 +175,7 @@ cross_refs:
 - 随机序章等随机结果只在创建时抽样，并随档案保存；读取时不得重新随机。
 - 删除、回收站、完成态和死亡态也属于持久状态，刷新后不能“复活”。
 
-## 四、交互规则与内容真实性
+## 七、交互规则与内容真实性
 
 两个游戏项目暴露了两种“表面变化、实际重复”：
 
@@ -134,7 +190,7 @@ cross_refs:
 - 内容去重前先去掉编号等装饰差异，再对标题、正文和选项做规范化指纹。
 - 长程生成器必须跑压力测试；卡塞尔按五卷各 180 轮检查实质重复。
 
-## 五、GitHub 发布与验证
+## 八、GitHub 发布与验证
 
 本期形成的发布证据阶梯：
 
@@ -155,14 +211,9 @@ cross_refs:
 - 仓库建议尽量低于 1 GB，低于 5 GB 属强烈建议。
 - GitHub Pages 发布站点不超过 1 GB；软带宽限制 100 GB/月；默认构建软限制 10 次/小时。
 
-这些属于时效知识，使用前要重新检查官方文档：
+这些属于时效知识，使用前要重新检查官方文档。
 
-- [Repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits)
-- [Adding a file to a repository](https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository)
-- [About large files on GitHub](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github)
-- [GitHub Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)
-
-## 六、安全与隐私边界
+## 九、安全与隐私边界
 
 - API Key、GitHub token、微信 `AppSecret`、OAuth `access_token`、抖音 `state.json` 和网页访问 token 都不得进入仓库。
 - 测试站的“账户隔离”如果只依赖本地 `ownerId`，不能宣传为服务器端访问控制。
@@ -170,7 +221,7 @@ cross_refs:
 - 浏览器自动化不是官方 API；只操作本人账号、缩小对象范围、低频运行，出现安全验证或“操作频繁”立即停止。
 - 对外文档不写真实姓名；署名和文档属性按用户当次要求设置。
 
-## 七、没有被包装成成功的事项
+## 十、没有被包装成成功的事项
 
 | 事项 | 当前边界 | 再次处理前的第一步 |
 |------|----------|--------------------|
@@ -178,22 +229,27 @@ cross_refs:
 | 豆包本地环境 | 客户端未稳定接纳 | 查清客户端选择、校验和清理环境的条件，而不是继续改临时实例 |
 | Android 贪吃蛇 | 只有需求记录 | 找到或重新建立源码、构建产物与真机验收链 |
 | 拾光相册 | 本地测试版，不可放心托付私人照片 | 完成真实上传矩阵、恢复、容量、移动端与服务端访问控制 |
+| 文章货架阅读时长/签到 | 规格明确、实现未验证 | 在现有项目中增量实现并执行多标签页/idle/跨日测试 |
 | 抖音续火花 | 包和说明存在，部署未证实 | 在合规前提下先 dry-run，并保留明确执行日志 |
 | 极简电视时钟 | GitHub 版本仍不符合最终排他需求 | 以最终四条要求重建并回读远端 DOM/文件树 |
 
-## 八、知识准入结果
+## 十一、知识准入结果
 
 本期没有把所有记录都拆成核心条目。Android 贪吃蛇、Git 词表、单点占比图和 HVAC 工作簿等因缺少完成证据或复用价值，仅在本审计留痕。进入长期层的是：
 
 - 应用侧验收高于命令成功。
 - 证据强度决定结论强度。
 - 浏览器状态是需要版本、事务和隔离的数据库。
+- 真实行为时间按 active state 计量，不能使用页面墙钟时间。
 - 交互系统需要单调进度、语义结算和规范化内容指纹。
 - 测试结论必须与测试深度和具体 SHA 对齐。
-- 排他性最小需求是合同，不能主动扩展。
+- 排他性最小需求是合同，修改现有作品还要保护未指定区域。
+- 工程图纸输入先确定 reference plane、offset、几何和局部范围。
+- 复杂提示词按可执行规格编写。
+- 多智能体按依赖与职责拆分、共享 Schema、统一审计。
 - 认证模式应封装在 provider 边界。
 - 发布前使用远端回读、HEAD CI 与敏感信息扫描。
 
 ## 标签
 
-#audit #recent-learning #writing #research #verification #browser-storage #state-machine #github #delivery #privacy
+#audit #recent-learning #writing #research #prompt #multi-agent #verification #reading-time #bim #editing #browser-storage #state-machine #github #delivery #privacy

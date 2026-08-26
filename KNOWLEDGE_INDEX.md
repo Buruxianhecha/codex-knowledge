@@ -1,6 +1,6 @@
-# Knowledge Index 完整知识索引 v6
+# Knowledge Index 完整知识索引 v7
 
-> 最后更新：2026-08-26 | 核心条目：101 | 最近审计：2026-06-26 至 2026-08-26
+> 最后更新：2026-08-26 | 核心条目：112 | 最近审计：2026-06-26 至 2026-08-26
 
 ## 最近两个月入口
 
@@ -8,10 +8,12 @@
 |------|------|------|
 | [projects/2026-08-26-two-month-learning-audit.md](projects/2026-08-26-two-month-learning-audit.md) | 两个月全量时间线、证据等级、成功/失败和准入结果 | active |
 | [projects/2026-08-19-evidence-research-workflow.md](projects/2026-08-19-evidence-research-workflow.md) | 7 项写作研究的证据方法总档案 | active |
+| [projects/2026-08-20-article-shelf-engagement-system.md](projects/2026-08-20-article-shelf-engagement-system.md) | 签到与真实阅读时长状态设计 | active, implementation unverified |
+| [projects/2026-08-21-bim-structural-drawing-input.md](projects/2026-08-21-bim-structural-drawing-input.md) | BIM/结构图纸判读、标高、増打与输入方法 | active |
 | [projects/2026-08-25-browser-simulator-release-series.md](projects/2026-08-25-browser-simulator-release-series.md) | 卡塞尔、剑来、凡人、电视时钟与 GitHub 发布 | active |
 | [memory/distilled-memory.md](memory/distilled-memory.md) | 全库高密度速查 | active |
 
-## 项目 (10)
+## 项目 (12)
 
 | 文件 | 项目 | 日期 | 当前结果 |
 |------|------|------|----------|
@@ -22,11 +24,13 @@
 | [projects/2026-06-30-doubao-local-environment-repair.md](projects/2026-06-30-doubao-local-environment-repair.md) | 豆包本地工作环境修复 | 2026-06-30 | 脚本层通过，客户端未闭环 |
 | [projects/2026-08-12-shiguang-album.md](projects/2026-08-12-shiguang-album.md) | 拾光相册测试版 | 2026-08-12 | 测试版完成，暂不建议正式上线 |
 | [projects/2026-08-19-evidence-research-workflow.md](projects/2026-08-19-evidence-research-workflow.md) | 两个月写作与证据研究工作流 | 2026-07-17 至 08-19 | 多篇成稿，方法已蒸馏 |
+| [projects/2026-08-20-article-shelf-engagement-system.md](projects/2026-08-20-article-shelf-engagement-system.md) | 文章货架签到与真实阅读时长 | 2026-08-20 | 规格已明确，实现/部署未验证 |
+| [projects/2026-08-21-bim-structural-drawing-input.md](projects/2026-08-21-bim-structural-drawing-input.md) | BIM / 结构图纸输入方法 | 2026-08-17 至 08-21 | 判读方法已蒸馏，项目值需图纸复核 |
 | [projects/2026-08-22-douyin-streak-automation-package.md](projects/2026-08-22-douyin-streak-automation-package.md) | 抖音续火花部署包 | 2026-08-22 | 包存在，实际部署/运行未验证 |
 | [projects/2026-08-25-browser-simulator-release-series.md](projects/2026-08-25-browser-simulator-release-series.md) | 浏览器模拟器与静态网页发布系列 | 2026-08-24 至 08-25 | 三仓库 HEAD CI 成功，时钟需求未闭环 |
 | [projects/2026-08-26-two-month-learning-audit.md](projects/2026-08-26-two-month-learning-audit.md) | 最近两个月学习总审计 | 2026-08-26 | 当前审计 |
 
-## 经验 (23)
+## 经验 (27)
 
 | 文件 | 经验 | 状态 |
 |------|------|------|
@@ -53,8 +57,12 @@
 | [lessons/interactive-systems-need-semantic-invariants.md](lessons/interactive-systems-need-semantic-invariants.md) | 交互系统需要语义不变量 | verified |
 | [lessons/verification-claims-must-match-test-depth.md](lessons/verification-claims-must-match-test-depth.md) | 验证声明匹配测试深度 | verified |
 | [lessons/minimal-requirements-are-a-contract.md](lessons/minimal-requirements-are-a-contract.md) | 排他性最小需求是合同 | verified |
+| [lessons/engagement-time-must-measure-active-state.md](lessons/engagement-time-must-measure-active-state.md) | 行为时长按有效状态而非墙钟时间计量 | active |
+| [lessons/drawing-values-derive-from-reference-planes.md](lessons/drawing-values-derive-from-reference-planes.md) | 工程参数先确定 reference plane 再计算 | active |
+| [lessons/reference-editing-is-constrained-transformation.md](lessons/reference-editing-is-constrained-transformation.md) | 现有作品修改是约束式变换 | verified |
+| [lessons/complex-prompts-are-executable-specifications.md](lessons/complex-prompts-are-executable-specifications.md) | 复杂提示词是可执行规格 | verified |
 
-## 模式 (13)
+## 模式 (15)
 
 | 文件 | 模式 | 状态 |
 |------|------|------|
@@ -71,6 +79,8 @@
 | [patterns/monotonic-archive-transaction.md](patterns/monotonic-archive-transaction.md) | 单调存档事务 | verified |
 | [patterns/evidence-ledger-and-claim-calibration.md](patterns/evidence-ledger-and-claim-calibration.md) | 材料账本与命题校准 | verified |
 | [patterns/single-file-app-vm-test-harness.md](patterns/single-file-app-vm-test-harness.md) | 单文件应用 VM 测试壳 | active |
+| [patterns/activity-gated-time-accounting.md](patterns/activity-gated-time-accounting.md) | 有效状态门控的时长计量 | active |
+| [patterns/multi-agent-shared-schema-orchestration.md](patterns/multi-agent-shared-schema-orchestration.md) | 多智能体共享 Schema 编排 | active |
 
 ## 错误 (18)
 
@@ -123,7 +133,7 @@
 | [anti-patterns/silent-exception-swallowing.md](anti-patterns/silent-exception-swallowing.md) | 静默吞异常 | 失去诊断证据 |
 | [anti-patterns/god-file.md](anti-patterns/god-file.md) | 上帝文件 | 维护与回归成本增长 |
 
-## 模板 (16)
+## 模板 (19)
 
 | 文件 | 类型 | 状态/来源 |
 |------|------|-----------|
@@ -132,6 +142,9 @@
 | [templates/checklist/public-repository-release-checklist.md](templates/checklist/public-repository-release-checklist.md) | 公开仓库发布清单 | active |
 | [templates/checklist/browser-state-app-checklist.md](templates/checklist/browser-state-app-checklist.md) | 浏览器状态应用清单 | active |
 | [templates/checklist/evidence-research-checklist.md](templates/checklist/evidence-research-checklist.md) | 深度写作与证据清单 | active |
+| [templates/checklist/real-reading-time-checklist.md](templates/checklist/real-reading-time-checklist.md) | 真实阅读时长与签到验收 | active |
+| [templates/checklist/reference-preservation-checklist.md](templates/checklist/reference-preservation-checklist.md) | 模板/现有项目保护式修改清单 | active |
+| [templates/checklist/bim-structure-input-checklist.md](templates/checklist/bim-structure-input-checklist.md) | BIM/结构输入复核清单 | active |
 | [templates/code/flask-session-secret.py](templates/code/flask-session-secret.py) | Flask Session Secret 代码 | pdf-to-excel |
 | [templates/code/multi-engine-extractor.py](templates/code/multi-engine-extractor.py) | 多引擎提取器代码 | OCR 模式 |
 | [templates/code/sqlite-migration-helper.py](templates/code/sqlite-migration-helper.py) | SQLite 迁移代码 | 数据库模式 |
@@ -161,19 +174,23 @@
 | [FRESHNESS.md](FRESHNESS.md) | 时效知识重验规则 |
 | [.value-rules.md](.value-rules.md) | 准入、交叉引用和演化 |
 | [.codex-instructions.md](.codex-instructions.md) | AI 自举与维护流程 |
-| [preferences/user-profile.md](preferences/user-profile.md) | 用户偏好 v3 |
-| [memory/distilled-memory.md](memory/distilled-memory.md) | 蒸馏记忆 v4 |
-| [KNOWLEDGE_BUNDLE.md](KNOWLEDGE_BUNDLE.md) | 单文件知识包 v6 |
+| [preferences/user-profile.md](preferences/user-profile.md) | 用户偏好 v4 |
+| [memory/distilled-memory.md](memory/distilled-memory.md) | 蒸馏记忆 v5 |
+| [KNOWLEDGE_BUNDLE.md](KNOWLEDGE_BUNDLE.md) | 单文件知识包 v7 |
 
 ## 主题索引
 
 | 主题 | 优先入口 |
 |------|----------|
 | #writing #research #evidence | evidence-research-workflow, claim-strength, evidence-ledger, evidence checklist |
+| #prompt #multi-agent | complex-prompts, multi-agent-shared-schema, evidence workflow |
 | #verification #delivery | user-perspective, application-acceptance, verification-depth, release checklist |
 | #browser-storage #local-first | shiguang-album, browser-state, monotonic-archive, browser checklist |
+| #reading #engagement #analytics | article-shelf, engagement-time, activity-gated-time, reading checklist |
 | #state-machine #game | browser-simulator-series, interactive-invariants, VM test harness |
 | #requirements #minimal-ui | minimal-requirements, minimal-tv-clock mistake |
+| #editing #visual #existing-project | reference-editing, reference-preservation checklist |
+| #bim #structure #drawing | BIM input project, drawing-reference lesson, BIM checklist |
 | #github #ci | browser-simulator-series, fanren CI mistake, release checklist |
 | #auth #oauth | shiguang-album, auth-provider-mode-boundary |
 | #windows #runtime #encoding | Doubao repair, runtime verification, PowerShell mistakes |
@@ -186,4 +203,4 @@
 
 ---
 
-*统计：10 项目 + 23 经验 + 13 模式 + 18 错误 + 12 决策 + 6 反模式 + 16 模板 + 3 失败案例 = 101。*
+*统计：12 项目 + 27 经验 + 15 模式 + 18 错误 + 12 决策 + 6 反模式 + 19 模板 + 3 失败案例 = 112。*
