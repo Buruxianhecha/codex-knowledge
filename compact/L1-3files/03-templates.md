@@ -1,42 +1,44 @@
-# Templates 压缩版 v4
+# Templates 压缩版 v5
 
 ## 公开仓库发布
 
 ```text
 [ ] 冻结必须项和禁止项
-[ ] README/名称/授权/同人边界一致
-[ ] 扫描 key/token/cookie/state.json/文档元数据
-[ ] 检查文件、对象、push、仓库和 Pages 限额
-[ ] 本地形成完整可运行快照并测试
-[ ] 推送后回读 HEAD、树和关键 Blob
-[ ] CI 与当前 HEAD SHA 一致
-[ ] 从 README 入口走真实用户路径
+[ ] 本地形成完整快照
+[ ] 明确测试类型/覆盖范围
+[ ] 扫描 secret/登录态/私人路径/文档元数据
+[ ] push 后回读 HEAD/关键 Blob
+[ ] CI 必须属于当前 HEAD
+[ ] 从 README/真实入口走用户路径
 ```
 
-## 浏览器状态应用
+## 浏览器状态与真实时长
 
 ```text
 [ ] schemaVersion + ownerId/runId + revision
-[ ] 新版本损坏时回退有效旧版本
-[ ] 重复/旧标签页动作是 no-op
-[ ] 随机结果持久化，读取不重抽
-[ ] 完成/死亡/删除状态刷新后保持
-[ ] 两账户读写隔离
-[ ] 导出、清空测试环境、导入恢复
-[ ] 容量、异常文件、真机和离线
+[ ] 重复/旧标签动作 no-op
+[ ] 随机结果持久化
+[ ] 完成/死亡/删除刷新后保持
+[ ] readingActive = route && visible && focused && !idle && session
+[ ] chunk 幂等，多标签页防双算，sleep delta clamp
 ```
 
-## 深度写作
+## 深度写作/多智能体
 
 ```text
-[ ] 问题、时间范围、资料截止日
-[ ] 材料 ID、来源层级、定位、SHA-256
-[ ] 最小命题、支持、反证、允许措辞
-[ ] 事实/分析/建议分开
-[ ] 数值单位、时间、盘中/收盘/修订
-[ ] 多智能体共用材料和命题 Schema
-[ ] 引用审计与冲突裁决
-[ ] 署名、文件名、Word/PDF 元数据
+[ ] 问题、范围、资料截止日
+[ ] Material Ledger / Claim Ledger
+[ ] 支持、反证、允许措辞、禁止升级
+[ ] Agent 共享 Schema，不直接拼 prose
+[ ] 冲突统一裁决 + 引用审计
+[ ] Word/PDF 署名和隐藏元数据
 ```
 
-完整清单见 `templates/checklist/`。
+## 修改现有作品/BIM
+
+```text
+[ ] Must change / Must preserve / May adapt
+[ ] 未指定区域负向 diff
+[ ] reference plane -> size -> offset -> local addition -> scope
+[ ] 平面/断面/3D 三方复核
+```

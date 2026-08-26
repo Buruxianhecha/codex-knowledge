@@ -1,25 +1,11 @@
-# Patterns 压缩版 v4
+# Patterns 压缩版 v5
 
-## 多引擎择优
-
-多个引擎都能产出时并行执行，按可量化质量/成本评分选择，而不是模糊的“失败后降级”。
-
-## 输出质量门控
-
-结果进入用户输出前检查结构、填充率、异常和完整性；不合格时留空或降级。
-
-## Auth Provider 边界
-
-UI -> AuthService/AuthStore -> MockProvider/RealProvider。外部身份映射内部 userId，secret/token 只在服务端。
-
-## 单调存档事务
-
-读取更晚快照 -> 拒绝旧页 -> 纯状态转换 -> 拒绝倒退 -> 同步写盘 -> 更新 UI。
-
-## 单文件 VM 测试壳
-
-提取 HTML 内联脚本，在 Node vm 注入最小 DOM/localStorage 和可控随机数。覆盖状态行为，不替代视觉/真机。
-
-## 证据账本
-
-材料表记录来源、日期、定位和哈希；命题表记录支持、反证、允许措辞和禁止升级。多智能体共用同一 Schema。
+- 多引擎择优：active，只有一个独立项目证据。
+- SQLite 渐进迁移：active，只有一个独立项目证据。
+- 输出质量门控：active，只有一个独立项目证据。
+- 绝对路径 v1：superseded；当前使用“source of truth + 绝对路径 + 运行时能力检查”。
+- Auth Provider：UI -> AuthService -> Mock/Real Provider。
+- 单调存档事务：读取更晚快照 -> 拒绝旧页 -> 纯转换 -> 同步持久化。
+- Activity-Gated Time：route/visible/focused/idle/session 门控 + 幂等 chunk。
+- Evidence Ledger：材料表 + 命题表 + 冲突裁决。
+- Multi-Agent Shared Schema：按 DAG 并行独立任务，共用 facts/evidence/conflicts/verification/unresolved 后统一审计。
