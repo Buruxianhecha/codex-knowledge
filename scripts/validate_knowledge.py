@@ -2,16 +2,19 @@
 """Validate codex-knowledge structure, metadata, links, lifecycle and privacy.
 
 Stdlib-only so the same audit runs locally and in GitHub Actions.
-Errors are contradictions/broken invariants. Warnings are tracked legacy debt.
+Errors are contradictions/broken invariants. Warnings are unresolved debt.
+Legacy overrides are explicit compatibility metadata, not hidden debt.
 """
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
+REGISTRY_PATH = ROOT / "metadata/legacy-overrides.json"
 
 CORE_DIRS = {
     "projects": "项目",
@@ -26,9 +29,12 @@ CORE_DIRS = {
 META_DIRS = {"projects", "lessons", "patterns", "mistakes", "decisions", "anti-patterns"}
 ALLOWED_STATUS = {"active", "verified", "best_practice", "deprecated", "superseded", "archived"}
 COMMON_META = {"status", "confidence", "reuse_count", "last_used", "verified_in", "expires_after"}
+ALLOWED_OVERRIDE_FIELDS = COMMON_META | {"cross_refs", "replaced_by"}
 
 errors: list[str] = []
 warnings: list[str] = []
+legacy_files: dict[str, dict[str, object]] = {}
+decision_costs: dict[str, dict[str, str]] = {}
 
 
 def err(msg: str) -> None:
@@ -113,10 +119,80 @@ def ref_path(raw: str) -> str:
     return raw.split("#", 1)[0].strip()
 
 
+def load_legacy_registry() -> None:
+    if not REGISTRY_PATH.exists():
+        warn("legacy metadata registry missing")
+        return
+    try:
+        data = json.loads(read(REGISTRY_PATH))
+    except Exception as exc:
+        err(f"legacy metadata registry invalid JSON: {exc}")
+        return
+
+    if data.get("schema_version") != 1:
+        err(f"unsupported legacy registry schema: {data.get('schema_version')!r}")
+
+    raw_files = data.get("files", {})
+    raw_costs = data.get("decision_costs", {})
+    if not isinstance(raw_files, dict) or not isinstance(raw_costs, dict):
+        err("legacy registry files/decision_costs must be objects")
+        return
+
+    for rel, item in raw_files.items():
+        path = ROOT / rel
+        if not path.is_file():
+            err(f"legacy override points to missing file: {rel}")
+            continue
+        if not isinstance(item, dict) or not str(item.get("reason", "")).strip():
+            err(f"legacy override missing reason: {rel}")
+            continue
+        fields = item.get("fields", {})
+        if not isinstance(fields, dict):
+            err(f"legacy override fields must be object: {rel}")
+            continue
+        unknown = sorted(set(fields) - ALLOWED_OVERRIDE_FIELDS)
+        if unknown:
+            err(f"legacy override has unsupported fields: {rel}: {unknown}")
+            continue
+
+        inline, _ = frontmatter(read(path))
+        duplicates = sorted(set(fields) & set(inline))
+        if duplicates:
+            err(f"legacy override duplicates inline metadata; migrate/remove override: {rel}: {duplicates}")
+            continue
+        legacy_files[rel] = fields
+
+    for rel, item in raw_costs.items():
+        path = ROOT / rel
+        if not path.is_file() or not rel.startswith("decisions/"):
+            err(f"decision cost override points to invalid file: {rel}")
+            continue
+        if not isinstance(item, dict):
+            err(f"decision cost override must be object: {rel}")
+            continue
+        level = str(item.get("level", ""))
+        reason = str(item.get("reason", "")).strip()
+        if level not in {"low", "medium", "high"} or not reason:
+            err(f"decision cost override invalid: {rel}")
+            continue
+        inline, _ = frontmatter(read(path))
+        if "cost" in inline:
+            err(f"decision already has inline cost; remove registry override: {rel}")
+            continue
+        decision_costs[rel] = {"level": level, "reason": reason}
+
+
+def effective_meta(rel: str, inline: dict[str, object]) -> dict[str, object]:
+    merged = dict(inline)
+    for key, value in legacy_files.get(rel, {}).items():
+        if key not in merged:
+            merged[key] = value
+    return merged
+
+
 def validate_counts() -> None:
     actual = {name: len(all_files(ROOT / name)) for name in CORE_DIRS}
     total = sum(actual.values())
-
     readme = read(ROOT / "README.md")
     index = read(ROOT / "KNOWLEDGE_INDEX.md")
     bundle = read(ROOT / "KNOWLEDGE_BUNDLE.md")
@@ -153,7 +229,8 @@ def validate_metadata() -> None:
             if path.suffix.lower() != ".md":
                 continue
             rel = path.relative_to(ROOT).as_posix()
-            meta, _ = frontmatter(read(path))
+            inline, _ = frontmatter(read(path))
+            meta = effective_meta(rel, inline)
             if not meta:
                 warn(f"metadata missing: {rel}")
                 continue
@@ -164,7 +241,6 @@ def validate_metadata() -> None:
             status = str(meta.get("status", ""))
             if status and status not in ALLOWED_STATUS:
                 err(f"invalid status {status!r}: {rel}")
-
             if "confidence" in meta:
                 conf = float_value(meta["confidence"])
                 if not 0.0 <= conf <= 1.0:
@@ -176,7 +252,6 @@ def validate_metadata() -> None:
             if not isinstance(verified_in, list):
                 verified_in = parse_inline_list(str(verified_in))
             reuse = int_value(meta.get("reuse_count", -1))
-
             if folder == "patterns" and status == "verified" and len(set(verified_in)) < 2:
                 err(f"pattern promoted too early: {rel}: verified_in={verified_in}")
             if status == "best_practice" and (len(set(verified_in)) < 3 or reuse < 3):
@@ -193,8 +268,9 @@ def validate_metadata() -> None:
         if path.suffix.lower() != ".md":
             continue
         rel = path.relative_to(ROOT).as_posix()
-        meta, _ = frontmatter(read(path))
-        if meta and "cost" not in meta:
+        inline, _ = frontmatter(read(path))
+        meta = effective_meta(rel, inline)
+        if meta and "cost" not in meta and rel not in decision_costs:
             warn(f"decision missing cost block: {rel}")
 
 
@@ -276,6 +352,7 @@ def validate_privacy() -> None:
 
 
 def main() -> int:
+    load_legacy_registry()
     validate_counts()
     validate_metadata()
     validate_bad_cases()
@@ -285,6 +362,7 @@ def main() -> int:
 
     print("Knowledge audit")
     print(f"errors={len(errors)} warnings={len(warnings)}")
+    print(f"legacy_metadata_overrides={len(legacy_files)} decision_cost_overrides={len(decision_costs)}")
     if errors:
         print("\nERRORS")
         for item in errors:
