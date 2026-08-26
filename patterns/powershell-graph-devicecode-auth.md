@@ -1,105 +1,143 @@
-﻿---
+---
 status: active
-confidence: 0.9
+confidence: 0.96
 reuse_count: 0
-last_used: 2026-05-26
-verified_in: ["projects/2026-05-26-morning-briefing.md"]
+last_used: 2026-08-26
+verified_in: [morning-briefing-design]
+expires_after: 2026-11-30
 cross_refs:
+  - projects/2026-05-26-morning-briefing.md
   - lessons/rest-over-sdk-windows.md
+  - mistakes/encoding-string-replace-windows.md
 ---
 
-# PowerShell + Microsoft Graph Device Code 认证模式
+# PowerShell + Microsoft identity platform Device Code 认证模式
 
-## 一句话
-
-在 Windows 自动化脚本（Task Scheduler）中，用纯 REST API + Device Code Flow 替代重型 SDK 访问 Microsoft Graph。
+> 2026-08-26 按 Microsoft 官方协议文档重新核验。原条目中的通用 client ID、token 轮询参数和 refresh-token 缓存示例存在问题，本版已纠正。
 
 ## 适用场景
 
-- 个人 Windows 自动化脚本需要访问 Microsoft 365 数据（邮件/日历/文件）
-- 不希望安装 >150MB 的 Microsoft.Graph PowerShell SDK
-- 需要后台静默运行（Task Scheduler / cron）
-- 单用户场景，不需要 client secret 或证书
+Device Code Flow 主要适合：
 
-## 模式结构
+- CLI、IoT 或没有方便内嵌浏览器的 public client。
+- 需要用户委托权限访问 Microsoft Graph。
+- 首次认证允许用户在另一个浏览器/设备上完成交互。
 
+它**不是**通用后台 daemon 认证方案，也不等于永远无人值守。真正的服务端 daemon 应评估 confidential client / application permissions。
+
+## 前置条件
+
+1. 在 Microsoft Entra 中为自己的应用创建 App Registration。
+2. 记录自己的 Application (client) ID。
+3. 根据目标账户选择合适 tenant (`organizations`、`common`、`consumers` 或具体 tenant)。
+4. 将应用配置为允许 public client flow。
+5. 请求最小必要 scope；需要 refresh token 时包含 `offline_access`。
+
+不要复制别的 Microsoft 工具或第三方应用的 client ID 当作自己的通用 client ID。
+
+## 协议结构
+
+```text
+POST /{tenant}/oauth2/v2.0/devicecode
+  client_id=<YOUR_APP_CLIENT_ID>
+  scope=<SCOPES>
+        |
+        v
+显示 verification_uri + user_code
+        |
+用户在浏览器交互登录
+        |
+客户端按 interval 轮询
+        v
+POST /{tenant}/oauth2/v2.0/token
+  grant_type=urn:ietf:params:oauth:grant-type:device_code
+  client_id=<同一个 client_id>
+  device_code=<device_code>
+        |
+        v
+access_token (+ 可能的 refresh_token)
 ```
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐
-│ 首次手动运行 │ ──▶ │ Device Code   │ ──▶ │ 浏览器授权    │
-│ (PowerShell) │     │ Flow 获取令牌 │     │ (一次性)      │
-└─────────────┘     └──────────────┘     └──────────────┘
-                            │
-                    ┌───────▼────────┐
-                    │ 缓存            │
-                    │ access_token   │
-                    │ refresh_token  │
-                    │ expires_on     │
-                    └───────┬────────┘
-                            │
-┌─────────────┐     ┌───────▼────────┐
-│ 后续自动运行 │ ──▶ │ refresh_token  │
-│ (Task Scheduler)│ │ 静默续期       │
-└─────────────┘     └───────┬────────┘
-                            │
-                    ┌───────▼────────┐
-                    │ Invoke-        │
-                    │ RestMethod     │
-                    │ Graph REST API │
-                    └────────────────┘
-```
 
-## 核心代码
+`/token` 轮询中的 `client_id` 是必需字段，而且必须和初始 `/devicecode` 请求一致。
 
-### Device Code 获取
+## PowerShell 协议骨架
+
 ```powershell
-$clientId = "14d82eec-204b-4c2f-b7e8-296a70dab67e"  # 公共 client
-$dc = Invoke-RestMethod "https://login.microsoftonline.com/common/oauth2/v2.0/devicecode" `
-    -Body @{ client_id=$clientId; scope="$scopes" } -Method Post
-# 显示 $dc.user_code，用户去 https://microsoft.com/devicelogin 输入
+$tenant = "common"
+$clientId = "<YOUR_APP_CLIENT_ID>"
+$scopes = "offline_access Mail.Read Calendars.Read"
+
+$device = Invoke-RestMethod `
+  -Uri "https://login.microsoftonline.com/$tenant/oauth2/v2.0/devicecode" `
+  -Method Post `
+  -ContentType "application/x-www-form-urlencoded" `
+  -Body @{ client_id = $clientId; scope = $scopes }
+
+Write-Host $device.message
 ```
 
-### 轮询 + 缓存
+轮询请求的**必需字段骨架**：
+
 ```powershell
-while ($true) {
-    Start-Sleep -Seconds $dc.interval
-    $token = Invoke-RestMethod "https://login.microsoftonline.com/common/oauth2/v2.0/token" `
-        -Body @{ grant_type="urn:ietf:params:oauth:grant-type:device_code"; device_code=$dc.device_code }
-    if ($token.access_token) { break }
+$body = @{
+  grant_type  = "urn:ietf:params:oauth:grant-type:device_code"
+  client_id   = $clientId
+  device_code = $device.device_code
 }
-# 缓存到 JSON 文件
-@{ access_token=$t; refresh_token=$t; expires_on=(Get-Date).AddSeconds($t.expires_in) } | ConvertTo-Json > token.json
 ```
 
-### 静默刷新
+直接用 `Invoke-RestMethod` 实现完整轮询时，还必须正确处理非 2xx 的 `authorization_pending`、`slow_down`、`authorization_declined`、`expired_token` 等状态，并遵守服务端返回的 `interval`。因此在可接受依赖的项目中，优先让 MSAL 实现协议和 token cache。
+
+## Refresh token
+
+如果授权响应提供了 refresh token：
+
+- 它和 access token 一样属于敏感凭据。
+- 使用 refresh token 换 access token 时同样要发送自己的 `client_id`。
+- 刷新成功如果返回新的 refresh token，应安全替换缓存中的旧值。
+- 不把“90 天”理解成绝对保证；token 可因生命周期、撤销、策略或账户变化而失效，应用必须能回到交互授权。
+
+示意：
+
 ```powershell
-$cached = Get-Content token.json | ConvertFrom-Json
-if ([DateTime]$cached.expires_on -lt (Get-Date).AddMinutes(10)) {
-    $new = Invoke-RestMethod "https://login.microsoftonline.com/common/oauth2/v2.0/token" `
-        -Body @{ grant_type="refresh_token"; refresh_token=$cached.refresh_token }
-    # 更新缓存
+$refreshBody = @{
+  client_id     = $clientId
+  grant_type    = "refresh_token"
+  refresh_token = $cached.refresh_token
+  scope         = $scopes
 }
 ```
 
-## 为什么是 Device Code 而非其他
+## Token 存储
 
-| 方案 | 适合个人自动化? | 原因 |
-|------|:---:|------|
-| Device Code | ✅ | 一次性浏览器授权，后续静默 refresh |
-| Client Credentials | ❌ | 需 Azure AD 应用注册 + 证书/secret 管理 |
-| ROPC (密码) | ❌ | 不安全，MFA 账户不可用 |
-| Interactive (浏览器弹窗) | ❌ | Task Scheduler 下无 GUI |
+最低要求：
 
-## 注意事项
+- 不写入 Git 仓库。
+- 不输出到普通调试日志。
+- 限制本地文件权限，或使用 OS 凭据存储/token cache。
+- 记录 token 类型、过期时间等非敏感元数据即可。
+- 支持凭据失效后的显式重新登录路径。
 
-- 公共 `clientId` 适用于个人账户，企业账户可能需要注册自己的应用
-- `refresh_token` 默认 90 天有效，需处理过期重新授权
-- Token JSON 文件存储在用户目录，需设置合适的 NTFS 权限
-- `authorization_pending` 是正常的轮询状态，不是错误
+## Device Code 与其他流程
 
-## 关联
+| 场景 | 更常见选择 |
+|------|------------|
+| CLI / 无浏览器 public client | Device Code |
+| 有系统浏览器的桌面 public client | Interactive + MSAL / WAM 等 |
+| 代表应用本身的后台服务 | Confidential client / client credentials（按业务权限审查） |
+| 用户名密码直接换 token | 不推荐；不要用 ROPC 作为默认方案 |
 
-- lessons/rest-over-sdk-windows.md (为什么不用 SDK)
-- projects/2026-05-26-morning-briefing.md (实际应用)
+## 验收清单
+
+- [ ] client ID 来自自己的应用注册。
+- [ ] public client 配置与 tenant/account 类型匹配。
+- [ ] scope 是最小必要权限。
+- [ ] `/token` 轮询包含 `client_id`。
+- [ ] 遵守 `interval` 并处理预期轮询错误。
+- [ ] refresh token 更新/失效路径已测试。
+- [ ] token cache 不进入仓库或日志。
+- [ ] 用户撤销授权后能正确回到未认证状态。
 
 ## 标签
-#powershell #microsoft-graph #oauth #device-code #automation #windows
+
+#powershell #microsoft-graph #oauth #device-code #public-client #automation #windows

@@ -27,7 +27,6 @@
     "patterns/2026-06-23-absolute-path-first-for-automation.md": {"reason":"Predates unified schema.","fields":{"expires_after":"none","verified_in":["codex-automation"]}},
     "patterns/duplicate-repo-source-of-truth-check.md": {"reason":"Stable repository-integrity pattern.","fields":{"expires_after":"none","verified_in":["codex-diary"]}},
     "patterns/lightweight-supabase-client.md": {"reason":"Supabase API behavior is time-sensitive.","fields":{"confidence":0.85,"reuse_count":0,"last_used":"2026-05-24","expires_after":"2026-11-30"}},
-    "patterns/powershell-graph-devicecode-auth.md": {"reason":"OAuth/Graph platform behavior is time-sensitive.","fields":{"expires_after":"2026-11-30"}},
 
     "mistakes/2026-06-22-env-var-assumption-on-windows.md": {"reason":"Predates unified schema.","fields":{"expires_after":"none","verified_in":["codex-automation"]}},
     "mistakes/2026-06-23-not-trusting-shell-variables.md": {"reason":"Predates unified schema.","fields":{"expires_after":"none","verified_in":["codex-automation"]}},
@@ -37,7 +36,6 @@
     "mistakes/dead-code-orphan.md": {"reason":"Predates unified schema.","fields":{"confidence":0.98,"reuse_count":0,"last_used":"2026-05-24","verified_in":["pdf-to-excel"],"expires_after":"none"}},
     "mistakes/doubao-script-success-without-client-acceptance.md": {"reason":"Stable verification mistake.","fields":{"expires_after":"none"}},
     "mistakes/download-no-auth.md": {"reason":"Predates unified schema.","fields":{"confidence":0.99,"reuse_count":0,"last_used":"2026-05-24","verified_in":["pdf-to-excel"],"expires_after":"none"}},
-    "mistakes/encoding-string-replace-windows.md": {"reason":"The incident is real but the causal explanation needs technical revalidation.","fields":{"expires_after":"2026-09-30","verified_in":["morning-briefing"]}},
     "mistakes/fanren-ci-triggered-on-incomplete-snapshot.md": {"reason":"Stable CI/release mistake.","fields":{"expires_after":"none"}},
     "mistakes/flask-debug-true.md": {"reason":"Predates unified schema.","fields":{"confidence":1.0,"reuse_count":0,"last_used":"2026-05-24","verified_in":["pdf-to-excel"],"expires_after":"none"}},
     "mistakes/gpt-system-prompt-unused.md": {"reason":"Predates unified schema.","fields":{"confidence":1.0,"reuse_count":0,"last_used":"2026-05-24","verified_in":["pdf-to-excel"],"expires_after":"none"}},
