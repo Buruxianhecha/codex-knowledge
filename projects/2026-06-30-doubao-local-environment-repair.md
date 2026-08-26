@@ -87,7 +87,7 @@ cross_refs:
 - 路径规范化、空格和非 ASCII 字符。
 - Windows PowerShell 与 PowerShell 7 的差异。
 
-不要写死任何具体用户主目录。公开文档统一用 `%USERPROFILE%`；需要覆盖非 ASCII 场景时，把它作为测试维度描述为 `<NON_ASCII_HOME_TEST_CASE>`，而不是写出 `C:\Users\...` 形式的用户名示例。
+不要写死任何具体用户主目录。公开文档统一用 `%USERPROFILE%`；需要覆盖非 ASCII 场景时，把它描述为 `<NON_ASCII_HOME_TEST_CASE>` 这一测试维度，不写任何用户主目录字面路径。
 
 ## 可复用结论
 
