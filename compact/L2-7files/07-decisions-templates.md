@@ -1,16 +1,23 @@
-# Decisions and Templates 压缩版 v5
+# Decisions and Templates 压缩版 v6
 
 ## 关键决策
 
-- OCR/多引擎：质量择优，但通用 pattern 目前仍 active。
-- Provider：名称与真实来源/网关角色分离。
-- 拾光：付费后端前先本地测试；Mock/Real 用 Provider 切换。
-- 自动化：先核验 source of truth，再用绝对路径和当前 shell 能力。
-- 复杂任务：先依赖 DAG，独立节点并行，共享 Schema 后统一审计。
-- 知识库：主事实源更新后必须同步 Index/Memory/Bundle/Compact，并由 CI 审计。
+- OCR：并行择优换更高质量，但成本高，未来可用质量阈值跳过昂贵引擎。
+- pdf-to-excel v1：Web 优先；CLI 未来复用 service 层。
+- Provider：命名表达真实来源/网关角色。
+- 拾光：付费后端前先本地测试版；Mock/Real 用 Provider 边界。
+- 自动化：真实 Git/source of truth 高于记忆路径；运行时验证高于文档假设。
+- 知识维护：事实源大幅压缩必须 diff 审核，Compact 才负责强压缩。
 
 ## 必用清单
 
-`user-acceptance`、`public-repository-release`、`browser-state-app`、`evidence-research`、`real-reading-time`、`reference-preservation`、`bim-structure-input`。
+- `templates/checklist/user-acceptance-checklist.md`
+- `templates/checklist/public-repository-release-checklist.md`
+- `templates/checklist/browser-state-app-checklist.md`
+- `templates/checklist/evidence-research-checklist.md`
+- `templates/checklist/real-reading-time-checklist.md`
+- `templates/checklist/reference-preservation-checklist.md`
+- `templates/checklist/bim-structure-input-checklist.md`
+- `templates/checklist/knowledge-maintenance-diff-checklist.md`
 
-决策记录写背景、采用理由、替代方案、后果、成本、适用边界和重新评估条件。
+Decision 记录背景、方案、理由、未选方案、后果、成本、适用边界和重新评估条件。

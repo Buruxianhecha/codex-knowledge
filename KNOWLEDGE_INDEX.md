@@ -1,6 +1,6 @@
-# Knowledge Index 完整知识索引 v8
+# Knowledge Index 完整知识索引 v9
 
-> 最后更新：2026-08-26 | 核心条目：112 | 最近审计：2026-06-26 至 2026-08-26
+> 最后更新：2026-08-26 | 核心条目：115 | 最近审计：2026-06-26 至 2026-08-26
 
 ## 最近两个月入口
 
@@ -9,6 +9,7 @@
 - [projects/2026-08-20-article-shelf-engagement-system.md](projects/2026-08-20-article-shelf-engagement-system.md) — 签到/真实阅读时长
 - [projects/2026-08-21-bim-structural-drawing-input.md](projects/2026-08-21-bim-structural-drawing-input.md) — BIM/结构图纸输入
 - [projects/2026-08-25-browser-simulator-release-series.md](projects/2026-08-25-browser-simulator-release-series.md) — 模拟器与 GitHub 发布
+- [lessons/source-knowledge-must-survive-maintenance.md](lessons/source-knowledge-must-survive-maintenance.md) — 本轮知识审计新增的非破坏维护原则
 - [memory/distilled-memory.md](memory/distilled-memory.md) — 高密度速查
 
 ## 项目 (12)
@@ -26,7 +27,7 @@
 11. [projects/2026-08-25-browser-simulator-release-series.md](projects/2026-08-25-browser-simulator-release-series.md)
 12. [projects/2026-08-26-two-month-learning-audit.md](projects/2026-08-26-two-month-learning-audit.md)
 
-## 经验 (27)
+## 经验 (28)
 
 - [lessons/user-perspective-verification.md](lessons/user-perspective-verification.md) — best_practice
 - [lessons/knowledge-portability.md](lessons/knowledge-portability.md)
@@ -55,6 +56,7 @@
 - [lessons/drawing-values-derive-from-reference-planes.md](lessons/drawing-values-derive-from-reference-planes.md)
 - [lessons/reference-editing-is-constrained-transformation.md](lessons/reference-editing-is-constrained-transformation.md) — verified
 - [lessons/complex-prompts-are-executable-specifications.md](lessons/complex-prompts-are-executable-specifications.md) — verified
+- [lessons/source-knowledge-must-survive-maintenance.md](lessons/source-knowledge-must-survive-maintenance.md) — active
 
 ## 模式 (15)
 
@@ -62,7 +64,7 @@
 - [patterns/sqlite-migration.md](patterns/sqlite-migration.md) — active；单项目证据
 - [patterns/lightweight-supabase-client.md](patterns/lightweight-supabase-client.md)
 - [patterns/output-quality-gate.md](patterns/output-quality-gate.md) — active；单项目证据
-- [patterns/powershell-graph-devicecode-auth.md](patterns/powershell-graph-devicecode-auth.md)
+- [patterns/powershell-graph-devicecode-auth.md](patterns/powershell-graph-devicecode-auth.md) — 2026-08-26 官方文档复核
 - [patterns/2026-06-22-absolute-path-first.md](patterns/2026-06-22-absolute-path-first.md) — superseded
 - [patterns/2026-06-23-absolute-path-first-for-automation.md](patterns/2026-06-23-absolute-path-first-for-automation.md)
 - [patterns/2026-06-28-absolute-path-first-and-runtime-check.md](patterns/2026-06-28-absolute-path-first-and-runtime-check.md) — active replacement
@@ -74,7 +76,7 @@
 - [patterns/activity-gated-time-accounting.md](patterns/activity-gated-time-accounting.md)
 - [patterns/multi-agent-shared-schema-orchestration.md](patterns/multi-agent-shared-schema-orchestration.md)
 
-## 错误 (18)
+## 错误 (19)
 
 1. [mistakes/assuming-user-error.md](mistakes/assuming-user-error.md)
 2. [mistakes/copy-paste-ocr-engines.md](mistakes/copy-paste-ocr-engines.md)
@@ -83,7 +85,7 @@
 5. [mistakes/gpt-system-prompt-unused.md](mistakes/gpt-system-prompt-unused.md)
 6. [mistakes/flask-debug-true.md](mistakes/flask-debug-true.md)
 7. [mistakes/download-no-auth.md](mistakes/download-no-auth.md)
-8. [mistakes/encoding-string-replace-windows.md](mistakes/encoding-string-replace-windows.md)
+8. [mistakes/encoding-string-replace-windows.md](mistakes/encoding-string-replace-windows.md) — 2026-08-26 因果纠正
 9. [mistakes/model-mapping-lost-during-provider-migration.md](mistakes/model-mapping-lost-during-provider-migration.md)
 10. [mistakes/2026-06-22-env-var-assumption-on-windows.md](mistakes/2026-06-22-env-var-assumption-on-windows.md)
 11. [mistakes/2026-06-23-not-trusting-shell-variables.md](mistakes/2026-06-23-not-trusting-shell-variables.md)
@@ -94,6 +96,7 @@
 16. [mistakes/fanren-ci-triggered-on-incomplete-snapshot.md](mistakes/fanren-ci-triggered-on-incomplete-snapshot.md)
 17. [mistakes/minimal-tv-clock-requirement-drift.md](mistakes/minimal-tv-clock-requirement-drift.md)
 18. [mistakes/shiguang-test-site-overstated-as-production-ready.md](mistakes/shiguang-test-site-overstated-as-production-ready.md)
+19. [mistakes/knowledge-audit-overcompressed-source-content.md](mistakes/knowledge-audit-overcompressed-source-content.md) — high risk
 
 ## 决策 (12)
 
@@ -119,7 +122,7 @@
 - [anti-patterns/silent-exception-swallowing.md](anti-patterns/silent-exception-swallowing.md)
 - [anti-patterns/god-file.md](anti-patterns/god-file.md)
 
-## 模板 (19)
+## 模板 (20)
 
 - [templates/checklist/user-acceptance-checklist.md](templates/checklist/user-acceptance-checklist.md)
 - [templates/checklist/llm-provider-migration-checklist.md](templates/checklist/llm-provider-migration-checklist.md)
@@ -129,6 +132,7 @@
 - [templates/checklist/real-reading-time-checklist.md](templates/checklist/real-reading-time-checklist.md)
 - [templates/checklist/reference-preservation-checklist.md](templates/checklist/reference-preservation-checklist.md)
 - [templates/checklist/bim-structure-input-checklist.md](templates/checklist/bim-structure-input-checklist.md)
+- [templates/checklist/knowledge-maintenance-diff-checklist.md](templates/checklist/knowledge-maintenance-diff-checklist.md)
 - [templates/code/flask-session-secret.py](templates/code/flask-session-secret.py)
 - [templates/code/multi-engine-extractor.py](templates/code/multi-engine-extractor.py)
 - [templates/code/sqlite-migration-helper.py](templates/code/sqlite-migration-helper.py)
@@ -147,10 +151,16 @@
 - [bad-cases/multi-line-numbers-false-positive.md](bad-cases/multi-line-numbers-false-positive.md)
 - [bad-cases/tesseract-japanese-char-limit.md](bad-cases/tesseract-japanese-char-limit.md)
 
-## 元数据债务
+## 治理与兼容层
 
-历史条目仍有不完整 YAML 和部分旧 decision 缺 cost block。它们由自动审计作为 warning 显式追踪；新条目不允许继续制造同类债务。生命周期、断链、隐私、统计和 Compact 漂移必须 error=0。
+- [`QUALITY.md`](QUALITY.md) — 生命周期、元数据、证据、事实源保护。
+- [`FRESHNESS.md`](FRESHNESS.md) — 时效知识复核。
+- [`metadata/legacy-overrides.json`](metadata/legacy-overrides.json) — 旧条目缺失元数据兼容层；不计核心条目。
+- [`scripts/validate_knowledge.py`](scripts/validate_knowledge.py) — 结构/隐私/链接审计。
+- [`scripts/check_source_regression.py`](scripts/check_source_regression.py) — 事实源大幅缩水门控。
+
+当前历史兼容层仍是显式债务，不通过改写/删减旧正文来消除。CI 会报告 override 数量。
 
 ---
 
-*统计：12 项目 + 27 经验 + 15 模式 + 18 错误 + 12 决策 + 6 反模式 + 19 模板 + 3 失败案例 = 112。*
+*统计：12 项目 + 28 经验 + 15 模式 + 19 错误 + 12 决策 + 6 反模式 + 20 模板 + 3 失败案例 = 115。*

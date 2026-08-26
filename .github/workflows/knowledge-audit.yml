@@ -16,5 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - name: Validate knowledge base
         run: python3 scripts/validate_knowledge.py
+      - name: Protect source knowledge from destructive compaction
+        run: python3 scripts/check_source_regression.py
