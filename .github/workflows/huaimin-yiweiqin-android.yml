@@ -5,7 +5,7 @@ on:
   push:
     branches: [master]
     paths:
-      - "projects/huaimin-yiweiqin/**"
+      - "standalone-apps/huaimin-yiweiqin/**"
       - ".github/workflows/huaimin-yiweiqin-android.yml"
 
 permissions:
@@ -45,7 +45,7 @@ jobs:
 
       - name: Apply 怀民亦未寝 patch
         run: |
-          python3 projects/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
