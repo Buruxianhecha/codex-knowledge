@@ -2,6 +2,7 @@
 from pathlib import Path
 import shutil
 import sys
+from verify_icon import verify_source
 
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(".").resolve()
 
@@ -208,6 +209,7 @@ test_path.write_text(test_text.replace(needle, new_test + needle, 1), encoding="
 
 # 7) 只替换应用图标；直接让 Manifest 指向最终图片，兼容部分国产系统安装器。
 icon_src = Path(__file__).resolve().parent / "assets" / "app_icon.jpg"
+verify_source(icon_src)
 icon_dst = ROOT / "app/src/main/res/drawable-nodpi/huaimin_app_icon.jpg"
 icon_dst.parent.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(icon_src, icon_dst)

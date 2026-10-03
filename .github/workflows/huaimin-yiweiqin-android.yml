@@ -2,6 +2,10 @@ name: Build 怀民亦未寝 Android APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "standalone-apps/huaimin-yiweiqin/**"
+      - ".github/workflows/huaimin-yiweiqin-android.yml"
   push:
     branches: [master]
     paths:
@@ -20,6 +24,9 @@ jobs:
     steps:
       - name: Checkout codex-knowledge
         uses: actions/checkout@v4
+
+      - name: Install icon verification dependencies
+        run: python3 -m pip install --user "Pillow==12.3.0" "androguard==4.1.4"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -64,6 +71,13 @@ jobs:
         run: |
           ./gradlew assembleDebug --stacktrace
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/怀民亦未寝.apk"
+
+      - name: Verify packaged icon and APK signature
+        run: |
+          python3 standalone-apps/huaimin-yiweiqin/verify_icon.py \
+            --source standalone-apps/huaimin-yiweiqin/assets/app_icon.jpg \
+            --apk 怀民亦未寝.apk
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose 怀民亦未寝.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
