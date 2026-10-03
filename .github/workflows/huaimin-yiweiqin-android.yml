@@ -39,7 +39,7 @@ jobs:
           echo "updated sdkmanager=$SDKMANAGER"
           "$SDKMANAGER" --list --channel=3 | grep -Ei "platforms;android-37|Cinnamon|build-tools;37" || true
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --channel=3 "platforms;android-37" "build-tools;37.0.0" "platform-tools"
+          "$SDKMANAGER" --channel=3 "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
 
       - name: Fetch pinned Cleos source
         run: |
