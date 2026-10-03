@@ -27,13 +27,12 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android 37 platform
+      - name: Prepare Android SDK
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          command -v sdkmanager
           yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-37"
+          sdkmanager "platforms;android-37" "build-tools;36.0.0" "platform-tools"
 
       - name: Fetch pinned Cleos source
         run: |
