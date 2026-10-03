@@ -32,9 +32,14 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           test -n "$SDKMANAGER"
-          echo "sdkmanager=$SDKMANAGER"
+          echo "bootstrap sdkmanager=$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --channel=3 "platforms;android-37" "build-tools;36.0.0" "platform-tools"
+          "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          echo "updated sdkmanager=$SDKMANAGER"
+          "$SDKMANAGER" --list --channel=3 | grep -Ei "platforms;android-37|Cinnamon|build-tools;37" || true
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --channel=3 "platforms;android-37" "build-tools;37.0.0" "platform-tools"
 
       - name: Fetch pinned Cleos source
         run: |
