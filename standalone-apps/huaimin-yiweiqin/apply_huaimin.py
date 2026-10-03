@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import shutil
 import sys
 
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(".").resolve()
@@ -204,5 +205,22 @@ new_test = '''    @Test
 
 '''
 test_path.write_text(test_text.replace(needle, new_test + needle, 1), encoding="utf-8")
+
+# 7) 只替换应用桌面图标；其他资源和功能保持不变。
+icon_src = Path(__file__).resolve().parent / "assets" / "app_icon.jpg"
+icon_dst = ROOT / "app/src/main/res/drawable-nodpi/huaimin_app_icon.jpg"
+icon_dst.parent.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(icon_src, icon_dst)
+
+launcher = ROOT / "app/src/main/res/mipmap-anydpi/ic_launcher.xml"
+launcher.write_text(
+    """<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/huaimin_app_icon" />
+    <foreground android:drawable="@android:color/transparent" />
+</adaptive-icon>
+""",
+    encoding="utf-8",
+)
 
 print("怀民亦未寝增量补丁已应用。")
