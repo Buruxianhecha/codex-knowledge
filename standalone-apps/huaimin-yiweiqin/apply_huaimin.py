@@ -22,7 +22,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62011\n        versionName = "0.36.4"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62012\n        versionName = "0.36.5"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -567,4 +567,21 @@ apply_model_save(ROOT)
 # 17) 0.36.4：从用户已发送的表情标记解析真实图片，接入普通图片的多模态请求。
 apply_sticker_vision(ROOT)
 
+# 18) 0.36.5：表情包已经支持真实图片识别，移除空表情列表里的过时说明。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/chat/Stickers.kt",
+    '''        if (stickers.isEmpty()) {
+            item(key = "hint", span = { GridItemSpan(maxLineSpan) }) {
+                Text(
+                    "从相册加几张表情包，起个名字。TA 看不到图，是按名字认的，也会从这里挑着发给你（设置里「发表情包」开着的话）。",
+                    color = palette.contentSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                )
+            }
+        }
+''',
+    "",
+)
 print("怀民亦未寝增量补丁已应用。")
