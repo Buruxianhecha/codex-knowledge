@@ -250,8 +250,8 @@ replace_once(
 )
 replace_once(
     about_page,
-    '"Cleos 上次闪退了（\${text.lineSequence().first().substringAfter("，").substringBefore(" 闪退")}）。"',
-    '"怀民亦未寝上次闪退了（\${text.lineSequence().first().substringAfter("，").substringBefore(" 闪退")}）。"',
+    '"Cleos 上次闪退了（${text.lineSequence().first().substringAfter("，").substringBefore(" 闪退")}）。"',
+    '"怀民亦未寝上次闪退了（${text.lineSequence().first().substringAfter("，").substringBefore(" 闪退")}）。"',
 )
 replace_once(
     about_page,
