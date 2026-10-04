@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62003\n        versionName = "0.35.5"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62004\n        versionName = "0.35.6"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -378,6 +378,18 @@ replace_once(
 
     Section("玻璃") {
 """,
+)
+
+# 11) 0.35.6：设置首页“关于”摘要使用新应用名。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SettingsPages.kt",
+    '            Entry(Icons.Rounded.Info, "关于", "Cleos $version · 上次闪退了，记录在这里", palette.error) { onOpen(SettingsPage.About) }',
+    '            Entry(Icons.Rounded.Info, "关于", "怀民亦未寝 $version · 上次闪退了，记录在这里", palette.error) { onOpen(SettingsPage.About) }',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SettingsPages.kt",
+    '            Entry(Icons.Rounded.Info, "关于", "Cleos $version · 新版本、许可与出处") { onOpen(SettingsPage.About) }',
+    '            Entry(Icons.Rounded.Info, "关于", "怀民亦未寝 $version · 新版本、许可与出处") { onOpen(SettingsPage.About) }',
 )
 
 print("怀民亦未寝增量补丁已应用。")
