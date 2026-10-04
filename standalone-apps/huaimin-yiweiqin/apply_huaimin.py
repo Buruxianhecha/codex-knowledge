@@ -283,8 +283,8 @@ replace_once(
 
 # 10) 0.35.5：加入 4 张内置预设壁纸。现有应用图标保持不变。
 for index in range(1, 5):
-    preset_src = Path(__file__).resolve().parent / "assets" / f"wallpaper_{index}.png"
-    preset_dst = ROOT / "app/src/main/res/drawable-nodpi" / f"huaimin_wallpaper_{index}.png"
+    preset_src = Path(__file__).resolve().parent / "assets" / f"wallpaper_{index}.jpg"
+    preset_dst = ROOT / "app/src/main/res/drawable-nodpi" / f"huaimin_wallpaper_{index}.jpg"
     if not preset_src.is_file():
         raise SystemExit(f"missing preset wallpaper: {preset_src}")
     preset_dst.parent.mkdir(parents=True, exist_ok=True)
