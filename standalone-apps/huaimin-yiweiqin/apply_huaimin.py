@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62007\n        versionName = "0.35.9"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62008\n        versionName = "0.36.1"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -281,8 +281,8 @@ replace_once(
     'Chip("看赞赏码", selected = false) { showTip = true }',
 )
 
-# 10) 0.35.5：加入 4 张内置预设壁纸。现有应用图标保持不变。
-for index in range(1, 5):
+# 10) 0.36.1：保留原有 4 张预设，新增清理后的海底峡谷壁纸。现有应用图标保持不变。
+for index in range(1, 6):
     preset_src = Path(__file__).resolve().parent / "assets" / f"wallpaper_{index}.jpg"
     preset_dst = ROOT / "app/src/main/res/drawable-nodpi" / f"huaimin_wallpaper_{index}.jpg"
     if not preset_src.is_file():
@@ -343,6 +343,7 @@ replace_once(
             Triple(R.drawable.huaimin_wallpaper_2, "云海朝霞", "wallpaper-preset-2-"),
             Triple(R.drawable.huaimin_wallpaper_3, "竹影月湖", "wallpaper-preset-3-"),
             Triple(R.drawable.huaimin_wallpaper_4, "月下庭园", "wallpaper-preset-4-"),
+            Triple(R.drawable.huaimin_wallpaper_5, "海底峡谷", "wallpaper-preset-5-"),
         )
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
