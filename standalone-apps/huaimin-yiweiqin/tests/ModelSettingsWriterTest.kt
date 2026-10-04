@@ -9,6 +9,10 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ModelSettingsWriterTest {
+    private fun companion(id: Long = 1L) = CompanionEntity(
+        id = id, apiBaseUrl = "https://old.example/v1", apiModel = "old", createdAt = 1L,
+    )
+
     private fun selection(id: Long = 1L) = ModelSelection(
         id, "https://www.sui-xiang.net/v1", "gpt-6-sol", true,
         "https://voice.example/v1", "voice-model",
@@ -16,7 +20,7 @@ class ModelSettingsWriterTest {
 
     @Test
     fun aPendingAutomaticWriteCannotOverwriteTheExplicitSelection() = runBlocking {
-        val old = CompanionEntity(id = 1, name = "TA", persona = "keep this persona", apiModel = "old")
+        val old = companion().copy(name = "TA", persona = "keep this persona")
         var stored = old
         val writer = ModelSettingsWriter({ _, _ -> }, { _, change -> stored = change(stored) }, { stored })
         val entered = CompletableDeferred<Unit>()
@@ -37,7 +41,7 @@ class ModelSettingsWriterTest {
 
     @Test
     fun navigationWaitsForKeyAndDatabaseWrites() = runBlocking {
-        var stored = CompanionEntity(id = 1)
+        var stored = companion()
         var leftPage = false
         val keyDone = CompletableDeferred<Unit>()
         val databaseDone = CompletableDeferred<Unit>()
@@ -68,7 +72,7 @@ class ModelSettingsWriterTest {
 
     @Test
     fun switchingTheEditableTaCannotMoveAnAlreadyCapturedSelection() = runBlocking {
-        val records = mutableMapOf(1L to CompanionEntity(id = 1), 2L to CompanionEntity(id = 2))
+        val records = mutableMapOf(1L to companion(1), 2L to companion(2))
         val release = CompletableDeferred<Unit>()
         val writer = ModelSettingsWriter(
             { _, _ -> release.await() },
@@ -94,7 +98,7 @@ class ModelSettingsWriterTest {
         val writer = ModelSettingsWriter(
             { _, _ -> error("key write failed") },
             { _, _ -> wroteModel = true },
-            { CompanionEntity(id = 1) },
+            { companion() },
         )
         try {
             writer.commit(selection(), listOf(selection().baseUrl to "test-key"))
@@ -129,7 +133,7 @@ class ModelSettingsWriterTest {
     @Test
     fun staleReadbackCannotCloseThePage() = runBlocking {
         var leftPage = false
-        val writer = ModelSettingsWriter({ _, _ -> }, { _, _ -> }, { CompanionEntity(id = 1, apiModel = "old") })
+        val writer = ModelSettingsWriter({ _, _ -> }, { _, _ -> }, { companion() })
         try {
             writer.commit(selection(), emptyList())
             leftPage = true
