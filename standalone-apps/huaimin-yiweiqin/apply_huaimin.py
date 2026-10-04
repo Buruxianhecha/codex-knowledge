@@ -220,4 +220,58 @@ replace_once(
     '        android:icon="@drawable/huaimin_app_icon"\n        android:label="@string/app_name"\n        android:roundIcon="@drawable/huaimin_app_icon"',
 )
 
+# 8) 关于页品牌文案与赞赏码。保持应用图标等其他资源不变。
+about_page = "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt"
+
+replace_once(
+    about_page,
+    '"Cleos 是一个人做的，一直免费。觉得好用、想请开发者喝杯奶茶的话，可以用微信扫一下。"',
+    '"怀民亦未寝是一个人做的，一直免费。觉得好用、想请开发者喝杯奶茶的话，可以用微信扫一下。"',
+)
+replace_once(
+    about_page,
+    'put(MediaStore.Images.Media.DISPLAY_NAME, "Cleos-milk-tea.png")',
+    'put(MediaStore.Images.Media.DISPLAY_NAME, "怀民亦未寝-赞赏码.jpg")',
+)
+replace_once(
+    about_page,
+    'put(MediaStore.Images.Media.MIME_TYPE, "image/png")',
+    'put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")',
+)
+replace_once(
+    about_page,
+    'put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Cleos")',
+    'put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/怀民亦未寝")',
+)
+replace_once(
+    about_page,
+    '"存好了，在相册的「Cleos」里。打开微信「扫一扫」，点右上角的相册选它就行。"',
+    '"存好了，在相册的「怀民亦未寝」里。打开微信「扫一扫」，点右上角的相册选它就行。"',
+)
+replace_once(
+    about_page,
+    '"Cleos 上次闪退了（\${text.lineSequence().first().substringAfter("，").substringBefore(" 闪退")}）。"',
+    '"怀民亦未寝上次闪退了（\${text.lineSequence().first().substringAfter("，").substringBefore(" 闪退")}）。"',
+)
+replace_once(
+    about_page,
+    'ClipData.newPlainText("Cleos 闪退记录", text)',
+    'ClipData.newPlainText("怀民亦未寝 闪退记录", text)',
+)
+replace_once(
+    about_page,
+    '"（Zenodo，doi:10.5281/zenodo.4297951，CC BY 4.0；Cleos 只留了三档距离、换了存法），"',
+    '"（Zenodo，doi:10.5281/zenodo.4297951，CC BY 4.0；怀民亦未寝只留了三档距离、换了存法），"',
+)
+
+tip_src = Path(__file__).resolve().parent / "assets" / "tip_qr.jpg"
+tip_old = ROOT / "app/src/main/res/drawable-nodpi/tip_qr.png"
+tip_dst = ROOT / "app/src/main/res/drawable-nodpi/tip_qr.jpg"
+if not tip_src.is_file():
+    raise SystemExit(f"missing tip image: {tip_src}")
+if tip_old.exists():
+    tip_old.unlink()
+tip_dst.parent.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(tip_src, tip_dst)
+
 print("怀民亦未寝增量补丁已应用。")
