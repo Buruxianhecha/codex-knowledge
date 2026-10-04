@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62008\n        versionName = "0.36.1"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62009\n        versionName = "0.36.2"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -549,6 +549,14 @@ replace_once(
                                     vm.setWallpaper(uri, prefix)
                                 }
                             },''',
+)
+
+# 15) 0.36.2：把模型页面的 OpenRouter 预设替换为用户指定的“随想”。
+# 保留 OpenAI 兼容接口处理和按地址保存 Key；模型名由该服务的真实列表选择。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/data/SettingsRepository.kt",
+    '        ApiPreset("OpenRouter", "https://openrouter.ai/api/v1", "openai/gpt-4o-mini"),',
+    '        ApiPreset("随想", "https://www.sui-xiang.net/v1", ""),',
 )
 
 print("怀民亦未寝增量补丁已应用。")
