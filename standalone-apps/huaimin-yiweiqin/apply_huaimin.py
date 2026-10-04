@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62005\n        versionName = "0.35.7"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62006\n        versionName = "0.35.8"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -464,6 +464,30 @@ replace_once(
         }
     }
 ''',
+)
+
+# 13) 0.35.8：清理工具设置页残留品牌名；日历采用方案 A。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SharedPages.kt",
+    '"看你的日程，记的加在「Cleos」日历里"',
+    '"看你的日程，记的加在「怀民亦未寝」日历里"',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SharedPages.kt",
+    '"TA 能看你手机日历上的安排；你让它记的日程，加在一个叫「Cleos」的日历里，可以带提醒。它只能改、删自己加的，你的日程只能看。要日历权限，打开时会问。"',
+    '"TA 能看你手机日历上的安排；你让它记的日程，加在一个叫「怀民亦未寝」的日历里，可以带提醒。它只能改、删自己加的，你的日程只能看。要日历权限，打开时会问。"',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SharedPages.kt",
+    '"还没开「通知使用权」，TA 听不到：点「去开」，把 Cleos 的开关打开。" +',
+    '"还没开「通知使用权」，TA 听不到：点「去开」，把「怀民亦未寝」的开关打开。" +',
+)
+
+# 日历真正创建/显示的名称也同步为“怀民亦未寝”。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ai/Calendars.kt",
+    '            put(Calendars.NAME, "cleos")\n            put(Calendars.CALENDAR_DISPLAY_NAME, "Cleos")',
+    '            put(Calendars.NAME, "huaimin")\n            put(Calendars.CALENDAR_DISPLAY_NAME, "怀民亦未寝")',
 )
 
 print("怀民亦未寝增量补丁已应用。")
