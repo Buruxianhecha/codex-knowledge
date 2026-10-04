@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62006\n        versionName = "0.35.8"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62007\n        versionName = "0.35.9"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -488,6 +488,66 @@ replace_once(
     "app/src/main/java/com/cleo/cleos/ai/Calendars.kt",
     '            put(Calendars.NAME, "cleos")\n            put(Calendars.CALENDAR_DISPLAY_NAME, "Cleos")',
     '            put(Calendars.NAME, "huaimin")\n            put(Calendars.CALENDAR_DISPLAY_NAME, "怀民亦未寝")',
+)
+
+# 14) 0.35.9：把“月下庭园”设为真正的默认壁纸。
+# 默认状态（settings.wallpaper == null）直接显示内置 wallpaper_4；
+# “用回默认”会回到月下庭园，预设列表也把它标记为当前选中。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/theme/CleosTheme.kt",
+    "import androidx.compose.ui.platform.LocalDensity\n",
+    "import androidx.compose.ui.platform.LocalDensity\nimport androidx.compose.ui.platform.LocalContext\n",
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/theme/CleosTheme.kt",
+    "        GlassMode.Auto -> if (custom != null) settings.wallpaperDark ?: systemDark else systemDark",
+    "        GlassMode.Auto -> if (custom != null) settings.wallpaperDark ?: systemDark else true",
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/theme/CleosTheme.kt",
+    """    val config = LocalConfiguration.current
+    val density = LocalDensity.current
+""",
+    """    val config = LocalConfiguration.current
+    val density = LocalDensity.current
+    val context = LocalContext.current
+    val bundledDefault = remember {
+        BitmapFactory.decodeResource(context.resources, com.cleo.cleos.R.drawable.huaimin_wallpaper_4)?.asImageBitmap()
+    }
+""",
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/theme/CleosTheme.kt",
+    """    val image = bitmap
+    if (file != null && image != null) {
+""",
+    """    val image = bitmap ?: if (file == null) bundledDefault else null
+    if (image != null) {
+""",
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    '                val selected = settings.wallpaper?.startsWith(prefix) == true',
+    '''                val selected = if (prefix == "wallpaper-preset-4-") {
+                    settings.wallpaper == null || settings.wallpaper?.startsWith(prefix) == true
+                } else {
+                    settings.wallpaper?.startsWith(prefix) == true
+                }''',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    '''                            .clickable(enabled = !vm.wallpaperBusy) {
+                                val uri = Uri.parse("android.resource://${context.packageName}/$resId")
+                                vm.setWallpaper(uri, prefix)
+                            },''',
+    '''                            .clickable(enabled = !vm.wallpaperBusy) {
+                                if (prefix == "wallpaper-preset-4-") {
+                                    vm.resetWallpaper()
+                                } else {
+                                    val uri = Uri.parse("android.resource://${context.packageName}/$resId")
+                                    vm.setWallpaper(uri, prefix)
+                                }
+                            },''',
 )
 
 print("怀民亦未寝增量补丁已应用。")
