@@ -67,11 +67,13 @@ jobs:
           ./gradlew testDebugUnitTest --stacktrace
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
-          report = "app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.ui.settings.ModelSettingsWriterTest.xml"
-          suite = ET.parse(report).getroot()
-          assert int(suite.attrib["tests"]) == 6, suite.attrib
-          assert all(int(suite.attrib.get(k, 0)) == 0 for k in ("failures", "errors", "skipped")), suite.attrib
-          print("Model save regression tests: 6 passed; no failures or skipped tests.")
+          expected = {"ui.settings.ModelSettingsWriterTest": 6, "ai.StickerVisionTest": 8}
+          for name, count in expected.items():
+              report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
+              suite = ET.parse(report).getroot()
+              assert int(suite.attrib["tests"]) == count, suite.attrib
+              assert all(int(suite.attrib.get(k, 0)) == 0 for k in ("failures", "errors", "skipped")), suite.attrib
+              print(f"{name}: {count} regression tests passed; no failures or skipped tests.")
           PY
 
       - name: Build installable APK

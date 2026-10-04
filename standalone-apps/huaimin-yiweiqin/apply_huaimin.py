@@ -4,6 +4,7 @@ import shutil
 import sys
 from verify_icon import verify_source
 from apply_model_save import apply_model_save
+from apply_sticker_vision import apply_sticker_vision
 
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(".").resolve()
 
@@ -21,7 +22,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62010\n        versionName = "0.36.3"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62011\n        versionName = "0.36.4"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -562,5 +563,8 @@ replace_once(
 
 # 16) 0.36.3：显式保存模型，等待写入和回读确认后退出；自动保存共用同一把锁。
 apply_model_save(ROOT)
+
+# 17) 0.36.4：从用户已发送的表情标记解析真实图片，接入普通图片的多模态请求。
+apply_sticker_vision(ROOT)
 
 print("怀民亦未寝增量补丁已应用。")
