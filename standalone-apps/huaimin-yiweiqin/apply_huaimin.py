@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62004\n        versionName = "0.35.6"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62005\n        versionName = "0.35.7"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -390,6 +390,80 @@ replace_once(
     "app/src/main/java/com/cleo/cleos/ui/settings/SettingsPages.kt",
     '            Entry(Icons.Rounded.Info, "关于", "Cleos $version · 新版本、许可与出处") { onOpen(SettingsPage.About) }',
     '            Entry(Icons.Rounded.Info, "关于", "怀民亦未寝 $version · 新版本、许可与出处") { onOpen(SettingsPage.About) }',
+)
+
+# 12) 0.35.7：内置《用户协议》和《隐私政策》全文页面。
+legal_src = Path(__file__).resolve().parent / "src" / "LegalPages.kt"
+legal_dst = ROOT / "app/src/main/java/com/cleo/cleos/ui/settings/LegalPages.kt"
+if not legal_src.is_file():
+    raise SystemExit(f"missing legal pages source: {legal_src}")
+legal_dst.parent.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(legal_src, legal_dst)
+
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SettingsPages.kt",
+    '''    Data("数据与备份"),
+    About("关于"),
+    ;
+''',
+    '''    Data("数据与备份"),
+    About("关于"),
+    UserAgreement("用户协议"),
+    PrivacyPolicy("隐私政策"),
+    ;
+''',
+)
+
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SettingsScreen.kt",
+    '''                    SettingsPage.Data -> DataPage(vm)
+                    SettingsPage.About -> AboutPage()
+''',
+    '''                    SettingsPage.Data -> DataPage(vm)
+                    SettingsPage.About -> AboutPage(
+                        onOpenAgreement = { page = SettingsPage.UserAgreement },
+                        onOpenPrivacy = { page = SettingsPage.PrivacyPolicy },
+                    )
+                    SettingsPage.UserAgreement -> UserAgreementPage()
+                    SettingsPage.PrivacyPolicy -> PrivacyPolicyPage()
+''',
+)
+
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    '''internal fun AboutPage() {
+''',
+    '''internal fun AboutPage(
+    onOpenAgreement: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+) {
+''',
+)
+
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    '''    Section("隐私") {
+        Text(
+            "聊天、日记和待办都只存在这台手机上。API Key 用系统密钥库加密。",
+            color = palette.contentSecondary,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+        )
+    }
+''',
+    '''    Section("协议与隐私") {
+        Text(
+            "聊天、日记和待办主要保存在这台手机上；使用第三方 AI、语音、位置、天气或 MCP 服务时，完成请求所必要的数据可能会发送给相应服务。详细规则请查看下面的全文。",
+            color = palette.contentSecondary,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Chip("用户协议", selected = false, onClick = onOpenAgreement)
+            Chip("隐私政策", selected = false, onClick = onOpenPrivacy)
+        }
+    }
+''',
 )
 
 print("怀民亦未寝增量补丁已应用。")
