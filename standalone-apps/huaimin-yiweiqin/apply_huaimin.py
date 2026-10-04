@@ -3,6 +3,7 @@ from pathlib import Path
 import shutil
 import sys
 from verify_icon import verify_source
+from apply_model_save import apply_model_save
 
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(".").resolve()
 
@@ -20,7 +21,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62009\n        versionName = "0.36.2"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62010\n        versionName = "0.36.3"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -558,5 +559,8 @@ replace_once(
     '        ApiPreset("OpenRouter", "https://openrouter.ai/api/v1", "openai/gpt-4o-mini"),',
     '        ApiPreset("随想", "https://www.sui-xiang.net/v1", ""),',
 )
+
+# 16) 0.36.3：显式保存模型，等待写入和回读确认后退出；自动保存共用同一把锁。
+apply_model_save(ROOT)
 
 print("怀民亦未寝增量补丁已应用。")

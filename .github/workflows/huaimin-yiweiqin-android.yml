@@ -65,6 +65,14 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew testDebugUnitTest --stacktrace
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          report = "app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.ui.settings.ModelSettingsWriterTest.xml"
+          suite = ET.parse(report).getroot()
+          assert int(suite.attrib["tests"]) == 6, suite.attrib
+          assert all(int(suite.attrib.get(k, 0)) == 0 for k in ("failures", "errors", "skipped")), suite.attrib
+          print("Model save regression tests: 6 passed; no failures or skipped tests.")
+          PY
 
       - name: Build installable APK
         working-directory: /tmp/huaimin-cleos
