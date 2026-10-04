@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62001\n        versionName = "0.35.3-huaimin.1"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62002\n        versionName = "0.35.4"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -273,5 +273,12 @@ if tip_old.exists():
     tip_old.unlink()
 tip_dst.parent.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(tip_src, tip_dst)
+
+# 9) 本次版本：赞赏码按钮文案。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    'Chip("看收款码", selected = false) { showTip = true }',
+    'Chip("看赞赏码", selected = false) { showTip = true }',
+)
 
 print("怀民亦未寝增量补丁已应用。")
