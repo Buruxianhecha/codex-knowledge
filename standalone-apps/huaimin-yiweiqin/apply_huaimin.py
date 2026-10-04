@@ -20,7 +20,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62002\n        versionName = "0.35.4"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62003\n        versionName = "0.35.5"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -279,6 +279,105 @@ replace_once(
     "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
     'Chip("看收款码", selected = false) { showTip = true }',
     'Chip("看赞赏码", selected = false) { showTip = true }',
+)
+
+# 10) 0.35.5：加入 4 张内置预设壁纸。现有应用图标保持不变。
+for index in range(1, 5):
+    preset_src = Path(__file__).resolve().parent / "assets" / f"wallpaper_{index}.png"
+    preset_dst = ROOT / "app/src/main/res/drawable-nodpi" / f"huaimin_wallpaper_{index}.png"
+    if not preset_src.is_file():
+        raise SystemExit(f"missing preset wallpaper: {preset_src}")
+    preset_dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(preset_src, preset_dst)
+
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SettingsViewModel.kt",
+    '    fun setWallpaper(uri: Uri) {\n',
+    '    fun setWallpaper(uri: Uri, prefix: String = "wallpaper-") {\n',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/SettingsViewModel.kt",
+    '                val stored = c.images.import(uri, maxEdge = 2560, prefix = "wallpaper-")',
+    '                val stored = c.images.import(uri, maxEdge = 2560, prefix = prefix)',
+)
+
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    'import androidx.compose.foundation.layout.heightIn\n',
+    'import androidx.compose.foundation.layout.heightIn\nimport androidx.compose.foundation.layout.size\n',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    'import androidx.compose.material3.TextButton\n',
+    'import androidx.compose.material3.TextButton\nimport androidx.compose.foundation.shape.RoundedCornerShape\n',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    'import androidx.compose.ui.Alignment\n',
+    'import androidx.compose.ui.Alignment\nimport androidx.compose.ui.draw.clip\n',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    """    val palette = LocalGlassPalette.current
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val wallpaperPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+""",
+    """    val palette = LocalGlassPalette.current
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val wallpaperPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+""",
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    """        vm.wallpaperError?.let { Text(it, color = palette.error, fontSize = 13.sp) }
+    }
+
+    Section("玻璃") {
+""",
+    """        vm.wallpaperError?.let { Text(it, color = palette.error, fontSize = 13.sp) }
+
+        Text("预设壁纸", color = palette.content, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+        val presets = listOf(
+            Triple(R.drawable.huaimin_wallpaper_1, "月下荷塘", "wallpaper-preset-1-"),
+            Triple(R.drawable.huaimin_wallpaper_2, "云海朝霞", "wallpaper-preset-2-"),
+            Triple(R.drawable.huaimin_wallpaper_3, "竹影月湖", "wallpaper-preset-3-"),
+            Triple(R.drawable.huaimin_wallpaper_4, "月下庭园", "wallpaper-preset-4-"),
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            presets.forEach { (resId, label, prefix) ->
+                val selected = settings.wallpaper?.startsWith(prefix) == true
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Image(
+                        painter = painterResource(resId),
+                        contentDescription = label,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(width = 64.dp, height = 104.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable(enabled = !vm.wallpaperBusy) {
+                                val uri = Uri.parse("android.resource://${context.packageName}/$resId")
+                                vm.setWallpaper(uri, prefix)
+                            },
+                    )
+                    Text(
+                        if (selected) "✓ $label" else label,
+                        color = if (selected) palette.accent else palette.contentSecondary,
+                        fontSize = 11.sp,
+                    )
+                }
+            }
+        }
+    }
+
+    Section("玻璃") {
+""",
 )
 
 print("怀民亦未寝增量补丁已应用。")
