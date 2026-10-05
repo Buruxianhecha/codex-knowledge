@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "新版下载入口已改为 QQ 群：关于页按钮现在是“去QQ群看新版”，新版 APK 放在群 1026802228 的群文件里。",
-    "点击按钮会直接调用手机 QQ 打开群名片；如果没有安装 QQ，会自动复制群号并提示手动搜索。",
-    "保留 0.37.0 的长按朗读、工具详情与折叠、/v1 自动兜底、第三方记忆导入，以及拍一拍直接回复等现有功能。",
+    "关于页文案已更新：明确说明“怀民亦未寝基于 Cleos 开发”，并注明在其基础上进行了适配、功能扩展与持续维护。",
+    "赞赏区域其余功能保持不变，仍可直接查看赞赏码。",
+    "保留 0.37.1 的 QQ 群更新入口，以及长按朗读、工具详情与折叠、/v1 自动兜底、第三方记忆导入、拍一拍直接回复等现有功能。",
 )
 @Composable
 internal fun ReleaseNotesDialogIfNeeded() {
