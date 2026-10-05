@@ -24,7 +24,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62015\n        versionName = "0.36.8"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62016\n        versionName = "0.36.9"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -613,6 +613,7 @@ replace_once(
 # 20) 0.36.7：加入内置小黄脸/手势表情预设，并增加小爱心“我的表情”入口。
 apply_sticker_presets(ROOT)
 
-# 21) 0.36.8：回移 Cleos 的“拍一拍”：双击头像、连拍计数、震动、可自定义文案，下一次说话时 TA 才知道。
+# 21) 0.36.8：回移 Cleos 的“拍一拍”：双击头像、连拍计数、震动、可自定义文案与 TA 拍回来。
+# 22) 0.36.9：拍 TA 后直接触发回复；连续拍会先合并，再只回复一轮。
 apply_pat(ROOT)
 print("怀民亦未寝增量补丁已应用。")
