@@ -13,10 +13,9 @@ import kotlinx.serialization.json.Json
 data class PatRecord(val who: String, val count: Int = 1, val verb: String = Pats.VERB, val suffix: String = "")
 
 /**
- * 拍一拍: a double tap on an avatar leaves a line in the chat ("我拍了拍自己"), and nothing is
- * answered. The TA hears of it with the person's next message (ai/Prompt.kt), the way a reaction
- * on a message is heard: a quiet way to say something without writing it. Pats in quick
- * succession are one line that counts.
+ * 拍一拍: a double tap on an avatar leaves a line in the chat. Patting the TA is an interaction
+ * of its own and gets a reply after a short quiet moment; quick repeated pats are merged into one
+ * counted line and one reply. Patting oneself stays quiet until the next real message.
  */
 object Pats {
     /** Who was patted: the TA, or the person themself. */
@@ -82,11 +81,12 @@ object Pats {
         return if (r.who == AI && r.count >= DIZZY_AT) "$body（别拍啦，要晕了）" else body
     }
 
-    /** What the TA is told, in the person's next message. */
+    /** What the TA is told about the interaction. */
     fun forModel(r: PatRecord): String {
         val to = if (r.who == ME) "自己" else "你${r.suffix}"
-        // Many in a row get an answer: a turn of their own, asking for no more than a word or two back.
-        if (heavy(r)) return "（对方连${r.verb}了$to ${r.count} 下，拍个不停。回一两句就好）"
+        if (heavy(r)) return "（对方连${r.verb}了$to ${r.count} 下，拍个不停。自然回一两句就好）"
+        if (r.who == AI && r.count <= 1) return "（对方${once(r.verb)}$to。请自然回应这次互动，简短一点也可以）"
+        if (r.who == AI) return "（对方连${r.verb}了$to ${r.count} 下。请自然回应这次互动）"
         return if (r.count <= 1) "（对方${once(r.verb)}$to）" else "（对方连${r.verb}了$to ${r.count} 下）"
     }
 }
