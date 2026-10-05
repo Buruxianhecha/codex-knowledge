@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "关于页文案已更新：明确说明“怀民亦未寝基于 Cleos 开发”，并注明在其基础上进行了适配、功能扩展与持续维护。",
-    "赞赏区域其余功能保持不变，仍可直接查看赞赏码。",
-    "保留 0.37.1 的 QQ 群更新入口，以及长按朗读、工具详情与折叠、/v1 自动兜底、第三方记忆导入、拍一拍直接回复等现有功能。",
+    "赞赏按钮体验优化：点击“看赞赏码”后，会优先直接打开微信扫一扫。",
+    "如果手机未安装微信、扫一扫入口无法拉起或被系统拦截，会自动回退显示原来的赞赏码弹窗。",
+    "保留 0.37.2 的 Cleos 来源说明、QQ群更新入口、长按朗读、工具详情与折叠、/v1 自动兜底、记忆导入和拍一拍等现有功能。",
 )
 @Composable
 internal fun ReleaseNotesDialogIfNeeded() {
