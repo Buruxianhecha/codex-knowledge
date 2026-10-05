@@ -62,7 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           cd /tmp/huaimin-cleos
-          for commit in             4b9c1db2             def48d93             c0fa5b3e             789a17a2             b1487281             4cb56418             51d83a31
+          for commit in             4b9c1db2e823ed84e542c9096c2cfbfa90d473dc             def48d938c2c4194f8613bc91eb3e644271beaa3             c0fa5b3eb657552417bc7b595fb361c544f6be3b             789a17a2fc86f213fe3485ecb18f77c60c03bbb9             b1487281dc454621313f36216d18511ad2fbcb06             4cb5641824b9ecdcf9dff912bec6c5dcf3e692b3             51d83a31f0b244422b3571fe9f4e410242ad5df5
           do
             git fetch --depth 1 origin "$commit"
             git cherry-pick FETCH_HEAD
@@ -100,7 +100,7 @@ jobs:
             exit 1
           }
 
-          for commit in             06c021c6             b73749c1             30932b8d             5e2edae3             efd2da66             68c67e3d
+          for commit in             06c021c6b156a70a94811fcc5e9d89b18dc97036             b73749c12acfa76869036672d3c46487d77319e3             30932b8d4d3983d8ef3f19c8ea81b6acd30a9c77             5e2edae3c3e27a276925813bee361b4879a72885             efd2da66e26e126a8588042a7ea12654fe4ad4e2             68c67e3df1a5497bbac2922b56ea44bc019e7f99
           do
             pick_upstream "$commit"
           done
