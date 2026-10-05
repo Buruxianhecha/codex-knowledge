@@ -24,7 +24,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62017\n        versionName = "0.37.0"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62018\n        versionName = "0.37.1"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -283,6 +283,68 @@ replace_once(
     "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
     'Chip("看收款码", selected = false) { showTip = true }',
     'Chip("看赞赏码", selected = false) { showTip = true }',
+)
+
+# 9.1) 0.37.1：新版安装包改放 QQ 群文件，按钮直接拉起 QQ 群名片。
+replace_once(
+    about_page,
+    '''        Text(
+            "新版本都放在蓝奏云上。更新时直接装新的 apk、覆盖安装，聊天记录都还在；别先卸载，卸载会把这台手机上的聊天、" +
+                "日记一起清掉。真要重装，先在「数据与备份」里导出一份备份。",
+            color = palette.contentSecondary,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+        )
+        Chip("去蓝奏云看新版", selected = false) {
+            // The page asks for the code once; it is on the clipboard by then.
+            context.getSystemService(ClipboardManager::class.java)
+                ?.setPrimaryClip(ClipData.newPlainText("提取码", Releases.CODE))
+            releasesHint = "正在找能打开的地址…"
+            // On whichever of 蓝奏云's domains still exists: one of them going away stranded every copy of an
+            // older version on a page that never loads.
+            scope.launch {
+                val url = Releases.reachableUrl()
+                val opened = runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }.isSuccess
+                releasesHint = if (opened) {
+                    "提取码 ${Releases.CODE} 已经复制好了，页面让输密码时粘贴就行。"
+                } else {
+                    "没找到能打开网页的浏览器。地址是 $url ，提取码 ${Releases.CODE}（已复制）。"
+                }
+            }
+        }
+        releasesHint?.let { Text(it, color = palette.content, fontSize = 13.sp, lineHeight = 19.sp) }
+''',
+    '''        Text(
+            "新版本放在 QQ 群 1026802228 的群文件里。更新时直接下载安装新的 apk、覆盖安装，聊天记录都还在；" +
+                "别先卸载，卸载会把这台手机上的聊天、日记一起清掉。真要重装，先在「数据与备份」里导出一份备份。",
+            color = palette.contentSecondary,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+        )
+        Chip("去QQ群看新版", selected = false) {
+            val group = "1026802228"
+            val qqUri = Uri.parse(
+                "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=$group&card_type=group&source=qrcode"
+            )
+            val opened = runCatching {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, qqUri)
+                        .setPackage("com.tencent.mobileqq")
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }.isSuccess
+            releasesHint = if (opened) {
+                "已经打开 QQ 群 1026802228，新版安装包在群文件里。"
+            } else {
+                context.getSystemService(ClipboardManager::class.java)
+                    ?.setPrimaryClip(ClipData.newPlainText("QQ群号", group))
+                "没有找到手机 QQ。群号 1026802228 已复制，请打开 QQ 搜索群号。"
+            }
+        }
+        releasesHint?.let { Text(it, color = palette.content, fontSize = 13.sp, lineHeight = 19.sp) }
+''',
 )
 
 # 10) 0.36.1：保留原有 4 张预设，新增清理后的海底峡谷壁纸。现有应用图标保持不变。
