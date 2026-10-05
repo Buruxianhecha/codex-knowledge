@@ -67,7 +67,9 @@ def apply_phone_apps(root: Path):
         if (ToolGroup.Music in tools) {''')
     repo = "app/src/main/java/com/cleo/cleos/ai/ChatRepository.kt"
     replace(repo, "            ToolGroup.Location, ToolGroup.Later, ToolGroup.Alarm, ToolGroup.Calendar,\n", "            ToolGroup.Location, ToolGroup.Later, ToolGroup.Alarm, ToolGroup.Calendar, ToolGroup.Apps,\n")
-    replace(repo, "            var groups = if (endpointKey in refusesTools) emptySet() else groupsFor(s, ta)\n", "            var groups = if (endpointKey in refusesTools) emptySet() else groupsFor(s, ta).let { if (wake) it - ToolGroup.Apps else it }\n")
+    replace(repo, "            var groups = if (endpointKey in refusesTools) emptySet() else groupsFor(s, ta)\n", "            var groups = if (endpointKey in refusesTools) emptySet() else groupsFor(s, ta).let { if (lastInput?.role == \"user\") it else it - ToolGroup.Apps }\n")
+    replace(repo, "        var groups = if (endpointKey in refusesTools) emptySet() else groupsFor(s, ta) - ToolGroup.Music\n", "        var groups = if (endpointKey in refusesTools) emptySet() else groupsFor(s, ta) - setOf(ToolGroup.Music, ToolGroup.Apps)\n")
+    replace(repo, "        var groups = if (endpointKey in refusesTools) emptySet() else groupsFor(s, ta) intersect CALL_TOOLS\n", "        var groups = if (endpointKey in refusesTools) emptySet() else (groupsFor(s, ta) intersect CALL_TOOLS).let { if (instruction == null) it else it - ToolGroup.Apps }\n")
 
     music = "app/src/main/java/com/cleo/cleos/ai/Music.kt"
     replace(music, "    override fun now(): NowPlaying? = pick(seen())?.let(::describe)\n", '''    override fun now(): NowPlaying? = pick(seen())?.let(::describe)

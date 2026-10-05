@@ -47,7 +47,7 @@ class QqSearchPlan(private val song: SongRequest, private val player: String) {
             if (field != null) return QqUiAction.Fill(field.id, song.query)
             if (opened) return QqUiAction.Wait
             val search = nodes.firstOrNull { node -> !node.editable && clickFor(node) != null &&
-                (node.words.any { it.trim() in setOf("搜索", "搜索音乐", "搜索歌曲", "搜索歌曲、歌手", "搜索歌曲、歌手、专辑") } ||
+                (node.words.any { it.trim().startsWith("搜索") && it.trim().length <= 50 } ||
                     node.viewId.contains("search", true) && !node.viewId.contains("history", true)) }
             return search?.let { QqUiAction.Click(clickFor(it)!!, "search") } ?: QqUiAction.Wait
         }
@@ -59,7 +59,7 @@ class QqSearchPlan(private val song: SongRequest, private val player: String) {
             return button?.let { QqUiAction.Click(clickFor(it)!!, "submit") } ?: QqUiAction.Submit(field.id)
         }
         if (labels.any { it in setOf("暂无搜索结果", "没有找到相关歌曲", "没有搜索结果", "暂无结果") }) return QqUiAction.Stop("QQ 音乐没有找到《${song.title}》的搜索结果。")
-        val tab = nodes.firstOrNull { it.words.any { w -> w.trim().matches(Regex("单曲(?:\\s*\\d+)?")) } && clickFor(it) != null }
+        val tab = nodes.firstOrNull { it.words.any { w -> w.trim().matches(Regex("(?:单曲|歌曲)(?:\\s*\\d+)?")) } && clickFor(it) != null }
         if (!songsTab && tab != null && !tab.selected) return QqUiAction.Click(clickFor(tab)!!, "songs")
         // Only a title in a small result row, with the requested artist in that same row.
         // The search editor, a whole results list, MV cards and arbitrary "play" buttons don't qualify.

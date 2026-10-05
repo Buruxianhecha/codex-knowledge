@@ -23,6 +23,10 @@ class QqSearchPlanTest {
         plan.applied(action, true)
         assertEquals(QqUiAction.Wait, plan.next(pkg, listOf(QqUiNode(1, description = "搜索", clickable = true))))
     }
+    @Test fun accessibleSearchBarDescriptionCanOpenSearchWithoutAStableViewId() {
+        assertEquals(QqUiAction.Click(7, "search"), QqSearchPlan(song, pkg).next(pkg,
+            listOf(QqUiNode(7, description = "搜索歌曲、歌手、视频", viewId = "qq:id/a1", clickable = true))))
+    }
     @Test fun searchEditorIsFilledWithArtistAndTitle() {
         assertEquals(QqUiAction.Fill(1, "h3r3 灰"), QqSearchPlan(song, pkg).next(pkg, listOf(field())))
     }
@@ -82,6 +86,9 @@ class QqSearchPlanTest {
         assertEquals(QqUiAction.Click(6, "songs"), action)
         plan.applied(action, true)
         assertEquals(QqUiAction.Click(2, "song"), plan.next(pkg, rows() + QqUiNode(6, text = "单曲", clickable = true)))
+    }
+    @Test fun songsTabAlternativeLabelWithCountIsSupported() {
+        assertEquals(QqUiAction.Click(6, "songs"), ready().next(pkg, rows() + QqUiNode(6, text = "歌曲 20", clickable = true)))
     }
     @Test fun explicitNoResultsStopsTheTask() {
         assertTrue(ready().next(pkg, listOf(QqUiNode(1, text = "暂无搜索结果"))) is QqUiAction.Stop)

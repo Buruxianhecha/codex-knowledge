@@ -144,7 +144,7 @@ jobs:
               "data.ReactionEventsTest": 10,
               "ai.ReactionPromptTest": 10,
               "ai.PhoneAppsTest": 22,
-              "ai.QqSearchPlanTest": 19,
+              "ai.QqSearchPlanTest": 21,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
