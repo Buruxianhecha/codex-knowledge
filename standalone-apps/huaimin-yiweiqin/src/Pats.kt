@@ -23,6 +23,12 @@ object Pats {
     const val AI = "ai"
     const val ME = "me"
 
+    /** The TA patting the person back: a line of its own, which it chose to leave (the pat_user tool). */
+    const val FROM_AI = "from_ai"
+
+    /** Patted this many in a row, the TA answers with a word or two, once the person has stopped. */
+    const val HEAVY_AT = 10
+
     const val VERB = "拍"
 
     /** What the verb can be, one character each: 拍了拍, 戳了戳, 摸了摸… */
@@ -65,8 +71,12 @@ object Pats {
 
     private fun once(v: String) = "${v}了$v"
 
+    /** Whether the person patted the TA so many times in a row that it answers (see HEAVY_AT). */
+    fun heavy(r: PatRecord): Boolean = r.who == AI && r.count >= HEAVY_AT
+
     /** The line the chat shows. */
     fun line(r: PatRecord, aiName: String): String {
+        if (r.who == FROM_AI) return "“${aiName.ifBlank { "TA" }}”${once(r.verb)}我${r.suffix}"
         val to = if (r.who == ME) "自己" else "“${aiName.ifBlank { "TA" }}”${r.suffix}"
         val body = if (r.count <= 1) "我${once(r.verb)}$to" else "我连${r.verb}了$to ${r.count} 下"
         return if (r.who == AI && r.count >= DIZZY_AT) "$body（别拍啦，要晕了）" else body
@@ -75,6 +85,8 @@ object Pats {
     /** What the TA is told, in the person's next message. */
     fun forModel(r: PatRecord): String {
         val to = if (r.who == ME) "自己" else "你${r.suffix}"
+        // Many in a row get an answer: a turn of their own, asking for no more than a word or two back.
+        if (heavy(r)) return "（对方连${r.verb}了$to ${r.count} 下，拍个不停。回一两句就好）"
         return if (r.count <= 1) "（对方${once(r.verb)}$to）" else "（对方连${r.verb}了$to ${r.count} 下）"
     }
 }
