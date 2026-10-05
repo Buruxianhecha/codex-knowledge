@@ -24,6 +24,8 @@ def apply_pat(root: Path):
     tests_ai.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source / "tests/PatsTest.kt", tests_data / "PatsTest.kt")
     shutil.copy2(source / "tests/PatPromptTest.kt", tests_ai / "PatPromptTest.kt")
+    shutil.copy2(source / "tests/PatToolTest.kt", tests_ai / "PatToolTest.kt")
+    shutil.copy2(source / "tests/ToolSettingsTest.kt", tests_data / "ToolSettingsTest.kt")
 
     # Persistent global pat settings.
     settings = "app/src/main/java/com/cleo/cleos/data/SettingsRepository.kt"
@@ -448,5 +450,252 @@ def apply_pat(root: Path):
         }
     }
 }
+""",
+    )
+
+
+    # Cleos 0.36.2 additions: TA can pat back, and a very long run gets a short answer.
+    replace(
+        settings,
+        """        ToolGroup.Alarm,
+        ToolGroup.Stickers,
+    ),
+""",
+        """        ToolGroup.Alarm,
+        ToolGroup.Stickers,
+        ToolGroup.Pat,
+    ),
+""",
+    )
+
+    tools = "app/src/main/java/com/cleo/cleos/ai/Tools.kt"
+    replace(
+        tools,
+        "import com.cleo.cleos.data.DiaryBlocks\n",
+        "import com.cleo.cleos.data.DiaryBlocks\nimport com.cleo.cleos.data.Pats\n",
+    )
+    replace(
+        tools,
+        "enum class ToolGroup { Todos, Diary, AiDiary, Secrets, Avatar, Weather, Messages, Letters, Memory, Location, Speak, Later, Alarm, Calendar, Music, Stickers }",
+        "enum class ToolGroup { Todos, Diary, AiDiary, Secrets, Avatar, Weather, Messages, Letters, Memory, Location, Speak, Later, Alarm, Calendar, Music, Stickers, Pat }",
+    )
+    replace(
+        tools,
+        """    /** Tools that leave no trace in the chat, neither a line nor "在…" while they run. */
+    val quiet = setOf(noteForLater.name)
+""",
+        """    val patUser = ToolSpec(
+        name = "pat_user",
+        groups = setOf(ToolGroup.Pat),
+        action = "拍一拍",
+        description = "拍一拍对方，像聊天软件里双击头像：对方的手机会轻轻震一下，聊天里多一行“你拍了拍我”。" +
+            "对方拍了你、想撒娇、打招呼、逗一逗的时候用，用来代替一句话也行。要用就在回复之间用，一次回复最多一下，别回回都拍。",
+        parameters = schema(
+            "suffix" to prop("string", "拍在哪儿，接在“我”后面，比如 的头、的脸蛋，最多 12 个字；不填就是直接拍了拍我"),
+        ),
+    )
+
+    /** Tools that leave no trace in the chat, neither a line nor "在…" while they run. */
+    val quiet = setOf(noteForLater.name, patUser.name)
+""",
+    )
+    replace(
+        tools,
+        """        deleteEvent,
+        musicControl,
+    )
+""",
+        """        deleteEvent,
+        musicControl,
+        patUser,
+    )
+""",
+    )
+    replace(
+        tools,
+        """    /** Whatever the phone is playing, for music_control. */
+    private val music: MusicSource? = null,
+    private val clock: () -> Long = System::currentTimeMillis,
+""",
+        """    /** Whatever the phone is playing, for music_control. */
+    private val music: MusicSource? = null,
+    /** Leaves a pat from the TA in a conversation (pat_user); the chat shows it, so the tool has no line of its own. */
+    private val patBack: suspend (conversationId: Long, suffix: String) -> Unit = { _, _ -> },
+    private val clock: () -> Long = System::currentTimeMillis,
+""",
+    )
+    replace(
+        tools,
+        """                ToolSpecs.deleteEvent.name -> deleteEvent(args, today)
+                ToolSpecs.musicControl.name -> musicControl(args)
+                else -> getWeather(args, settings)
+""",
+        """                ToolSpecs.deleteEvent.name -> deleteEvent(args, today)
+                ToolSpecs.musicControl.name -> musicControl(args)
+                ToolSpecs.patUser.name -> patUser(args, conversationId)
+                else -> getWeather(args, settings)
+""",
+    )
+    replace(
+        tools,
+        """    private suspend fun noteForLater(a: JsonObject, conversationId: Long, companionId: Long): ToolOutcome {
+""",
+        """    private suspend fun patUser(a: JsonObject, conversationId: Long): ToolOutcome {
+        patBack(conversationId, Pats.cleanSuffix(ToolArgs.text(a, "suffix").orEmpty()))
+        return ToolOutcome("拍了拍对方，对方的手机会震一下，聊天里已经有这一行了，不用再说明。", "")
+    }
+
+    private suspend fun noteForLater(a: JsonObject, conversationId: Long, companionId: Long): ToolOutcome {
+""",
+    )
+
+    replace(
+        "app/src/main/java/com/cleo/cleos/CleosApp.kt",
+        """        calendar = calendar,
+        music = music,
+    )
+""",
+        """        calendar = calendar,
+        music = music,
+        patBack = { id, suffix -> chat.patBack(id, suffix) },
+    )
+""",
+    )
+
+    replace(
+        repository,
+        "import com.cleo.cleos.data.Pats\n",
+        "import com.cleo.cleos.data.PatRecord\nimport com.cleo.cleos.data.Pats\n",
+    )
+    replace(
+        repository,
+        """                if (last != null && record.count > 1) {
+                    db.messages().setPat(last.id, Pats.encode(record), now)
+                } else {
+""",
+        """                if (last != null && record.count > 1) {
+                    db.messages().setPat(last.id, Pats.encode(record), now)
+                    if (record.count == Pats.HEAVY_AT) answerHeavyPats(conversationId, last.id)
+                } else {
+""",
+    )
+    replace(
+        repository,
+        """    /** Throw away [assistantMessageId] (a failed or unwanted reply) and ask again. */
+    fun retry(conversationId: Long, assistantMessageId: Long) {
+""",
+        """    /** The TA patting the person (pat_user): a line in the chat, after what it has said so far. */
+    suspend fun patBack(conversationId: Long, suffix: String) {
+        val verb = settings.current().patVerb
+        withContext(NonCancellable) {
+            db.messages().insert(
+                MessageEntity(
+                    conversationId = conversationId,
+                    role = "pat",
+                    content = Pats.encode(PatRecord(Pats.FROM_AI, 1, verb, Pats.cleanSuffix(suffix))),
+                    createdAt = stamp(),
+                ),
+            )
+        }
+    }
+
+    /** Patted so many times in a row: once the person stops, let the TA answer with a word or two. */
+    private fun answerHeavyPats(conversationId: Long, patId: Long) {
+        scope.launch {
+            if (ToolGroup.Pat !in settings.current().tools) return@launch
+            while (true) {
+                val row = db.messages().newest(conversationId, 1).firstOrNull()
+                    ?.takeIf { it.id == patId && it.role == "pat" } ?: return@launch
+                val quietFor = System.currentTimeMillis() - row.createdAt
+                if (quietFor >= Pats.STREAK_MS + 500) break
+                delay(Pats.STREAK_MS + 500 - quietFor)
+            }
+            val ta = taOf(conversationId)
+            if (secrets.key(ta.modelFor(heard = false).baseUrl).isNullOrBlank()) return@launch
+            start(conversationId) { reply(conversationId) }
+        }
+    }
+
+    /** Throw away [assistantMessageId] (a failed or unwanted reply) and ask again. */
+    fun retry(conversationId: Long, assistantMessageId: Long) {
+""",
+    )
+
+    replace(
+        prompt,
+        """            val record = Pats.decode(m.content) ?: continue
+            val next = theirs.firstOrNull { it.createdAt > m.createdAt }?.id ?: continue
+""",
+        """            val record = Pats.decode(m.content) ?: continue
+            // The TA's own pats are in its own calls; a heavy run is a turn of its own.
+            if (record.who == Pats.FROM_AI || Pats.heavy(record)) continue
+            val next = theirs.firstOrNull { it.createdAt > m.createdAt }?.id ?: continue
+""",
+    )
+    replace(
+        prompt,
+        """        // "note" lines, "request" cards and raw "pat" rows are for the person; pats are attached to the next user message above.
+        else -> null
+""",
+        """        // "note" lines and "request" cards are for the person reading the chat, not for the model.
+        // A normal pat is told with the person's next message; a heavy run is a turn of its own.
+        "pat" -> Pats.decode(content)?.takeIf(Pats::heavy)?.let { ApiMessage("user", Pats.forModel(it)) }
+        else -> null
+""",
+    )
+
+    replace(
+        screen,
+        """    val buzz = state.patBuzz
+    val patActions = remember(buzz) {
+""",
+        """    val buzz = state.patBuzz
+    // A pat sent back by the TA buzzes only when it has just arrived, not when old chat is reopened.
+    val lastPat = state.messages.lastOrNull { it.role == "pat" }
+    var buzzedPat by remember { mutableStateOf(-1L) }
+    LaunchedEffect(lastPat?.id) {
+        val p = lastPat ?: return@LaunchedEffect
+        val fresh = System.currentTimeMillis() - p.createdAt < 5_000
+        if (buzz && fresh && p.id != buzzedPat && Pats.decode(p.content)?.who == Pats.FROM_AI) {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            buzzedPat = p.id
+        }
+    }
+    val patActions = remember(buzz) {
+""",
+    )
+
+    replace(
+        "app/src/main/java/com/cleo/cleos/ui/settings/SettingsPages.kt",
+        "ToolGroup.Messages, ToolGroup.Speak, ToolGroup.Stickers,",
+        "ToolGroup.Messages, ToolGroup.Speak, ToolGroup.Stickers, ToolGroup.Pat,",
+    )
+    replace(
+        "app/src/main/java/com/cleo/cleos/ui/settings/SharedPages.kt",
+        """        ExplainedSwitch(
+            "发表情包",
+            "偶尔从你的表情包里挑一张发",
+            "TA 会从你的表情包里挑着发，偶尔一张（表情包在聊天输入框的笑脸里加）。TA 看不到图，是按名字和说明认的，" +
+                "所以名字起得像在说那张图最好。这个不需要模型支持工具。",
+            on(ToolGroup.Stickers),
+        ) { vm.setTool(ToolGroup.Stickers, it) }
+    }
+""",
+        """        ExplainedSwitch(
+            "发表情包",
+            "偶尔从你的表情包里挑一张发",
+            "TA 会从你的表情包里挑着发，偶尔一张（表情包在聊天输入框的笑脸里加）。TA 看不到图，是按名字和说明认的，" +
+                "所以名字起得像在说那张图最好。这个不需要模型支持工具。",
+            on(ToolGroup.Stickers),
+        ) { vm.setTool(ToolGroup.Stickers, it) }
+        RowDivider(inset = 0.dp)
+        ExplainedSwitch(
+            "拍回来",
+            "你拍 TA 之后，TA 有时会拍回来",
+            "TA 回你话的时候，偶尔会拍你一下，聊天里多一行“TA 拍了拍我”，手机震一下。你连着拍了很多下，TA 也会回一两句。" +
+                "拍回来要模型支持工具，连拍之后的那一句不用；关了这个开关，两样都停。",
+            on(ToolGroup.Pat),
+        ) { vm.setTool(ToolGroup.Pat, it) }
+    }
 """,
     )
