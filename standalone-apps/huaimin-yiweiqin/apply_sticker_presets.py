@@ -135,6 +135,11 @@ def apply_sticker_presets(root: Path):
     ui = "app/src/main/java/com/cleo/cleos/ui/chat/Stickers.kt"
     replace(
         ui,
+        "import androidx.compose.foundation.layout.Row\n",
+        "import androidx.compose.foundation.layout.Row\nimport androidx.compose.foundation.layout.RowScope\n",
+    )
+    replace(
+        ui,
         "import androidx.compose.material.icons.rounded.Add\n",
         "import androidx.compose.material.icons.rounded.Add\nimport androidx.compose.material.icons.rounded.Favorite\n",
     )
@@ -270,7 +275,7 @@ fun StickerDrawer(
 private fun StickerShelfButton(
     selected: Boolean,
     onClick: () -> Unit,
-    content: @Composable Row.() -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     val palette = LocalGlassPalette.current
     Row(
