@@ -22,7 +22,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62012\n        versionName = "0.36.5"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62013\n        versionName = "0.36.6"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -583,5 +583,29 @@ replace_once(
         }
 ''',
     "",
+)
+# 19) 0.36.6：新增每个版本首次打开时的“本次更新”说明。
+release_notes_src = Path(__file__).resolve().parent / "src" / "ReleaseNotes.kt"
+release_notes_dst = ROOT / "app/src/main/java/com/cleo/cleos/ReleaseNotes.kt"
+if not release_notes_src.is_file():
+    raise SystemExit(f"missing release notes source: {release_notes_src}")
+release_notes_dst.parent.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(release_notes_src, release_notes_dst)
+
+replace_once(
+    "app/src/main/java/com/cleo/cleos/MainActivity.kt",
+    '''            settings?.let { s ->
+                CleosTheme(s, container.images) { CleosNavHost() }
+                AskForNotifications(container, s)
+            }
+''',
+    '''            settings?.let { s ->
+                CleosTheme(s, container.images) {
+                    CleosNavHost()
+                    ReleaseNotesDialogIfNeeded()
+                }
+                AskForNotifications(container, s)
+            }
+''',
 )
 print("怀民亦未寝增量补丁已应用。")
