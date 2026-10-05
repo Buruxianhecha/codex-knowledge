@@ -24,7 +24,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62022\n        versionName = "0.37.5"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62023\n        versionName = "0.37.6"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -531,6 +531,22 @@ replace_once(
         }
     }
 ''',
+)
+
+# 12.1) 0.37.6：备份文件名及恢复提示使用应用名称；保留原备份格式兼容性。
+replace_once(
+    "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
+    'exportPicker.launch("cleos-备份-${java.time.LocalDate.now()}.zip")',
+    'exportPicker.launch("怀民亦未寝-备份-${java.time.LocalDate.now()}.zip")',
+)
+replace_once(
+    "app/src/main/java/com/cleo/cleos/data/BackupService.kt",
+    '''            val d = data ?: throw BackupException("这不是 Cleos 的备份文件")
+            if (d.format != BackupFile.FORMAT) throw BackupException("这不是 Cleos 的备份文件")
+            if (d.version > BackupFile.VERSION) throw BackupException("这份备份来自更新版本的 Cleos，先更新 App 再恢复")''',
+    '''            val d = data ?: throw BackupException("这不是怀民亦未寝的备份文件")
+            if (d.format != BackupFile.FORMAT) throw BackupException("这不是怀民亦未寝的备份文件")
+            if (d.version > BackupFile.VERSION) throw BackupException("这份备份来自更新版本的怀民亦未寝，先更新 App 再恢复")''',
 )
 
 # 13) 0.35.8：清理工具设置页残留品牌名；日历采用方案 A。

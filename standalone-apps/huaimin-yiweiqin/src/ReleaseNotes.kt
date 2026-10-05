@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "“看赞赏码”恢复为直接在软件内展示赞赏码图片。",
-    "保留原赞赏码图片，以及弹窗里的“存到相册”和“关闭”按钮。",
-    "保留 0.37.4 及之前的 Cleos 来源说明、QQ群更新入口、长按朗读、工具详情与折叠、/v1 自动兜底、记忆导入和拍一拍等现有功能。",
+    "导出备份的默认文件名改为“怀民亦未寝-备份-日期.zip”。",
+    "备份恢复提示中的应用名称同步改为“怀民亦未寝”，之前导出的备份仍可恢复。",
+    "保留 0.37.5 的赞赏码图片弹窗，以及模型保存、表情识图、拍一拍、长按朗读、记忆导入等现有功能。",
 )
 @Composable
 internal fun ReleaseNotesDialogIfNeeded() {
