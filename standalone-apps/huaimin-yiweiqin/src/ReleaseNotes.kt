@@ -26,12 +26,11 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "新增内置表情预设：加入一整套常用小黄脸、手势、爱心等表情，打开表情面板就能直接选择发送。",
-    "表情面板新增“预设”和“我的”两栏；小爱心“我的”专门放你自己从相册上传的表情包。",
-    "内置预设走和普通表情包相同的图片识别链路，支持看图的模型能看到实际表情画面。",
-    "保留模型保存、预设壁纸、版本更新说明等现有功能。",
+    "新增“拍一拍”：在聊天里双击 TA 的头像，或者双击自己的头像，就会留下拍一拍提示，不会立刻打断对话。",
+    "拍一拍会等到你下一次真正发消息时再让 TA 知道；4 秒内连续拍会合并计数，拍多了会显示“别拍啦，要晕了”。",
+    "可以在“设置 → 聊天 → 拍一拍”里修改动作（拍/戳/摸/抱/揉）、名字后缀和是否震动；长按 TA 头像也能直接打开同一个设置。",
+    "保留 0.36.7 的内置小黄脸预设、❤️我的表情、表情识图、模型保存、预设壁纸等现有功能。",
 )
-
 @Composable
 internal fun ReleaseNotesDialogIfNeeded() {
     val context = LocalContext.current
