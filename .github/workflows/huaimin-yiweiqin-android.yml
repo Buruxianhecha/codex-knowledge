@@ -123,7 +123,7 @@ jobs:
               "ai.PatPromptTest": 5,
               "ai.PatToolTest": 2,
               "data.ToolSettingsTest": 3,
-              "ai.AddressFallbackTest": 20,
+              "ai.AddressFallbackTest": 15,
               "ai.ReadAloudTest": 4,
               "data.ForeignMemoryTest": 5,
               "ui.chat.ToolDetailsTest": 3,
