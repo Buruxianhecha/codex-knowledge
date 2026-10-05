@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "导出备份的默认文件名改为“怀民亦未寝-备份-日期.zip”。",
-    "备份恢复提示中的应用名称同步改为“怀民亦未寝”，之前导出的备份仍可恢复。",
-    "保留 0.37.5 的赞赏码图片弹窗，以及模型保存、表情识图、拍一拍、长按朗读、记忆导入等现有功能。",
+    "长按自己发送的文字、图片、表情包或语音，可选择“撤回”，聊天中会保留撤回提示。",
+    "撤回后，当前 TA 会感知这次撤回并用已选模型自然回应；正在进行的回复会先停止。撤回原文和附件不再随之后的聊天发送，关联引用也会同步更新。",
+    "保留 0.37.6 的备份名称修复，以及赞赏码图片弹窗、模型保存、表情识图、拍一拍、长按朗读、记忆导入等现有功能。",
 )
 @Composable
 internal fun ReleaseNotesDialogIfNeeded() {
