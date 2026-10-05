@@ -39,4 +39,24 @@ class PatPromptTest {
         assertEquals(listOf("system", "user", "assistant"), out.map { it.role })
         assertFalse(out.any { it.content.contains("拍了拍") })
     }
+
+    @Test
+    fun manyPatsAreATurnOfTheirOwnAndTheTaOwnPatsAreNotToldAgain() {
+        val history = listOf(
+            said(1, "user", "在吗"),
+            said(2, "assistant", "在呀"),
+            pat(3, PatRecord(Pats.AI, Pats.HEAVY_AT + 2)),
+        )
+        val out = Prompt.messages(AppSettings(), ta, history, now)
+        assertEquals(listOf("system", "user", "assistant", "user"), out.map { it.role })
+        assertTrue(out.last().content.contains("连拍了你 12 下"))
+        // Answered, and then the person writes: the pats are not told a second time with it.
+        val later = history + said(4, "assistant", "哎呀别拍啦") + said(5, "user", "嘿嘿")
+        val again = Prompt.messages(AppSettings(), ta, later, now)
+        assertEquals(1, again.count { it.content.contains("连拍了你") })
+        assertTrue(again.last().content.endsWith("嘿嘿"))
+        // The TA patting back is in its own calls; the next message of the person doesn't carry it.
+        val back = listOf(said(1, "user", "在吗"), pat(2, PatRecord(Pats.FROM_AI)), said(3, "assistant", "在"), said(4, "user", "好"))
+        assertFalse(Prompt.messages(AppSettings(), ta, back, now).any { it.content.contains("拍了拍") })
+    }
 }
