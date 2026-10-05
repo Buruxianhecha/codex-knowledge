@@ -24,7 +24,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62018\n        versionName = "0.37.1"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62019\n        versionName = "0.37.2"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -230,7 +230,7 @@ about_page = "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt"
 replace_once(
     about_page,
     '"Cleos 是一个人做的，一直免费。觉得好用、想请开发者喝杯奶茶的话，可以用微信扫一下。"',
-    '"怀民亦未寝是一个人做的，一直免费。觉得好用、想请开发者喝杯奶茶的话，可以用微信扫一下。"',
+    '"怀民亦未寝基于 Cleos 开发，并在此基础上进行了适配、功能扩展与持续维护，目前一直免费提供使用。如果你觉得好用，愿意支持后续开发，可以用微信扫一下，请开发者喝杯奶茶 ☕。"',
 )
 replace_once(
     about_page,
