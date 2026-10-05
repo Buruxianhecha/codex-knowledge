@@ -58,7 +58,7 @@ internal fun Modifier.pattable(ai: Boolean): Modifier {
     val actions = LocalPat.current ?: return this
     return this
         .graphicsLayer { rotationZ = wiggle.value }
-        .pointerInput(ai) {
+        .pointerInput(ai, actions) {
             detectTapGestures(
                 onDoubleTap = {
                     actions.pat(ai)

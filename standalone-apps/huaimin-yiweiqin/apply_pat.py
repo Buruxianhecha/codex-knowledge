@@ -575,7 +575,7 @@ def apply_pat(root: Path):
 """,
         """                if (last != null && record.count > 1) {
                     db.messages().setPat(last.id, Pats.encode(record), now)
-                    if (record.count == Pats.HEAVY_AT) answerHeavyPats(conversationId, last.id)
+                    if (record.count == Pats.HEAVY_AT && Pats.heavy(record)) answerHeavyPats(conversationId, last.id)
                 } else {
 """,
     )
@@ -612,6 +612,8 @@ def apply_pat(root: Path):
             }
             val ta = taOf(conversationId)
             if (secrets.key(ta.modelFor(heard = false).baseUrl).isNullOrBlank()) return@launch
+            // The switch may have been turned off while waiting for the person to stop patting.
+            if (ToolGroup.Pat !in settings.current().tools) return@launch
             start(conversationId) { reply(conversationId) }
         }
     }

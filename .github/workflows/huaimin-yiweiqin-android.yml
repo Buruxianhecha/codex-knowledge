@@ -67,7 +67,14 @@ jobs:
           ./gradlew testDebugUnitTest --stacktrace
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
-          expected = {"ui.settings.ModelSettingsWriterTest": 6, "ai.StickerVisionTest": 8}
+          expected = {
+              "ui.settings.ModelSettingsWriterTest": 6,
+              "ai.StickerVisionTest": 8,
+              "data.PatsTest": 8,
+              "ai.PatPromptTest": 4,
+              "ai.PatToolTest": 2,
+              "data.ToolSettingsTest": 3,
+          }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
               suite = ET.parse(report).getroot()

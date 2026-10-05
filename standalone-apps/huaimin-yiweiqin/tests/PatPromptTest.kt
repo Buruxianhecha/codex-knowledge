@@ -41,6 +41,22 @@ class PatPromptTest {
     }
 
     @Test
+    fun manySelfPatsStillWaitForTheNextMessage() {
+        val history = listOf(
+            said(1, "user", "在吗"),
+            said(2, "assistant", "在呀"),
+            pat(3, PatRecord(Pats.ME, Pats.HEAVY_AT + 2)),
+        )
+        val beforeSpeaking = Prompt.messages(AppSettings(), ta, history, now)
+        assertEquals(listOf("system", "user", "assistant"), beforeSpeaking.map { it.role })
+        assertFalse(beforeSpeaking.any { it.content.contains("连拍") })
+        val afterSpeaking = Prompt.messages(AppSettings(), ta, history + said(4, "user", "嘿嘿"), now)
+        assertEquals(listOf("system", "user", "assistant", "user"), afterSpeaking.map { it.role })
+        assertTrue(afterSpeaking.last().content.contains("（对方连拍了自己 12 下）\n嘿嘿"))
+        assertFalse(afterSpeaking.last().content.contains("回一两句"))
+    }
+
+    @Test
     fun manyPatsAreATurnOfTheirOwnAndTheTaOwnPatsAreNotToldAgain() {
         val history = listOf(
             said(1, "user", "在吗"),
