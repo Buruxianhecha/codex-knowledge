@@ -701,3 +701,134 @@ def apply_pat(root: Path):
     }
 """,
     )
+
+
+    # 怀民亦未寝 0.36.9: a pat on the TA is now a real input turn and gets a reply after the
+    # normal short "wait until the person is quiet" debounce. Repeated pats in that window merge
+    # into one counted line and therefore produce one reply, not one reply per tap.
+    replace(
+        repository,
+        """    fun pat(conversationId: Long, who: String, verb: String, suffix: String) {
+        scope.launch {
+            patting.withLock {
+                val last = db.messages().newest(conversationId, 1).firstOrNull()?.takeIf { it.role == "pat" }
+                val now = stamp()
+                val record = Pats.again(Pats.decode(last?.content), last?.createdAt ?: 0L, who, verb, suffix, now)
+                if (last != null && record.count > 1) {
+                    db.messages().setPat(last.id, Pats.encode(record), now)
+                    if (record.count == Pats.HEAVY_AT && Pats.heavy(record)) answerHeavyPats(conversationId, last.id)
+                } else {
+                    db.messages().insert(
+                        MessageEntity(conversationId = conversationId, role = "pat", content = Pats.encode(record), createdAt = now),
+                    )
+                }
+            }
+        }
+    }
+""",
+        """    fun pat(conversationId: Long, who: String, verb: String, suffix: String) {
+        scope.launch {
+            patting.withLock {
+                val last = db.messages().newest(conversationId, 1).firstOrNull()?.takeIf { it.role == "pat" }
+                val now = stamp()
+                val record = Pats.again(Pats.decode(last?.content), last?.createdAt ?: 0L, who, verb, suffix, now)
+                if (last != null && record.count > 1) {
+                    db.messages().setPat(last.id, Pats.encode(record), now)
+                } else {
+                    db.messages().insert(
+                        MessageEntity(conversationId = conversationId, role = "pat", content = Pats.encode(record), createdAt = now),
+                    )
+                }
+            }
+            if (who == Pats.AI) answerSoon(conversationId)
+        }
+    }
+""",
+    )
+
+    replace(
+        repository,
+        """    /** Whether the person has said something since what the last reply took in. */
+    private suspend fun unanswered(conversationId: Long): Boolean {
+        val upTo = answeredUpTo[conversationId] ?: Long.MIN_VALUE
+        return db.messages().newest(conversationId, UNANSWERED_LOOKBACK).any { m ->
+            m.role == "user" && m.note == null && m.error == null && m.createdAt > upTo &&
+                (m.content.isNotBlank() || m.images != null)
+        }
+    }
+""",
+        """    /** Whether the person has said or done something since what the last reply took in. */
+    private suspend fun unanswered(conversationId: Long): Boolean {
+        val upTo = answeredUpTo[conversationId] ?: Long.MIN_VALUE
+        return db.messages().newest(conversationId, UNANSWERED_LOOKBACK).any { m ->
+            val userMessage = m.role == "user" && m.note == null && m.error == null &&
+                (m.content.isNotBlank() || m.images != null)
+            val patOnTa = m.role == "pat" && Pats.decode(m.content)?.who == Pats.AI
+            m.createdAt > upTo && (userMessage || patOnTa)
+        }
+    }
+""",
+    )
+
+    replace(
+        repository,
+        """        // Something said aloud is answered by the model the TA has for words heard, when it has one.
+        val use = ta.modelFor(heard = history.lastOrNull { it.role == "user" }?.audio != null)
+""",
+        """        // A pat is a text-like interaction; only an actual latest voice message uses the heard model.
+        val lastInput = history.lastOrNull { m ->
+            m.role == "user" || (m.role == "pat" && Pats.decode(m.content)?.who == Pats.AI)
+        }
+        val use = ta.modelFor(heard = lastInput?.role == "user" && lastInput.audio != null)
+""",
+    )
+    replace(
+        repository,
+        """            history.lastOrNull { it.role == "user" }?.let { m -> answeredUpTo.merge(conversationId, m.createdAt) { a, b -> maxOf(a, b) } }
+""",
+        """            lastInput?.let { m -> answeredUpTo.merge(conversationId, m.createdAt) { a, b -> maxOf(a, b) } }
+""",
+    )
+
+    replace(
+        prompt,
+        """        for (m in history) {
+            if (m.role != "pat") continue
+            val record = Pats.decode(m.content) ?: continue
+            // The TA's own pats are in its own calls; a heavy run is a turn of its own.
+            if (record.who == Pats.FROM_AI || Pats.heavy(record)) continue
+            val next = theirs.firstOrNull { it.createdAt > m.createdAt }?.id ?: continue
+            out.getOrPut(next) { mutableListOf() } += Pats.forModel(record)
+        }
+""",
+        """        for (m in history) {
+            if (m.role != "pat") continue
+            val record = Pats.decode(m.content) ?: continue
+            // Patting the TA is now its own turn; only patting oneself stays quiet until the next message.
+            if (record.who != Pats.ME) continue
+            val next = theirs.firstOrNull { it.createdAt > m.createdAt }?.id ?: continue
+            out.getOrPut(next) { mutableListOf() } += Pats.forModel(record)
+        }
+""",
+    )
+    replace(
+        prompt,
+        """"pat" -> Pats.decode(content)?.takeIf(Pats::heavy)?.let { ApiMessage("user", Pats.forModel(it)) }
+""",
+        """"pat" -> Pats.decode(content)?.takeIf { it.who == Pats.AI }?.let { ApiMessage("user", Pats.forModel(it)) }
+""",
+    )
+
+    replace(
+        page,
+        """"现在拍出来是「$said」。TA 不会为它单独回话，下次你说话时才知道。",""",
+        """"现在拍出来是「$said」。拍 TA 后停一下，TA 会直接回应；连续拍会合并成一轮回复。",""",
+    )
+
+    replace(
+        "app/src/main/java/com/cleo/cleos/ui/settings/SharedPages.kt",
+        """"TA 回你话的时候，偶尔会拍你一下，聊天里多一行“TA 拍了拍我”，手机震一下。你连着拍了很多下，TA 也会回一两句。" +
+                "拍回来要模型支持工具，连拍之后的那一句不用；关了这个开关，两样都停。",""",
+        """"TA 回你话的时候，偶尔会拍你一下，聊天里多一行“TA 拍了拍我”，手机震一下。" +
+                "你拍 TA 时的直接回复不依赖这个开关；这里控制的是 TA 能不能主动拍回来。",""",
+    )
