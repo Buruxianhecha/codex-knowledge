@@ -73,7 +73,7 @@ jobs:
         run: |
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
           git -C /tmp/huaimin-cleos add -A
-          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.8 customizations"
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.9 customizations"
 
       - name: Backport upstream read-aloud, memory import and tool grouping
         run: |
@@ -107,14 +107,17 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.8"' app/build.gradle.kts
-          grep -q 'versionCode = 62025' app/build.gradle.kts
+          grep -q 'versionName = "0.37.9"' app/build.gradle.kts
+          grep -q 'versionCode = 62026' app/build.gradle.kts
 
       - name: Apply message recall and AI awareness
         run: python3 standalone-apps/huaimin-yiweiqin/apply_recall.py /tmp/huaimin-cleos
 
       - name: Apply menu reaction awareness and replies
         run: python3 standalone-apps/huaimin-yiweiqin/apply_reactions.py /tmp/huaimin-cleos
+
+      - name: Apply phone App launch and confirmed QQ Music playback
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_phone_apps.py /tmp/huaimin-cleos
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
@@ -129,7 +132,7 @@ jobs:
               "data.PatsTest": 8,
               "ai.PatPromptTest": 5,
               "ai.PatToolTest": 2,
-              "data.ToolSettingsTest": 3,
+              "data.ToolSettingsTest": 4,
               "ai.AddressFallbackTest": 15,
               "ai.ReadAloudTest": 4,
               "data.ForeignMemoryTest": 5,
@@ -140,6 +143,8 @@ jobs:
               "ai.RecallCoordinatorTest": 5,
               "data.ReactionEventsTest": 10,
               "ai.ReactionPromptTest": 10,
+              "ai.PhoneAppsTest": 22,
+              "ai.QqSearchPlanTest": 19,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
