@@ -23,8 +23,8 @@ def replace_once(rel: str, old: str, new: str):
 # 1) 独立安装身份 + 手机上显示中文名。namespace 不动，避免为了改包路径触碰大量源码。
 replace_once(
     "app/build.gradle.kts",
-    '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62\n        versionName = "0.35.3"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62016\n        versionName = "0.36.9"',
+    '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62017\n        versionName = "0.37.0"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
