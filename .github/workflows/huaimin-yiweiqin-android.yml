@@ -107,7 +107,7 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.0"' app/build.gradle.kts
+          grep -q 'versionName = "0.37.1"' app/build.gradle.kts
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
