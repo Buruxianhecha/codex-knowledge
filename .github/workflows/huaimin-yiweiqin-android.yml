@@ -55,10 +55,59 @@ jobs:
           git -C /tmp/huaimin-cleos remote add origin https://github.com/jqzhang921-sudo/cleos.git
           git -C /tmp/huaimin-cleos fetch --depth 1 origin c19e50bcc0f75b09e0b54dff8f45a2e74163eb37
           git -C /tmp/huaimin-cleos checkout --detach FETCH_HEAD
+          git -C /tmp/huaimin-cleos config user.name "Huaimin Builder"
+          git -C /tmp/huaimin-cleos config user.email "builder@huaimin.local"
+
+      - name: Backport upstream compatibility and tool details
+        run: |
+          set -euo pipefail
+          cd /tmp/huaimin-cleos
+          for commit in             4b9c1db2             def48d93             c0fa5b3e             789a17a2             b1487281             4cb56418             51d83a31
+          do
+            git fetch --depth 1 origin "$commit"
+            git cherry-pick FETCH_HEAD
+          done
 
       - name: Apply 怀民亦未寝 patch
         run: |
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
+          git -C /tmp/huaimin-cleos add -A
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.0 customizations"
+
+      - name: Backport upstream read-aloud, memory import and tool grouping
+        run: |
+          set -euo pipefail
+          cd /tmp/huaimin-cleos
+
+          pick_upstream() {
+            commit="$1"
+            git fetch --depth 1 origin "$commit"
+            if git cherry-pick FETCH_HEAD; then
+              return 0
+            fi
+
+            conflicts="$(git diff --name-only --diff-filter=U)"
+            if [ "$conflicts" = "app/build.gradle.kts" ]; then
+              echo "Resolving upstream version-number conflict in favor of 怀民亦未寝"
+              git checkout --ours app/build.gradle.kts
+              git add app/build.gradle.kts
+              GIT_EDITOR=true git cherry-pick --continue
+              return 0
+            fi
+
+            echo "Unexpected cherry-pick conflict in $commit:"
+            git status --short
+            exit 1
+          }
+
+          for commit in             06c021c6             b73749c1             30932b8d             5e2edae3             efd2da66             68c67e3d
+          do
+            pick_upstream "$commit"
+          done
+
+          # Final identity/version guard after all upstream backports.
+          grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
+          grep -q 'versionName = "0.37.0"' app/build.gradle.kts
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
@@ -74,6 +123,11 @@ jobs:
               "ai.PatPromptTest": 5,
               "ai.PatToolTest": 2,
               "data.ToolSettingsTest": 3,
+              "ai.AddressFallbackTest": 20,
+              "ai.ReadAloudTest": 4,
+              "data.ForeignMemoryTest": 5,
+              "ui.chat.ToolDetailsTest": 3,
+              "ui.chat.ToolRunsTest": 2,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
