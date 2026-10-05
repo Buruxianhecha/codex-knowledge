@@ -121,6 +121,17 @@ def apply_sticker_presets(root: Path):
 """,
     )
 
+    replace(
+        "app/src/main/java/com/cleo/cleos/CleosApp.kt",
+        """            companions.ensure()
+            // What a TA brought from another app used to sit in their persona; it moves into their memory, once.
+""",
+        """            companions.ensure()
+            stickers.ensureBuiltIns()
+            // What a TA brought from another app used to sit in their persona; it moves into their memory, once.
+""",
+    )
+
     ui = "app/src/main/java/com/cleo/cleos/ui/chat/Stickers.kt"
     replace(
         ui,
