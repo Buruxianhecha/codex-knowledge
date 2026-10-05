@@ -334,8 +334,16 @@ def apply_pat(root: Path):
     )
     replace(
         screen,
-        "Avatar(faces.ai.file, faces.ai.letter, AvatarSize)",
-        "Avatar(faces.ai.file, faces.ai.letter, AvatarSize, Modifier.pattable(ai = true))",
+        """        if (faces != null && !mine) {
+            if (showFace) {
+                Avatar(faces.ai.file, faces.ai.letter, AvatarSize)
+                Spacer(Modifier.width(AvatarGap))
+""",
+        """        if (faces != null && !mine) {
+            if (showFace) {
+                Avatar(faces.ai.file, faces.ai.letter, AvatarSize, Modifier.pattable(ai = true))
+                Spacer(Modifier.width(AvatarGap))
+""",
     )
     replace(
         screen,
