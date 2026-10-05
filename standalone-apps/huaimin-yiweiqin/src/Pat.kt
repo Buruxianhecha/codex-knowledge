@@ -120,7 +120,7 @@ internal fun PatDialog(
         title = { Text("拍一拍") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("双击头像就拍一下，不会打扰 ${aiName.ifBlank { "TA" }}，下次你说话时它才知道。", color = palette.contentSecondary, fontSize = 13.sp)
+                Text("双击 TA 头像拍一下，停手后 TA 会直接回应；连续拍几下会合并成一轮再回复。", color = palette.contentSecondary, fontSize = 13.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Pats.VERBS.forEach { v -> Chip(v, selected = chosenVerb == v) { chosenVerb = v } }
                 }
