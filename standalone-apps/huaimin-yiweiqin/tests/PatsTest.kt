@@ -36,8 +36,8 @@ class PatsTest {
 
     @Test
     fun theTaIsToldInItsOwnPerson() {
-        assertEquals("（对方拍了拍你的小脑袋）", Pats.forModel(PatRecord(Pats.AI, suffix = "的小脑袋")))
-        assertEquals("（对方连摸了你 4 下）", Pats.forModel(PatRecord(Pats.AI, 4, "摸")))
+        assertEquals("（对方拍了拍你的小脑袋。请自然回应这次互动，简短一点也可以）", Pats.forModel(PatRecord(Pats.AI, suffix = "的小脑袋")))
+        assertEquals("（对方连摸了你 4 下。请自然回应这次互动）", Pats.forModel(PatRecord(Pats.AI, 4, "摸")))
         assertEquals("（对方拍了拍自己）", Pats.forModel(PatRecord(Pats.ME)))
     }
 
@@ -71,6 +71,6 @@ class PatsTest {
         // Only the person's pats on the TA count; their own, and the TA's, never ask for one.
         assertTrue(!Pats.heavy(PatRecord(Pats.ME, 50)))
         assertTrue(!Pats.heavy(PatRecord(Pats.FROM_AI, 50)))
-        assertEquals("（对方连拍了你 12 下，拍个不停。回一两句就好）", Pats.forModel(PatRecord(Pats.AI, 12)))
+        assertEquals("（对方连拍了你 12 下，拍个不停。自然回一两句就好）", Pats.forModel(PatRecord(Pats.AI, 12)))
     }
 }
