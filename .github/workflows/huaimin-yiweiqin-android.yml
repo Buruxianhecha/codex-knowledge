@@ -55,6 +55,8 @@ jobs:
           git -C /tmp/huaimin-cleos remote add origin https://github.com/jqzhang921-sudo/cleos.git
           git -C /tmp/huaimin-cleos fetch --depth 1 origin c19e50bcc0f75b09e0b54dff8f45a2e74163eb37
           git -C /tmp/huaimin-cleos checkout --detach FETCH_HEAD
+          # Pull enough main-branch history that cherry-pick can see each selected commit's parent.
+          git -C /tmp/huaimin-cleos fetch --depth 50 origin main
           git -C /tmp/huaimin-cleos config user.name "Huaimin Builder"
           git -C /tmp/huaimin-cleos config user.email "builder@huaimin.local"
 
@@ -64,8 +66,7 @@ jobs:
           cd /tmp/huaimin-cleos
           for commit in             4b9c1db2e823ed84e542c9096c2cfbfa90d473dc             def48d938c2c4194f8613bc91eb3e644271beaa3             c0fa5b3eb657552417bc7b595fb361c544f6be3b             789a17a2fc86f213fe3485ecb18f77c60c03bbb9             b1487281dc454621313f36216d18511ad2fbcb06             4cb5641824b9ecdcf9dff912bec6c5dcf3e692b3             51d83a31f0b244422b3571fe9f4e410242ad5df5
           do
-            git fetch --depth 1 origin "$commit"
-            git cherry-pick FETCH_HEAD
+            git cherry-pick "$commit"
           done
 
       - name: Apply 怀民亦未寝 patch
@@ -81,8 +82,7 @@ jobs:
 
           pick_upstream() {
             commit="$1"
-            git fetch --depth 1 origin "$commit"
-            if git cherry-pick FETCH_HEAD; then
+            if git cherry-pick "$commit"; then
               return 0
             fi
 
