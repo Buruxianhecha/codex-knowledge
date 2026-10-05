@@ -73,7 +73,7 @@ jobs:
         run: |
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
           git -C /tmp/huaimin-cleos add -A
-          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.0 customizations"
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.5 customizations"
 
       - name: Backport upstream read-aloud, memory import and tool grouping
         run: |
@@ -107,7 +107,8 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.4"' app/build.gradle.kts
+          grep -q 'versionName = "0.37.5"' app/build.gradle.kts
+          grep -q 'versionCode = 62022' app/build.gradle.kts
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos

@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "修复“看赞赏码”按钮无反应：不再使用部分手机会假成功的 weixin://scanqrcode 入口。",
-    "现在改用微信 Android 的扫一扫快捷入口；能打开就直接进入扫一扫，打不开或微信不存在就立即回退显示你的赞赏码。",
-    "保留 0.37.3 及之前的 Cleos 来源说明、QQ群更新入口、长按朗读、工具详情与折叠、/v1 自动兜底、记忆导入和拍一拍等现有功能。",
+    "“看赞赏码”恢复为直接在软件内展示赞赏码图片。",
+    "保留原赞赏码图片，以及弹窗里的“存到相册”和“关闭”按钮。",
+    "保留 0.37.4 及之前的 Cleos 来源说明、QQ群更新入口、长按朗读、工具详情与折叠、/v1 自动兜底、记忆导入和拍一拍等现有功能。",
 )
 @Composable
 internal fun ReleaseNotesDialogIfNeeded() {

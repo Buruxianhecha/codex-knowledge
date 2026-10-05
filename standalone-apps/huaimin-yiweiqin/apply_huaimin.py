@@ -24,7 +24,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62021\n        versionName = "0.37.4"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62022\n        versionName = "0.37.5"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -278,26 +278,11 @@ if tip_old.exists():
 tip_dst.parent.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(tip_src, tip_dst)
 
-# 9) 本次版本：赞赏码按钮文案。
+# 9) 赞赏码按钮直接展示原图弹窗。
 replace_once(
     "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
     'Chip("看收款码", selected = false) { showTip = true }',
-    '''Chip("看赞赏码", selected = false) {
-            // Android WeChat exposes a dedicated shortcut action for the scanner. This is more
-            // reliable than weixin://scanqrcode on OEM builds where the scheme may be consumed
-            // without actually opening the scan screen.
-            val scanIntent = Intent("com.tencent.mm.action.BIZSHORTCUT")
-                .setPackage("com.tencent.mm")
-                .putExtra("LauncherUI.From.Scaner.Shortcut", true)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            val opened = runCatching {
-                context.startActivity(scanIntent)
-                true
-            }.getOrDefault(false)
-            if (!opened) {
-                showTip = true
-            }
-        }'''
+    'Chip("看赞赏码", selected = false) { showTip = true }',
 )
 
 # 9.1) 0.37.1：新版安装包改放 QQ 群文件，按钮直接拉起 QQ 群名片。
