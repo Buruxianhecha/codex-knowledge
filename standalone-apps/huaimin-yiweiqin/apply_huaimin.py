@@ -24,7 +24,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62020\n        versionName = "0.37.3"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62021\n        versionName = "0.37.4"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -283,24 +283,20 @@ replace_once(
     "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
     'Chip("看收款码", selected = false) { showTip = true }',
     '''Chip("看赞赏码", selected = false) {
-            // Prefer WeChat's public scan URL scheme. Some Android/WeChat builds do not expose it,
-            // so try the scanner activity as a second route. If both fail, fall back to the
-            // existing in-app QR dialog.
-            val scanIntent = Intent(Intent.ACTION_VIEW, Uri.parse("weixin://scanqrcode"))
+            // Android WeChat exposes a dedicated shortcut action for the scanner. This is more
+            // reliable than weixin://scanqrcode on OEM builds where the scheme may be consumed
+            // without actually opening the scan screen.
+            val scanIntent = Intent("com.tencent.mm.action.BIZSHORTCUT")
                 .setPackage("com.tencent.mm")
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra("LauncherUI.From.Scaner.Shortcut", true)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val opened = runCatching {
                 context.startActivity(scanIntent)
                 true
-            }.getOrDefault(false) || runCatching {
-                context.startActivity(
-                    Intent()
-                        .setClassName("com.tencent.mm", "com.tencent.mm.plugin.scanner.ui.BaseScanUI")
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-                true
             }.getOrDefault(false)
-            if (!opened) showTip = true
+            if (!opened) {
+                showTip = true
+            }
         }'''
 )
 
