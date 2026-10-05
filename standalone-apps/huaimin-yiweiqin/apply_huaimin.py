@@ -24,7 +24,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62019\n        versionName = "0.37.2"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62020\n        versionName = "0.37.3"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -282,7 +282,26 @@ shutil.copyfile(tip_src, tip_dst)
 replace_once(
     "app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt",
     'Chip("看收款码", selected = false) { showTip = true }',
-    'Chip("看赞赏码", selected = false) { showTip = true }',
+    '''Chip("看赞赏码", selected = false) {
+            // Prefer WeChat's public scan URL scheme. Some Android/WeChat builds do not expose it,
+            // so try the scanner activity as a second route. If both fail, fall back to the
+            // existing in-app QR dialog.
+            val scanIntent = Intent(Intent.ACTION_VIEW, Uri.parse("weixin://scanqrcode"))
+                .setPackage("com.tencent.mm")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val opened = runCatching {
+                context.startActivity(scanIntent)
+                true
+            }.getOrDefault(false) || runCatching {
+                context.startActivity(
+                    Intent()
+                        .setClassName("com.tencent.mm", "com.tencent.mm.plugin.scanner.ui.BaseScanUI")
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+                true
+            }.getOrDefault(false)
+            if (!opened) showTip = true
+        }'''
 )
 
 # 9.1) 0.37.1：新版安装包改放 QQ 群文件，按钮直接拉起 QQ 群名片。
