@@ -71,6 +71,11 @@ class PhoneAppsTest {
     @Test fun missingQQMusicNeverSelectsNeteaseAsFallback() {
         assertTrue(failure { AppNames.find("QQ音乐", listOf(LaunchableApp("com.netease.cloudmusic", "网易云音乐"))) }.result.contains("没有找到"))
     }
+    @Test fun aLookalikeLauncherLabelCannotBeUsedByTheQQPlaybackTool() = runBlocking {
+        val phone = Phone(LaunchableApp("com.other.fake", "QQ音乐"))
+        assertTrue(playbackFailure { QqPlayback(phone) {}.play(song) }.note.contains("不是 QQ 音乐安装包"))
+        assertEquals(0, phone.begins)
+    }
     @Test fun requestSeparatesArtistFromTitleAndBuildsOneSearchQuery() {
         assertEquals(song, SongRequest.of("《灰》", " h3r3 "))
         assertEquals("h3r3 灰", song.query)

@@ -81,6 +81,7 @@ class QqPlayback(private val phone: QqPlaybackPhone, private val pause: suspend 
         if (!active.tryLock()) throw ToolFailure("上一次 QQ 音乐点歌还在进行，请等它结束后再点下一首。", "正在点另一首歌")
         try {
             val app = phone.installed()
+            if (app.packageName !in AppNames.qqMusic) throw ToolFailure("没有找到可调用的 QQ 音乐安装包，请确认已经安装 QQ 音乐。", "不是 QQ 音乐安装包")
             if (!phone.notificationAllowed()) throw ToolFailure(
                 "请先在「设置 → 能做的事 → 打开手机 App」点「播放状态权限」，开启「怀民亦未寝」的通知使用权，才能核实点的歌有没有播放。", "没开播放状态权限",
             )

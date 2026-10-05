@@ -57,7 +57,7 @@ class AndroidPhoneApps(
     }
 
     override suspend fun playQQ(title: String, artist: String?) = player.play(SongRequest.of(title, artist))
-    override fun installed() = AppNames.find("QQ音乐", launcherApps())
+    override fun installed() = AppNames.find("QQ音乐", launcherApps().filter { it.packageName in AppNames.qqMusic })
     override fun notificationAllowed() = music.allowed()
     override fun screenControlAllowed() = QqMusicAccessibilityService.connected()
     override fun current(app: LaunchableApp) = music.currentFor(app.packageName)

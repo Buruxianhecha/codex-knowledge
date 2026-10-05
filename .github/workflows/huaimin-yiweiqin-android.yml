@@ -143,7 +143,7 @@ jobs:
               "ai.RecallCoordinatorTest": 5,
               "data.ReactionEventsTest": 10,
               "ai.ReactionPromptTest": 10,
-              "ai.PhoneAppsTest": 22,
+              "ai.PhoneAppsTest": 23,
               "ai.QqSearchPlanTest": 21,
           }
           for name, count in expected.items():

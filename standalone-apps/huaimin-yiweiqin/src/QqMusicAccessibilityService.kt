@@ -25,9 +25,10 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 /** An explicit point-song task only. No tasks are created by accessibility events. */
 class QqMusicAccessibilityService : AccessibilityService() {
+    private var interruption = 0
     override fun onServiceConnected() { instance = this }
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
-    override fun onInterrupt() { if (instance === this) instance = null }
+    override fun onInterrupt() { interruption++ }
     override fun onDestroy() {
         if (instance === this) instance = null
         super.onDestroy()
@@ -35,12 +36,14 @@ class QqMusicAccessibilityService : AccessibilityService() {
 
     private suspend fun selectSong(player: String, song: SongRequest): String? = withContext(Dispatchers.Main.immediate) {
         val plan = QqSearchPlan(song, player)
+        val started = interruption
         withTimeoutOrNull(22_000) {
             var failedActions = 0
             var seenQQ = false
             var initialLooks = 0
             while (!plan.picked) {
                 if (instance !== this@QqMusicAccessibilityService) return@withTimeoutOrNull "QQ 音乐点歌权限已关闭，任务停止。"
+                if (interruption != started) return@withTimeoutOrNull "点歌任务被系统中断，请重新发送点歌指令。"
                 if (getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true) return@withTimeoutOrNull "手机已锁屏，点歌停止；请解锁后重试。"
                 val root = rootInActiveWindow
                 if (root == null) { delay(300); continue }
