@@ -57,4 +57,20 @@ class PatsTest {
         assertNull(Pats.decode("not json"))
         assertNull(Pats.decode(null))
     }
+
+    @Test
+    fun theTaPattingBackReadsFromItsSide() {
+        assertEquals("“星”拍了拍我", Pats.line(PatRecord(Pats.FROM_AI), "星"))
+        assertEquals("“星”戳了戳我的头", Pats.line(PatRecord(Pats.FROM_AI, 1, "戳", "的头"), "星"))
+    }
+
+    @Test
+    fun manyPatsInARowAskForAnAnswer() {
+        assertTrue(!Pats.heavy(PatRecord(Pats.AI, Pats.HEAVY_AT - 1)))
+        assertTrue(Pats.heavy(PatRecord(Pats.AI, Pats.HEAVY_AT)))
+        // Only the person's pats on the TA count; their own, and the TA's, never ask for one.
+        assertTrue(!Pats.heavy(PatRecord(Pats.ME, 50)))
+        assertTrue(!Pats.heavy(PatRecord(Pats.FROM_AI, 50)))
+        assertEquals("（对方连拍了你 12 下，拍个不停。回一两句就好）", Pats.forModel(PatRecord(Pats.AI, 12)))
+    }
 }
