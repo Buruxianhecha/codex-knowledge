@@ -25,6 +25,7 @@ def apply_voice_presets(root: Path) -> None:
     new = '''    /** The custom Mossland preset selected by the user. */
     val mosslandVoices = listOf(
         VoiceOption("5ee59da9-cb84-437a-8909-8ec1cfceb425", "青年音"),
+        VoiceOption("19411508-8731-4b68-901d-7e4b8a98e23f", "少女音"),
     )'''
     if source.count(old) != 1:
         raise SystemExit("Speech.kt: expected exactly one unchanged Mossland preset list")
