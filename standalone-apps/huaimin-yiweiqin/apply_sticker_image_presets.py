@@ -73,33 +73,34 @@ replace(
         val afterEmoji = dao.all()
         StickerPresetCatalog.imageBuiltIns.forEachIndexed { index, item ->
             val file = images.file(item.assetFile)
-            if (!file.exists()) {
+
+            // Self-heal every launch: an older build may have created the tab/catalog but failed
+            // before the private ImageStore file or database row was written.
+            if (!file.isFile || file.length() == 0L) {
                 file.parentFile?.mkdirs()
+                val tmp = File(file.parentFile, ".${item.assetFile}.tmp")
                 assets.open("${StickerPresetCatalog.ASSET_DIR}/${item.assetFile}").use { input ->
-                    file.outputStream().use { output -> input.copyTo(output) }
+                    tmp.outputStream().use { output -> input.copyTo(output) }
+                }
+                if (file.exists()) file.delete()
+                if (!tmp.renameTo(file)) {
+                    tmp.copyTo(file, overwrite = true)
+                    tmp.delete()
                 }
             }
+
             if (afterEmoji.any { it.file == item.assetFile }) return@forEachIndexed
 
-            var width = 0
-            var height = 0
-            try {
-                ImageDecoder.decodeDrawable(ImageDecoder.createSource(file)) { decoder, info, _ ->
-                    width = info.size.width
-                    height = info.size.height
-                    decoder.setTargetSampleSize(maxOf(1, maxOf(width, height) / 32))
-                }
-            } catch (_: Exception) {
-                file.delete()
-                return@forEachIndexed
-            }
+            // These are our own verified bundled assets. Do not gate DB registration on
+            // ImageDecoder: some OEM decoders reject a valid WebP during this tiny probe even
+            // though Coil/Android can render it normally. The real image remains in ImageStore.
             dao.insert(
                 StickerEntity(
                     name = item.name,
                     description = item.description,
                     file = item.assetFile,
-                    width = width,
-                    height = height,
+                    width = IMAGE_PRESET_EDGE,
+                    height = IMAGE_PRESET_EDGE,
                     animated = false,
                     createdAt = IMAGE_PRESET_CREATED_AT + index,
                 ),
@@ -119,6 +120,7 @@ replace(
     """        private const val PRESET_SIZE = 256
         private const val PRESET_CREATED_AT = -10_000L
         private const val IMAGE_PRESET_CREATED_AT = -20_000L
+        private const val IMAGE_PRESET_EDGE = 320
 """,
 )
 
@@ -134,7 +136,12 @@ replace(
     val presets = stickers.filter { it.createdAt < 0L }
     val personal = stickers.filter { it.createdAt >= 0L }
 """,
-    """    var mine by remember { mutableStateOf(false) }
+    """    val c = appContainer()
+    LaunchedEffect(Unit) {
+        // Repair older installs whose image-preset rows were not seeded successfully.
+        c.stickers.ensureBuiltIns()
+    }
+    var mine by remember { mutableStateOf(false) }
     var shelf by remember { mutableStateOf("meng") }
     val presets = stickers.filter { it.createdAt < 0L }
     val personal = stickers.filter { it.createdAt >= 0L }
