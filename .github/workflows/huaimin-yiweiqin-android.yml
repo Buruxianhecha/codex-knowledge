@@ -73,7 +73,7 @@ jobs:
         run: |
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
           git -C /tmp/huaimin-cleos add -A
-          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.9 customizations"
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.10 customizations"
 
       - name: Backport upstream read-aloud, memory import and tool grouping
         run: |
@@ -107,8 +107,8 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.9"' app/build.gradle.kts
-          grep -q 'versionCode = 62026' app/build.gradle.kts
+          grep -q 'versionName = "0.37.10"' app/build.gradle.kts
+          grep -q 'versionCode = 62027' app/build.gradle.kts
 
       - name: Apply message recall and AI awareness
         run: python3 standalone-apps/huaimin-yiweiqin/apply_recall.py /tmp/huaimin-cleos
@@ -118,6 +118,9 @@ jobs:
 
       - name: Apply phone App launch and confirmed QQ Music playback
         run: python3 standalone-apps/huaimin-yiweiqin/apply_phone_apps.py /tmp/huaimin-cleos
+
+      - name: Apply complete configuration, credentials and undo backup
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_full_backup.py /tmp/huaimin-cleos
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
@@ -145,6 +148,7 @@ jobs:
               "ai.ReactionPromptTest": 10,
               "ai.PhoneAppsTest": 23,
               "ai.QqSearchPlanTest": 21,
+              "data.PortableConfigurationTest": 24,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
@@ -165,6 +169,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/verify_icon.py \
             --source standalone-apps/huaimin-yiweiqin/assets/app_icon.jpg \
             --apk 怀民亦未寝.apk
+          python3 standalone-apps/huaimin-yiweiqin/verify_full_backup_apk.py --apk 怀民亦未寝.apk
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose 怀民亦未寝.apk
 
       - name: Upload APK
