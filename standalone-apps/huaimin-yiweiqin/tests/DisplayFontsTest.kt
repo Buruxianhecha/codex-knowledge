@@ -25,6 +25,19 @@ class DisplayFontsTest {
         try { return block(dir) } finally { dir.deleteRecursively() }
     }
 
+    @Test fun bundledPresetHasStableValidIdentity() {
+        assertEquals("萌系80", DisplayFonts.BUNDLED.name)
+        assertEquals(DisplayFonts.BUNDLED_FILE, DisplayFonts.BUNDLED.file)
+        assertTrue(DisplayFonts.isFontName(DisplayFonts.BUNDLED.file))
+        assertTrue(DisplayFonts.isBundled(DisplayFonts.BUNDLED))
+    }
+
+    @Test fun bundledPresetDoesNotReduceImportedFontQuota() {
+        assertEquals(DisplayFonts.MAX_IMPORTED_FONTS + 1, DisplayFonts.MAX_FONTS)
+        assertEquals(0, DisplayFonts.importedCount(listOf(DisplayFonts.BUNDLED)))
+        assertEquals(2, DisplayFonts.importedCount(listOf(DisplayFonts.BUNDLED, a, b)))
+    }
+
     @Test fun namesAndMultipleFontsRoundTrip() {
         assertEquals(listOf(a, b), DisplayFonts.decode(DisplayFonts.encode(listOf(a, b))))
         assertEquals(emptyList<DisplayFont>(), DisplayFonts.decode(null))
