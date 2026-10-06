@@ -72,8 +72,8 @@ replace(vm, '    fun setChatTextSize(size: Int) {\n', '''    var fontBusy by mut
         c.appScope.launch(Dispatchers.Main) {
             var copied: DisplayFont? = null
             try {
-                if (c.settings.current().displayFonts.size >= DisplayFonts.MAX_FONTS) {
-                    throw DisplayFontException("最多可导入 ${DisplayFonts.MAX_FONTS} 个字体")
+                if (DisplayFonts.importedCount(c.settings.current().displayFonts) >= DisplayFonts.MAX_IMPORTED_FONTS) {
+                    throw DisplayFontException("最多可导入 ${DisplayFonts.MAX_IMPORTED_FONTS} 个字体")
                 }
                 val font = withContext(Dispatchers.IO) {
                     val name = runCatching {
@@ -89,7 +89,7 @@ replace(vm, '    fun setChatTextSize(size: Int) {\n', '''    var fontBusy by mut
                 copied = font
                 modelWriter.serially {
                     c.settings.update {
-                        if (it.displayFonts.size >= DisplayFonts.MAX_FONTS) throw DisplayFontException("字体数量已达上限")
+                        if (DisplayFonts.importedCount(it.displayFonts) >= DisplayFonts.MAX_IMPORTED_FONTS) throw DisplayFontException("字体数量已达上限")
                         it.copy(displayFonts = it.displayFonts + font)
                     }
                 }
@@ -144,8 +144,22 @@ replace(vm, '    fun setChatTextSize(size: Int) {\n', '''    var fontBusy by mut
 ''')
 
 pages = 'app/src/main/java/com/cleo/cleos/ui/settings/AppPages.kt'
-replace(pages, '    Section("字号") {\n', '    DisplayFontSettings(vm)\n\n    Section("字号") {\n')
+replace(pages, '    Section("壁纸") {\n', '    DisplayFontSettings(vm)\n\n    Section("壁纸") {\n')
 replace(pages, '表情包、图片、全部软件配置、API Key 和 MCP 连接一起备份', '表情包、图片、自定义字体、全部软件配置、API Key 和 MCP 连接一起备份')
+
+app = 'app/src/main/java/com/cleo/cleos/CleosApp.kt'
+imports(app, ['com.cleo.cleos.data.ensureBundledDisplayFont'])
+replace(app, '''        appScope.launch {
+            companions.ensure()
+''', '''        appScope.launch {
+            runCatching { ensureBundledDisplayFont(context.assets, images.dir) }.getOrNull()?.let { bundled ->
+                settings.update { current ->
+                    val others = current.displayFonts.filterNot { it.file == bundled.file }
+                    current.copy(displayFonts = listOf(bundled) + others)
+                }
+            }
+            companions.ensure()
+''')
 
 theme = 'app/src/main/java/com/cleo/cleos/ui/theme/CleosTheme.kt'
 replace(theme, '    MaterialTheme(colorScheme = colorSchemeFor(palette)) {\n', '''    val selectedFont = settings.displayFonts.firstOrNull { it.file == settings.displayFont }
@@ -206,4 +220,8 @@ for name, package in [
 test = ROOT / 'app/src/test/java/com/cleo/cleos/data/DisplayFontsTest.kt'
 test.parent.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(HERE / 'tests/DisplayFontsTest.kt', test)
-print('Display fonts applied: TTF/OTF imports, preview, explicit save, global typography and explicit text styles, default reset and portable files.')
+bundled_asset = ROOT / 'app/src/main/assets/display_fonts/mengxi80.ttf'
+bundled_asset.parent.mkdir(parents=True, exist_ok=True)
+bundled_asset.write_bytes(b'HUAIMIN_MENGXI80_FONT_PLACEHOLDER')
+
+print('Display fonts applied: bundled Mengxi80 preset, TTF/OTF imports, preview, global typography and full backup.')
