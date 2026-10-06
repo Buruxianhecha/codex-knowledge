@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.15"
-assert apk.get_androidversion_code() == "62032"
+assert apk.get_androidversion_name() == "0.37.16"
+assert apk.get_androidversion_code() == "62033"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -96,6 +96,19 @@ for cls, name in (
 ):
     assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled avatar selection wiring missing")
 print("Compiled avatar presets verified: all 14 original images, picker, per-TA image storage, selection state and ordered saving.")
+sticker_assets = {name for name in apk.get_files() if name.startswith("assets/sticker_presets/")}
+expected_sticker_assets = {
+    *(f"assets/sticker_presets/sticker-mengmeizhi-{i:02d}.webp" for i in range(1, 25)),
+    *(f"assets/sticker_presets/sticker-dog-{i:02d}.webp" for i in range(1, 7)),
+}
+assert sticker_assets == expected_sticker_assets, ("unexpected packaged sticker preset assets", sticker_assets)
+for name in sorted(expected_sticker_assets):
+    raw = apk.get_file(name)
+    with Image.open(io.BytesIO(raw)) as picture:
+        picture.load()
+        assert picture.width > 0 and picture.height > 0, name
+assert any("Lcom/cleo/cleos/data/StickerPresetCatalog;->getImageBuiltIns" in call for call in calls), "sticker preset catalog not wired"
+print("Compiled sticker packs verified: 24 萌妹纸 + 6 小白狗 assets, categorized catalog and startup wiring.")
 for cls, name in (
     ("Lcom/cleo/cleos/data/DisplayFonts;", "importFont"),
     ("Lcom/cleo/cleos/data/DisplayFonts;", "encode"),
@@ -124,5 +137,5 @@ backup_font_calls = "\n".join(ins.get_output() for ins in backup_write.get_instr
 assert "Lcom/cleo/cleos/data/AppSettings;->getDisplayFonts" in backup_font_calls, "actual font files not added to backup archive"
 print("Compiled display fonts verified: imports, native validation, preview/save/default/delete, global typography, editable text styles and actual font-file backup.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
-print(f"Verified APK: version=0.37.15 code=62032 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.16 code=62033 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
