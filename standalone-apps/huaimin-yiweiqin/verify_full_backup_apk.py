@@ -108,7 +108,8 @@ for name in sorted(expected_sticker_assets):
         picture.load()
         assert picture.width > 0 and picture.height > 0, name
 assert any("Lcom/cleo/cleos/data/StickerPresetCatalog;->getImageBuiltIns" in call for call in calls), "sticker preset catalog not wired"
-assert any("Lcom/cleo/cleos/data/Stickers;->ensureBuiltIns" in call for call in calls), "sticker self-heal seeding is not wired"\nprint("Compiled sticker packs verified: 24 萌妹纸 + 6 小白狗 assets, categorized catalog and self-heal seeding wiring.")
+assert any("Lcom/cleo/cleos/data/Stickers;->ensureBuiltIns" in call for call in calls), "sticker self-heal seeding is not wired"
+print("Compiled sticker packs verified: 24 萌妹纸 + 6 小白狗 assets, categorized catalog and self-heal seeding wiring.")
 for cls, name in (
     ("Lcom/cleo/cleos/data/DisplayFonts;", "importFont"),
     ("Lcom/cleo/cleos/data/DisplayFonts;", "encode"),
