@@ -109,6 +109,70 @@ replace(vm, '    fun setChatTextSize(size: Int) {\n', '''    var fontBusy by mut
         }
     }
 
+    fun deleteDisplayFont(font: DisplayFont, onDeleted: () -> Unit) {
+        if (fontBusy || backupRestoring) return
+        if (DisplayFonts.isBundled(font)) {
+            fontFailed = true
+            fontResult = "内置字体预设不能删除。"
+            return
+        }
+        fontBusy = true
+        fontFailed = false
+        fontResult = null
+        c.appScope.launch(Dispatchers.Main) {
+            var original: File? = null
+            var staged: File? = null
+            try {
+                val current = c.settings.current()
+                val target = current.displayFonts.firstOrNull { it.file == font.file }
+                    ?: throw DisplayFontException("这个字体已经不在列表里了")
+                if (DisplayFonts.isBundled(target)) throw DisplayFontException("内置字体预设不能删除")
+                val source = displayFontFile(font.file) ?: throw DisplayFontException("找不到这个字体文件")
+                val trash = File(source.parentFile, ".delete-${source.name}-${System.nanoTime()}")
+                withContext(Dispatchers.IO) {
+                    if (source.exists() && !source.renameTo(trash)) {
+                        throw DisplayFontException("暂时无法删除这个字体，请稍后再试")
+                    }
+                }
+                original = source
+                staged = trash
+                val wasSelected = current.displayFont == font.file
+                modelWriter.serially {
+                    c.settings.update {
+                        val (fonts, selected) = DisplayFonts.removeImported(it.displayFonts, it.displayFont, font.file)
+                        it.copy(displayFonts = fonts, displayFont = selected)
+                    }
+                    check(c.settings.current().displayFonts.none { it.file == font.file })
+                }
+                withContext(Dispatchers.IO) { trash.delete() }
+                staged = null
+                onDeleted()
+                fontResult = if (wasSelected) {
+                    "已删除「${font.name}」，当前字体已恢复为系统默认。"
+                } else {
+                    "已删除「${font.name}」。"
+                }
+            } catch (e: CancellationException) {
+                val back = original
+                val trash = staged
+                if (back != null && trash != null && trash.exists() && !back.exists()) {
+                    withContext(Dispatchers.IO) { trash.renameTo(back) }
+                }
+                throw e
+            } catch (e: Exception) {
+                val back = original
+                val trash = staged
+                if (back != null && trash != null && trash.exists() && !back.exists()) {
+                    withContext(Dispatchers.IO) { trash.renameTo(back) }
+                }
+                fontFailed = true
+                fontResult = (e as? DisplayFontException)?.message ?: "字体删除失败，请再试一次。"
+            } finally {
+                fontBusy = false
+            }
+        }
+    }
+
     fun saveDisplayFont(file: String?) {
         if (fontBusy || backupRestoring) return
         fontBusy = true
