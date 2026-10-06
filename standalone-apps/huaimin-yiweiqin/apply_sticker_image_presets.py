@@ -127,6 +127,11 @@ replace(
 ui = "app/src/main/java/com/cleo/cleos/ui/chat/Stickers.kt"
 replace(
     ui,
+    "import androidx.compose.runtime.Composable\n",
+    "import androidx.compose.runtime.Composable\nimport androidx.compose.runtime.LaunchedEffect\n",
+)
+replace(
+    ui,
     "import androidx.compose.foundation.layout.Column\n",
     "import androidx.compose.foundation.layout.Column\nimport androidx.compose.foundation.layout.FlowRow\n",
 )
