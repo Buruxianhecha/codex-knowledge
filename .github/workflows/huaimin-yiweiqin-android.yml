@@ -20,6 +20,11 @@ jobs:
     name: Test and build APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      HUAIMIN_BETA: ${{ github.head_ref == 'test/huaimin-03710-beta' }}
+      EXPECTED_APP_ID: ${{ github.head_ref == 'test/huaimin-03710-beta' && 'com.lin.huaimin.beta' || 'com.lin.huaimin' }}
+      EXPECTED_APP_NAME: ${{ github.head_ref == 'test/huaimin-03710-beta' && '怀民亦未寝 beta版' || '怀民亦未寝' }}
+      APK_BASENAME: ${{ github.head_ref == 'test/huaimin-03710-beta' && '怀民亦未寝-beta版' || '怀民亦未寝' }}
 
     steps:
       - name: Checkout codex-knowledge
@@ -122,6 +127,10 @@ jobs:
       - name: Apply complete configuration, credentials and undo backup
         run: python3 standalone-apps/huaimin-yiweiqin/apply_full_backup.py /tmp/huaimin-cleos
 
+      - name: Apply independent beta installation identity
+        if: env.HUAIMIN_BETA == 'true'
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_beta.py /tmp/huaimin-cleos
+
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
         run: |
@@ -162,20 +171,23 @@ jobs:
         working-directory: /tmp/huaimin-cleos
         run: |
           ./gradlew assembleDebug --stacktrace
-          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/怀民亦未寝.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/${APK_BASENAME}.apk"
 
       - name: Verify packaged icon and APK signature
         run: |
           python3 standalone-apps/huaimin-yiweiqin/verify_icon.py \
             --source standalone-apps/huaimin-yiweiqin/assets/app_icon.jpg \
-            --apk 怀民亦未寝.apk
-          python3 standalone-apps/huaimin-yiweiqin/verify_full_backup_apk.py --apk 怀民亦未寝.apk
-          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose 怀民亦未寝.apk
+            --apk "${APK_BASENAME}.apk" \
+            --expected-package "$EXPECTED_APP_ID" \
+            --expected-app-name "$EXPECTED_APP_NAME"
+          python3 standalone-apps/huaimin-yiweiqin/verify_full_backup_apk.py \
+            --apk "${APK_BASENAME}.apk" --expected-package "$EXPECTED_APP_ID"
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose "${APK_BASENAME}.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 怀民亦未寝-debug-apk
-          path: 怀民亦未寝.apk
+          name: ${{ env.APK_BASENAME }}-debug-apk
+          path: ${{ env.APK_BASENAME }}.apk
           if-no-files-found: error
           retention-days: 30

@@ -9,10 +9,11 @@ from androguard.core.dex import DEX
 logger.remove()
 parser = argparse.ArgumentParser()
 parser.add_argument("--apk", required=True)
+parser.add_argument("--expected-package", default="com.lin.huaimin")
 args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
-assert apk.get_package() == "com.lin.huaimin"
+assert apk.get_package() == args.expected_package
 assert apk.get_androidversion_name() == "0.37.10"
 assert apk.get_androidversion_code() == "62027"
 

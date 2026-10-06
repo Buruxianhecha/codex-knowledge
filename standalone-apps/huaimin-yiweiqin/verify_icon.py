@@ -34,16 +34,21 @@ def verify_source(source: Path) -> bytes:
     return data
 
 
-def verify_apk(apk_path: Path, expected: bytes) -> None:
+def verify_apk(
+    apk_path: Path,
+    expected: bytes,
+    expected_package: str = "com.lin.huaimin",
+    expected_app_name: str = "怀民亦未寝",
+) -> None:
     from loguru import logger
 
     logger.remove()
     from androguard.core.apk import APK
 
     apk = APK(str(apk_path))
-    if not apk.is_valid_APK() or apk.get_package() != "com.lin.huaimin":
+    if not apk.is_valid_APK() or apk.get_package() != expected_package:
         raise ValueError("APK is invalid or has the wrong application ID")
-    if apk.get_app_name() != "怀民亦未寝":
+    if apk.get_app_name() != expected_app_name:
         raise ValueError("APK has the wrong app name")
 
     manifest = apk.get_android_manifest_xml()
@@ -95,7 +100,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--apk", type=Path)
+    parser.add_argument("--expected-package", default="com.lin.huaimin")
+    parser.add_argument("--expected-app-name", default="怀民亦未寝")
     args = parser.parse_args()
     artwork = verify_source(args.source)
     if args.apk:
-        verify_apk(args.apk, artwork)
+        verify_apk(args.apk, artwork, args.expected_package, args.expected_app_name)
