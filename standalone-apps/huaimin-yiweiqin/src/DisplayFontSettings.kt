@@ -25,6 +25,7 @@ import com.cleo.cleos.glass.GlassSurface
 import com.cleo.cleos.glass.LocalGlassPalette
 import com.cleo.cleos.ui.chat.ChatType
 import com.cleo.cleos.ui.theme.ProvideDisplayFont
+import com.cleo.cleos.ui.theme.LocalDisplayFontFamily
 
 @Composable
 internal fun DisplayFontSettings(vm: SettingsViewModel) {
@@ -56,7 +57,7 @@ internal fun DisplayFontSettings(vm: SettingsViewModel) {
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("怀民亦未寝 · 字体预览", color = palette.content, fontSize = 18.sp)
-                    Text("今天也辛苦啦。晚饭吃了吗？我想陪你再聊一会儿。", color = palette.content, style = ChatType(settings.chatTextSize).body)
+                    Text("今天也辛苦啦。晚饭吃了吗？我想陪你再聊一会儿。", color = palette.content, style = ChatType(settings.chatTextSize, LocalDisplayFontFamily.current).body)
                     Text("ABC abc 0123456789，。！？", color = palette.content, fontSize = 14.sp)
                 }
             }

@@ -1,4 +1,4 @@
-"""Add private TTF/OTF imports, global text rendering, explicit save and full font backup."""
+"""Add private TTF/OTF imports, global typography, explicit save and full font backup."""
 from pathlib import Path
 import shutil
 import sys
@@ -154,6 +154,33 @@ replace(theme, '    MaterialTheme(colorScheme = colorSchemeFor(palette)) {\n', '
 ''')
 replace(theme, '    }\n}\n\n@Composable\nprivate fun Wallpaper', '    }\n    }\n}\n\n@Composable\nprivate fun Wallpaper')
 
+# Independent styles used by chat and editable text must receive the same family too.
+chat_type = 'app/src/main/java/com/cleo/cleos/ui/chat/ChatType.kt'
+imports(chat_type, ['androidx.compose.ui.text.font.FontFamily'])
+replace(chat_type, 'internal class ChatType(val size: Int) {', 'internal class ChatType(val size: Int, fontFamily: FontFamily? = null) {')
+replace(chat_type, '    val body = style(size)', '    val body = style(size, fontFamily)')
+replace(chat_type, '    val small = style(size - 1)', '    val small = style(size - 1, fontFamily)')
+replace(chat_type, '        private fun style(size: Int) = TextStyle(', '        private fun style(size: Int, fontFamily: FontFamily?) = TextStyle(\n            fontFamily = fontFamily,')
+
+chat_screen = 'app/src/main/java/com/cleo/cleos/ui/chat/ChatScreen.kt'
+imports(chat_screen, ['com.cleo.cleos.ui.theme.LocalDisplayFontFamily'])
+replace(chat_screen, '    val chatType = remember(state.chatTextSize) { ChatType(state.chatTextSize) }', '    val displayFont = LocalDisplayFontFamily.current\n    val chatType = remember(state.chatTextSize, displayFont) { ChatType(state.chatTextSize, displayFont) }')
+imports(pages, ['com.cleo.cleos.ui.theme.LocalDisplayFontFamily'])
+replace(pages, '        val type = ChatType(settings.chatTextSize)', '        val type = ChatType(settings.chatTextSize, LocalDisplayFontFamily.current)')
+for rel in [
+    'ui/diary/DiaryEditorScreen.kt', 'ui/chat/SearchScreen.kt', 'ui/todo/TodoScreen.kt',
+]:
+    path = 'app/src/main/java/com/cleo/cleos/' + rel
+    imports(path, ['com.cleo.cleos.ui.theme.LocalDisplayFontFamily'])
+    file = ROOT / path
+    text = file.read_text()
+    assert 'TextStyle(' in text, path
+    text = text.replace('fontFamily = FontFamily.Serif,', 'fontFamily = LocalDisplayFontFamily.current ?: FontFamily.Serif,')
+    file.write_text(text.replace('TextStyle(color =', 'TextStyle(fontFamily = LocalDisplayFontFamily.current, color ='))
+letters = 'app/src/main/java/com/cleo/cleos/ui/letters/LetterScreen.kt'
+imports(letters, ['com.cleo.cleos.ui.theme.LocalDisplayFontFamily'])
+replace(letters, 'fontFamily = FontFamily.Serif)', 'fontFamily = LocalDisplayFontFamily.current ?: FontFamily.Serif)')
+
 backup = 'app/src/main/java/com/cleo/cleos/data/BackupService.kt'
 replace(backup, '            listOfNotNull(s.wallpaper, s.userAvatar)).toSet()\n', '''            listOfNotNull(s.wallpaper, s.userAvatar) +
             s.displayFonts.map { it.file }).toSet()
@@ -179,4 +206,4 @@ for name, package in [
 test = ROOT / 'app/src/test/java/com/cleo/cleos/data/DisplayFontsTest.kt'
 test.parent.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(HERE / 'tests/DisplayFontsTest.kt', test)
-print('Display fonts applied: TTF/OTF imports, preview, explicit save, global text resolver, default reset and portable files.')
+print('Display fonts applied: TTF/OTF imports, preview, explicit save, global typography and explicit text styles, default reset and portable files.')

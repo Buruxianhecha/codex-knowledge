@@ -1,41 +1,49 @@
 package com.cleo.cleos.ui.theme
 
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.State
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontSynthesis
-import androidx.compose.ui.text.font.FontWeight
 import com.cleo.cleos.data.displayTypeface
 import java.io.File
 
-/** Changes default text throughout the app, including explicit chat/input TextStyles. */
-private class DisplayFontResolver(
-    val base: FontFamily.Resolver,
-    private val selected: FontFamily?,
-) : FontFamily.Resolver by base {
-    override fun resolve(
-        fontFamily: FontFamily?,
-        fontWeight: FontWeight,
-        fontStyle: FontStyle,
-        fontSynthesis: FontSynthesis,
-    ): State<Any> = base.resolve(
-        if (fontFamily == null || fontFamily == FontFamily.Default) selected else fontFamily,
-        fontWeight, fontStyle, fontSynthesis,
-    )
-}
+/** Null keeps each screen's original default (including the letters' serif style). */
+val LocalDisplayFontFamily = compositionLocalOf<FontFamily?> { null }
 
 @Composable
 fun ProvideDisplayFont(file: File?, content: @Composable () -> Unit) {
-    val parent = LocalFontFamilyResolver.current
-    // A local preview of the default must bypass the app's saved custom font as well.
-    val base = (parent as? DisplayFontResolver)?.base ?: parent
-    val family = remember(file?.path, file?.lastModified()) {
+    val selected = remember(file?.path, file?.lastModified()) {
         file?.let { runCatching { FontFamily(displayTypeface(it)) }.getOrNull() }
     }
-    val resolver = remember(base, family) { DisplayFontResolver(base, family) }
-    CompositionLocalProvider(LocalFontFamilyResolver provides resolver, content = content)
+    val family = selected ?: FontFamily.Default
+    val base = MaterialTheme.typography
+    val typography = remember(base, family) {
+        base.copy(
+            displayLarge = base.displayLarge.copy(fontFamily = family),
+            displayMedium = base.displayMedium.copy(fontFamily = family),
+            displaySmall = base.displaySmall.copy(fontFamily = family),
+            headlineLarge = base.headlineLarge.copy(fontFamily = family),
+            headlineMedium = base.headlineMedium.copy(fontFamily = family),
+            headlineSmall = base.headlineSmall.copy(fontFamily = family),
+            titleLarge = base.titleLarge.copy(fontFamily = family),
+            titleMedium = base.titleMedium.copy(fontFamily = family),
+            titleSmall = base.titleSmall.copy(fontFamily = family),
+            bodyLarge = base.bodyLarge.copy(fontFamily = family),
+            bodyMedium = base.bodyMedium.copy(fontFamily = family),
+            bodySmall = base.bodySmall.copy(fontFamily = family),
+            labelLarge = base.labelLarge.copy(fontFamily = family),
+            labelMedium = base.labelMedium.copy(fontFamily = family),
+            labelSmall = base.labelSmall.copy(fontFamily = family),
+        )
+    }
+    MaterialTheme(typography = typography) {
+        CompositionLocalProvider(
+            LocalDisplayFontFamily provides selected,
+            LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = family),
+            content = content,
+        )
+    }
 }

@@ -108,14 +108,19 @@ for cls, name in (
     ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "saveDisplayFont"),
 ):
     assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled font selection/storage/backup wiring missing")
-assert any("Landroidx/compose/ui/platform/CompositionLocalsKt;->getLocalFontFamilyResolver" in call for call in calls), "global font resolver not provided"
-assert "Lcom/cleo/cleos/ui/theme/DisplayFontResolver;->resolve" in definitions
+assert any("Landroidx/compose/material3/Typography;->copy" in call for call in calls), "custom typography not provided"
+for screen in ("ChatScreenKt", "DiaryEditorScreenKt", "TodoScreenKt", "SearchScreenKt", "LetterScreenKt"):
+    screen_calls = "\n".join(
+        ins.get_output() for method in methods if screen in method.get_class_name() and method.get_code() is not None
+        for ins in method.get_instructions() if ins.get_name().startswith("invoke")
+    )
+    assert "Lcom/cleo/cleos/ui/theme/DisplayFontThemeKt;->getLocalDisplayFontFamily" in screen_calls, (screen, "custom font missing from independent text styles")
 assert any("Lcom/cleo/cleos/data/AppSettings;->getDisplayFonts" in call for call in calls)
 assert any("Lcom/cleo/cleos/data/AppSettings;->getDisplayFont" in call for call in calls)
 backup_write = next(m for m in methods if m.get_class_name() == "Lcom/cleo/cleos/data/BackupService;" and m.get_name() == "write")
 backup_font_calls = "\n".join(ins.get_output() for ins in backup_write.get_instructions() if ins.get_name().startswith("invoke"))
 assert "Lcom/cleo/cleos/data/AppSettings;->getDisplayFonts" in backup_font_calls, "actual font files not added to backup archive"
-print("Compiled display fonts verified: imports, native validation, preview/save/default, global text resolution and actual font-file backup.")
+print("Compiled display fonts verified: imports, native validation, preview/save/default, global typography and editable text styles and actual font-file backup.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
 print(f"Verified APK: version=0.37.14 code=62031 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
