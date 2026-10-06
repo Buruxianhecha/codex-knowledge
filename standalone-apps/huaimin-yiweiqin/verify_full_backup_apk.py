@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.16"
-assert apk.get_androidversion_code() == "62033"
+assert apk.get_androidversion_name() == "0.37.17"
+assert apk.get_androidversion_code() == "62034"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -108,7 +108,7 @@ for name in sorted(expected_sticker_assets):
         picture.load()
         assert picture.width > 0 and picture.height > 0, name
 assert any("Lcom/cleo/cleos/data/StickerPresetCatalog;->getImageBuiltIns" in call for call in calls), "sticker preset catalog not wired"
-print("Compiled sticker packs verified: 24 萌妹纸 + 6 小白狗 assets, categorized catalog and startup wiring.")
+assert any("Lcom/cleo/cleos/data/Stickers;->ensureBuiltIns" in call for call in calls), "sticker self-heal seeding is not wired"\nprint("Compiled sticker packs verified: 24 萌妹纸 + 6 小白狗 assets, categorized catalog and self-heal seeding wiring.")
 for cls, name in (
     ("Lcom/cleo/cleos/data/DisplayFonts;", "importFont"),
     ("Lcom/cleo/cleos/data/DisplayFonts;", "encode"),
@@ -137,5 +137,5 @@ backup_font_calls = "\n".join(ins.get_output() for ins in backup_write.get_instr
 assert "Lcom/cleo/cleos/data/AppSettings;->getDisplayFonts" in backup_font_calls, "actual font files not added to backup archive"
 print("Compiled display fonts verified: imports, native validation, preview/save/default/delete, global typography, editable text styles and actual font-file backup.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
-print(f"Verified APK: version=0.37.16 code=62033 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.17 code=62034 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
