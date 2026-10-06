@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,9 +34,12 @@ internal fun DisplayFontSettings(vm: SettingsViewModel) {
     val palette = LocalGlassPalette.current
     val resolver = LocalContext.current.applicationContext.contentResolver
     var draft by rememberSaveable(settings.displayFont) { mutableStateOf(settings.displayFont) }
+    var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     val selected = settings.displayFonts.firstOrNull { it.file == draft }
     val presets = settings.displayFonts.filter(DisplayFonts::isBundled)
     val imported = settings.displayFonts.filterNot(DisplayFonts::isBundled)
+    val deletable = imported.firstOrNull { it.file == draft }
+    val deletingFont = imported.firstOrNull { it.file == deleting }
     val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.importDisplayFont(uri, resolver) { draft = it.file }
     }
@@ -82,9 +86,47 @@ internal fun DisplayFontSettings(vm: SettingsViewModel) {
             TextButton(onClick = { draft = null; vm.saveDisplayFont(null) }, enabled = !vm.fontBusy && !vm.backupBusy, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text("恢复默认")
             }
+            TextButton(
+                onClick = { deleting = deletable?.file },
+                enabled = deletable != null && !vm.fontBusy && !vm.backupBusy,
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                Text("删除字体")
+            }
         }
         vm.fontResult?.let { Text(it, color = if (vm.fontFailed) palette.error else palette.contentSecondary, fontSize = 12.sp) }
         Text("当前使用：${settings.displayFonts.firstOrNull { it.file == settings.displayFont }?.name ?: "系统默认"}", color = palette.contentSecondary, fontSize = 12.sp)
         Text("内置预设、导入的字体和当前选择都会跟着完整备份。没有相应字形的文字会使用手机的默认字体。", color = palette.contentSecondary, fontSize = 12.sp)
+    }
+
+    if (deletingFont != null) {
+        AlertDialog(
+            onDismissRequest = { deleting = null },
+            title = { Text("删除字体？") },
+            text = {
+                Text(
+                    "确定删除「${deletingFont.name}」吗？字体文件会从这台手机移除；如果它正是当前使用的字体，会自动恢复为系统默认。",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !vm.fontBusy && !vm.backupBusy,
+                    onClick = {
+                        val file = deletingFont.file
+                        deleting = null
+                        vm.deleteDisplayFont(deletingFont) {
+                            if (draft == file) draft = null
+                        }
+                    },
+                ) {
+                    Text("删除")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleting = null }) {
+                    Text("取消")
+                }
+            },
+        )
     }
 }
