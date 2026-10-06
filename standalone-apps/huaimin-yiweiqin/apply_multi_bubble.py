@@ -24,6 +24,14 @@ for source_name, destination in (
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, destination)
 
+# Make the intended behaviour explicit to tool-capable models: separate chat messages must
+# be separate send_message calls, never visual spacing inside one ordinary response.
+replace(
+    "app/src/main/java/com/cleo/cleos/ai/Prompt.kt",
+    '            add("想分成几条消息说的时候，用 send_message 一条一条发：一条只说一件事，要发几条就在同一次回复里调用几次。只说一句就直接回复。用 send_message 发过的话，别再在回复里写一遍，也别说「发好了」。")\n',
+    '            add("想分成几条消息说的时候，必须用 send_message 真正一条一条发：一个气泡调用一次；想发三条，就在同一次回复里调用三次 send_message。绝对不要用换行、空行或大段空白假装分开发，那仍然只会是一个气泡。只说一句就直接回复。用 send_message 发过的话，别再在普通回复里重复，也别说「发好了」。")\n',
+)
+
 repo = "app/src/main/java/com/cleo/cleos/ai/ChatRepository.kt"
 old = """    private suspend fun finish(
         conversationId: Long,
