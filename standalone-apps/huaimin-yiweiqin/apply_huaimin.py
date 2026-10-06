@@ -7,6 +7,7 @@ from apply_model_save import apply_model_save
 from apply_sticker_vision import apply_sticker_vision
 from apply_sticker_presets import apply_sticker_presets
 from apply_pat import apply_pat
+from apply_voice_presets import apply_voice_presets
 
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(".").resolve()
 
@@ -24,7 +25,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62027\n        versionName = "0.37.10"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62028\n        versionName = "0.37.11"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -694,4 +695,7 @@ apply_sticker_presets(ROOT)
 # 21) 0.36.8：回移 Cleos 的“拍一拍”：双击头像、连拍计数、震动、可自定义文案与 TA 拍回来。
 # 22) 0.36.9：拍 TA 后直接触发回复；连续拍会先合并，再只回复一轮。
 apply_pat(ROOT)
+
+# 23) 0.37.11：Mossland 仅保留用户指定的「青年音」预设，复用原有点击填入与保存流程。
+apply_voice_presets(ROOT)
 print("怀民亦未寝增量补丁已应用。")
