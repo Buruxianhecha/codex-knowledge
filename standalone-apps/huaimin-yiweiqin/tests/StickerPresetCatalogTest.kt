@@ -25,7 +25,7 @@ class StickerPresetCatalogTest {
 
     @Test fun allBundledImagesUseSafeWebpNames() {
         assertTrue(StickerPresetCatalog.imageBuiltIns.all {
-            it.assetFile.matches(Regex("""sticker-(mengmeizhi|dog)-\\d{2}\\.webp"""))
+            it.assetFile.matches(Regex("""sticker-(mengmeizhi|dog)-\d{2}\.webp"""))
         })
     }
 }
