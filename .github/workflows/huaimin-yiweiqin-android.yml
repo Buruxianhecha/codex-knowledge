@@ -183,10 +183,11 @@ jobs:
       - name: Package signing tools for final local font injection
         run: |
           rm -rf huaimin-signing-tools
-          mkdir -p huaimin-signing-tools/lib
+          mkdir -p huaimin-signing-tools/lib huaimin-signing-tools/lib64
           cp "$ANDROID_HOME/build-tools/37.0.0/apksigner" huaimin-signing-tools/
           cp "$ANDROID_HOME/build-tools/37.0.0/zipalign" huaimin-signing-tools/
           cp "$ANDROID_HOME/build-tools/37.0.0/lib/apksigner.jar" huaimin-signing-tools/lib/
+          cp "$ANDROID_HOME/build-tools/37.0.0/lib64/libc++.so" huaimin-signing-tools/lib64/
 
       - name: Upload signing tools
         uses: actions/upload-artifact@v4
