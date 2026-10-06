@@ -73,7 +73,7 @@ jobs:
         run: |
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
           git -C /tmp/huaimin-cleos add -A
-          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.14 customizations"
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.15 customizations"
 
       - name: Backport upstream read-aloud, memory import and tool grouping
         run: |
@@ -107,8 +107,8 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.14"' app/build.gradle.kts
-          grep -q 'versionCode = 62031' app/build.gradle.kts
+          grep -q 'versionName = "0.37.15"' app/build.gradle.kts
+          grep -q 'versionCode = 62032' app/build.gradle.kts
 
       - name: Apply message recall and AI awareness
         run: python3 standalone-apps/huaimin-yiweiqin/apply_recall.py /tmp/huaimin-cleos
@@ -156,7 +156,7 @@ jobs:
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
-              "data.DisplayFontsTest": 16,
+              "data.DisplayFontsTest": 19,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
