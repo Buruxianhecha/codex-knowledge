@@ -156,7 +156,7 @@ jobs:
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
-              "data.DisplayFontsTest": 14,
+              "data.DisplayFontsTest": 16,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
@@ -179,6 +179,22 @@ jobs:
             --apk 怀民亦未寝.apk
           python3 standalone-apps/huaimin-yiweiqin/verify_full_backup_apk.py --apk 怀民亦未寝.apk
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose 怀民亦未寝.apk
+
+      - name: Package signing tools for final local font injection
+        run: |
+          rm -rf huaimin-signing-tools
+          mkdir -p huaimin-signing-tools/lib
+          cp "$ANDROID_HOME/build-tools/37.0.0/apksigner" huaimin-signing-tools/
+          cp "$ANDROID_HOME/build-tools/37.0.0/zipalign" huaimin-signing-tools/
+          cp "$ANDROID_HOME/build-tools/37.0.0/lib/apksigner.jar" huaimin-signing-tools/lib/
+
+      - name: Upload signing tools
+        uses: actions/upload-artifact@v4
+        with:
+          name: huaimin-signing-tools
+          path: huaimin-signing-tools
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
