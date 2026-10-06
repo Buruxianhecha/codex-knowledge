@@ -18,12 +18,23 @@ class DisplayFontException(message: String) : Exception(message)
 object DisplayFonts {
     const val CATALOG_KEY = "display_fonts"
     const val SELECTED_KEY = "display_font"
-    const val MAX_FONTS = 20
+    /** One bundled preset plus up to 20 fonts imported by the person. */
+    const val MAX_IMPORTED_FONTS = 20
+    const val MAX_FONTS = MAX_IMPORTED_FONTS + 1
     const val MAX_BYTES = 32 * 1024 * 1024
+
+    /** Stable private-store name used by the bundled 萌系80 preset. */
+    const val BUNDLED_FILE = "font-00000000-0000-0000-0000-000000000080.ttf"
+    const val BUNDLED_NAME = "萌系80"
+    const val BUNDLED_ASSET = "display_fonts/mengxi80.ttf"
+    val BUNDLED = DisplayFont(BUNDLED_FILE, BUNDLED_NAME)
     private val json = Json { ignoreUnknownKeys = true }
     private val filename = Regex("font-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(ttf|otf)")
 
     fun isFontName(name: String) = filename.matches(name)
+
+    fun isBundled(font: DisplayFont) = font.file == BUNDLED_FILE
+    fun importedCount(fonts: List<DisplayFont>) = fonts.count { !isBundled(it) }
 
     fun encode(fonts: List<DisplayFont>): String {
         validateCatalog(fonts)
