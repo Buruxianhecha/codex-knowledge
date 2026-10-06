@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.13"
-assert apk.get_androidversion_code() == "62030"
+assert apk.get_androidversion_name() == "0.37.14"
+assert apk.get_androidversion_code() == "62031"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -96,5 +96,26 @@ for cls, name in (
 ):
     assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled avatar selection wiring missing")
 print("Compiled avatar presets verified: all 14 original images, picker, per-TA image storage, selection state and ordered saving.")
+for cls, name in (
+    ("Lcom/cleo/cleos/data/DisplayFonts;", "importFont"),
+    ("Lcom/cleo/cleos/data/DisplayFonts;", "encode"),
+    ("Lcom/cleo/cleos/data/DisplayFonts;", "decode"),
+    ("Lcom/cleo/cleos/data/DisplayFonts;", "restoredPreferences"),
+    ("Lcom/cleo/cleos/data/DisplayFontAndroidKt;", "displayTypeface"),
+    ("Lcom/cleo/cleos/ui/theme/DisplayFontThemeKt;", "ProvideDisplayFont"),
+    ("Lcom/cleo/cleos/ui/settings/DisplayFontSettingsKt;", "DisplayFontSettings"),
+    ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "importDisplayFont"),
+    ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "saveDisplayFont"),
+):
+    assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled font selection/storage/backup wiring missing")
+assert any("Landroidx/compose/ui/platform/CompositionLocalsKt;->getLocalFontFamilyResolver" in call for call in calls), "global font resolver not provided"
+assert "Lcom/cleo/cleos/ui/theme/DisplayFontResolver;->resolve" in definitions
+assert any("Lcom/cleo/cleos/data/AppSettings;->getDisplayFonts" in call for call in calls)
+assert any("Lcom/cleo/cleos/data/AppSettings;->getDisplayFont" in call for call in calls)
+backup_write = next(m for m in methods if m.get_class_name() == "Lcom/cleo/cleos/data/BackupService;" and m.get_name() == "write")
+backup_font_calls = "\n".join(ins.get_output() for ins in backup_write.get_instructions() if ins.get_name().startswith("invoke"))
+assert "Lcom/cleo/cleos/data/AppSettings;->getDisplayFonts" in backup_font_calls, "actual font files not added to backup archive"
+print("Compiled display fonts verified: imports, native validation, preview/save/default, global text resolution and actual font-file backup.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
-print(f"Verified APK: version=0.37.13 code=62030 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.14 code=62031 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+

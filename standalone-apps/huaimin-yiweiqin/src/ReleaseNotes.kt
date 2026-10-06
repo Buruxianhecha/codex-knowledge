@@ -26,9 +26,11 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "「资料与性格」新增「头像预设」，内置 14 张头像供选择。点选后保存给当前 TA，已有的相册换头像和用回默认仍可使用。",
-    "保留完整备份恢复功能：已保存的 Key、接口、模型、语音、MCP 和软件设置仍可随新版备份一起迁移。",
+    "「设置 → 聊天」新增全软件字体设置。导入 TTF 或 OTF 字体文件，先看预览，再点保存；聊天、日记、设置和按钮文字会使用所选字体。",
+    "可以保留多个自定义字体供切换，支持恢复默认。导入时复制原文件，退出或重新打开不会丢失；无效字体会提示，缺失字体安全使用默认字体。",
+    "完整备份现在也包含实际字体文件和当前选择，恢复或撤销恢复时一起还原。原有 Key、接口、模型、语音、MCP、14 张头像等功能继续保留。",
 )
+
 @Composable
 internal fun ReleaseNotesDialogIfNeeded() {
     val context = LocalContext.current
@@ -77,4 +79,5 @@ internal fun ReleaseNotesDialogIfNeeded() {
         },
     )
 }
+
 

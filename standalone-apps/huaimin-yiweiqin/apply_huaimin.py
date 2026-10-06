@@ -25,7 +25,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62030\n        versionName = "0.37.13"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62031\n        versionName = "0.37.14"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -697,7 +697,8 @@ apply_sticker_presets(ROOT)
 apply_pat(ROOT)
 
 # 23) 0.37.11：Mossland 使用用户指定的「青年音」预设。
-# 24) 0.37.13：在青年音旁新增少女音，复用原有点击填入与保存流程。
+# 24) 0.37.14：在青年音旁新增少女音，复用原有点击填入与保存流程。
 apply_voice_presets(ROOT)
 print("怀民亦未寝增量补丁已应用。")
+
 
