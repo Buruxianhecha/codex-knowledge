@@ -25,7 +25,7 @@ def replace_once(rel: str, old: str, new: str):
 replace_once(
     "app/build.gradle.kts",
     '        applicationId = "com.cleo.cleos"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 66\n        versionName = "0.35.7"',
-    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62035\n        versionName = "0.37.18"',
+    '        applicationId = "com.lin.huaimin"\n        minSdk = 29\n        targetSdk = 36\n        versionCode = 62036\n        versionName = "0.37.19"',
 )
 replace_once(
     "app/src/main/res/values/strings.xml",
@@ -700,5 +700,6 @@ apply_pat(ROOT)
 # 24) 0.37.14：在青年音旁新增少女音，复用原有点击填入与保存流程。
 apply_voice_presets(ROOT)
 print("怀民亦未寝增量补丁已应用。")
+
 
 

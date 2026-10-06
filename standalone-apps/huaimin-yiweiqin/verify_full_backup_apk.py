@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.18"
-assert apk.get_androidversion_code() == "62035"
+assert apk.get_androidversion_name() == "0.37.19"
+assert apk.get_androidversion_code() == "62036"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -137,6 +137,23 @@ backup_write = next(m for m in methods if m.get_class_name() == "Lcom/cleo/cleos
 backup_font_calls = "\n".join(ins.get_output() for ins in backup_write.get_instructions() if ins.get_name().startswith("invoke"))
 assert "Lcom/cleo/cleos/data/AppSettings;->getDisplayFonts" in backup_font_calls, "actual font files not added to backup archive"
 print("Compiled display fonts verified: imports, native validation, preview/save/default/delete, global typography, editable text styles and actual font-file backup.")
+for cls, name in (
+    ("Lcom/cleo/cleos/ai/AssistantBubbleSplitter;", "split"),
+    ("Lcom/cleo/cleos/ai/AssistantBubbleSplitter;", "requestedCount"),
+    ("Lcom/cleo/cleos/ai/AssistantBubbleDelivery;", "deliver"),
+    ("Lcom/cleo/cleos/ai/AssistantBubbleDelivery;", "gapAfter"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "storeAssistantBubbles"),
+):
+    assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled sequential-message wiring missing")
+row_calls = "\n".join(
+    ins.get_output() for method in methods
+    if "ChatRepository$storeAssistantBubbles$" in method.get_class_name() and method.get_code() is not None
+    for ins in method.get_instructions() if ins.get_name().startswith("invoke")
+)
+assert "Lcom/cleo/cleos/data/db/MessageEntity;-><init>" in row_calls, "individual bubble rows not constructed"
+assert "Lcom/cleo/cleos/data/db/MessageDao;->insert" in row_calls, "individual bubble rows not persisted"
+print("Compiled sentence-message delivery verified: splitter, explicit-count fallback, cancellable pacing and independent MessageEntity inserts.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
-print(f"Verified APK: version=0.37.17 code=62034 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.19 code=62036 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+
 

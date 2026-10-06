@@ -74,7 +74,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_sticker_image_presets.py /tmp/huaimin-cleos
           git -C /tmp/huaimin-cleos add -A
-          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.18 customizations"
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.19 customizations"
 
       - name: Backport upstream read-aloud, memory import and tool grouping
         run: |
@@ -108,8 +108,8 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.18"' app/build.gradle.kts
-          grep -q 'versionCode = 62035' app/build.gradle.kts
+          grep -q 'versionName = "0.37.19"' app/build.gradle.kts
+          grep -q 'versionCode = 62036' app/build.gradle.kts
 
       - name: Apply message recall and AI awareness
         run: python3 standalone-apps/huaimin-yiweiqin/apply_recall.py /tmp/huaimin-cleos
@@ -129,7 +129,7 @@ jobs:
       - name: Apply custom display font import, preview and backup
         run: python3 standalone-apps/huaimin-yiweiqin/apply_display_fonts.py /tmp/huaimin-cleos
 
-      - name: Apply multi-bubble fallback for direct AI paragraphs
+      - name: Apply paced sentence-by-sentence chat messages
         run: python3 standalone-apps/huaimin-yiweiqin/apply_multi_bubble.py /tmp/huaimin-cleos
 
       - name: Run unit tests
@@ -162,7 +162,8 @@ jobs:
               "data.AvatarPresetsTest": 3,
               "data.DisplayFontsTest": 19,
               "data.StickerPresetCatalogTest": 4,
-              "ai.AssistantBubbleSplitterTest": 6,
+              "ai.AssistantBubbleSplitterTest": 25,
+              "ai.AssistantBubbleDeliveryTest": 7,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
@@ -210,5 +211,6 @@ jobs:
           path: 怀民亦未寝.apk
           if-no-files-found: error
           retention-days: 30
+
 
 
