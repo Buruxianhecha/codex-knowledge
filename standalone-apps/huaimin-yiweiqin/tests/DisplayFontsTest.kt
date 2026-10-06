@@ -38,6 +38,24 @@ class DisplayFontsTest {
         assertEquals(2, DisplayFonts.importedCount(listOf(DisplayFonts.BUNDLED, a, b)))
     }
 
+    @Test fun deletingSelectedImportedFontRemovesItAndFallsBackToDefault() {
+        val (fonts, selected) = DisplayFonts.removeImported(listOf(DisplayFonts.BUNDLED, a, b), a.file, a.file)
+        assertEquals(listOf(DisplayFonts.BUNDLED, b), fonts)
+        assertNull(selected)
+    }
+
+    @Test fun deletingUnselectedImportedFontKeepsCurrentSelection() {
+        val (fonts, selected) = DisplayFonts.removeImported(listOf(DisplayFonts.BUNDLED, a, b), b.file, a.file)
+        assertEquals(listOf(DisplayFonts.BUNDLED, b), fonts)
+        assertEquals(b.file, selected)
+    }
+
+    @Test fun bundledPresetCannotBeDeleted() {
+        assertThrows(DisplayFontException::class.java) {
+            DisplayFonts.removeImported(listOf(DisplayFonts.BUNDLED, a), a.file, DisplayFonts.BUNDLED.file)
+        }
+    }
+
     @Test fun namesAndMultipleFontsRoundTrip() {
         assertEquals(listOf(a, b), DisplayFonts.decode(DisplayFonts.encode(listOf(a, b))))
         assertEquals(emptyList<DisplayFont>(), DisplayFonts.decode(null))
