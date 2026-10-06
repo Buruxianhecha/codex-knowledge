@@ -36,6 +36,17 @@ object DisplayFonts {
     fun isBundled(font: DisplayFont) = font.file == BUNDLED_FILE
     fun importedCount(fonts: List<DisplayFont>) = fonts.count { !isBundled(it) }
 
+    /** Remove only a user-imported font; built-in presets are permanent. */
+    fun removeImported(
+        fonts: List<DisplayFont>,
+        selected: String?,
+        file: String,
+    ): Pair<List<DisplayFont>, String?> {
+        val target = fonts.firstOrNull { it.file == file } ?: return fonts to selected
+        if (isBundled(target)) throw DisplayFontException("内置字体预设不能删除")
+        return fonts.filterNot { it.file == file } to selected?.takeUnless { it == file }
+    }
+
     fun encode(fonts: List<DisplayFont>): String {
         validateCatalog(fonts)
         return json.encodeToString(fonts)
