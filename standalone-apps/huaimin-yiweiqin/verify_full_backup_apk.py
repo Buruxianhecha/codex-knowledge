@@ -100,12 +100,14 @@ for cls, name in (
     ("Lcom/cleo/cleos/data/DisplayFonts;", "importFont"),
     ("Lcom/cleo/cleos/data/DisplayFonts;", "encode"),
     ("Lcom/cleo/cleos/data/DisplayFonts;", "decode"),
-    ("Lcom/cleo/cleos/data/DisplayFonts;", "restoredPreferences"),\n    ("Lcom/cleo/cleos/data/DisplayFonts;", "removeImported"),
+    ("Lcom/cleo/cleos/data/DisplayFonts;", "restoredPreferences"),
+    ("Lcom/cleo/cleos/data/DisplayFonts;", "removeImported"),
     ("Lcom/cleo/cleos/data/DisplayFontAndroidKt;", "displayTypeface"),
     ("Lcom/cleo/cleos/ui/theme/DisplayFontThemeKt;", "ProvideDisplayFont"),
     ("Lcom/cleo/cleos/ui/settings/DisplayFontSettingsKt;", "DisplayFontSettings"),
     ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "importDisplayFont"),
-    ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "saveDisplayFont"),\n    ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "deleteDisplayFont"),
+    ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "saveDisplayFont"),
+    ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "deleteDisplayFont"),
 ):
     assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled font selection/storage/backup wiring missing")
 assert any("Landroidx/compose/material3/Typography;->copy" in call for call in calls), "custom typography not provided"
