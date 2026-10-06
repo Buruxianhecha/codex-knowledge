@@ -2,7 +2,10 @@
 from pathlib import Path
 import argparse
 import hashlib
+import io
+import json
 import re
+from PIL import Image
 from loguru import logger
 from androguard.core.apk import APK
 from androguard.core.dex import DEX
@@ -14,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.12"
-assert apk.get_androidversion_code() == "62029"
+assert apk.get_androidversion_name() == "0.37.13"
+assert apk.get_androidversion_code() == "62030"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -69,5 +72,29 @@ for name in ("pickVoice", "voiceOf"):
     assert any(f"Lcom/cleo/cleos/ui/settings/SettingsViewModel;->{name}" in call for call in calls), (name, "voice button/field wiring missing")
 assert any("Lcom/cleo/cleos/ai/Speech;->builtIn" in call for call in calls), "voice presets not consumed by UI"
 print("Compiled Mossland presets verified: 青年音 -> 5ee59da9-cb84-437a-8909-8ec1cfceb425; 少女音 -> 19411508-8731-4b68-901d-7e4b8a98e23f; existing selection and ID-field wiring preserved.")
+avatar_manifest = json.loads((Path(__file__).resolve().parent / "assets/avatar_presets/manifest.json").read_text())
+assert len(avatar_manifest) == 14
+expected_assets = {"assets/avatar_presets/" + item["file_name"] for item in avatar_manifest}
+actual_assets = {name for name in apk.get_files() if name.startswith("assets/avatar_presets/")}
+assert actual_assets == expected_assets, ("unexpected packaged avatar assets", actual_assets)
+for item in avatar_manifest:
+    raw = apk.get_file("assets/avatar_presets/" + item["file_name"])
+    assert hashlib.sha256(raw).hexdigest() == item["sha256"], (item["file_name"], "original image changed")
+    with Image.open(io.BytesIO(raw)) as picture:
+        picture.load()
+        assert picture.size == (item["width"], item["height"]), item["file_name"]
+avatar_init = next(m for m in methods if m.get_class_name() == "Lcom/cleo/cleos/data/AvatarPresets;" and m.get_name() == "<clinit>")
+avatar_constants = "\n".join(ins.get_output() for ins in avatar_init.get_instructions() if ins.get_name() in ("const-string", "const-string/jumbo"))
+assert set(re.findall(r"avatar_\d{2}\.png", avatar_constants)) == {item["file_name"] for item in avatar_manifest}
+for cls, name in (
+    ("Lcom/cleo/cleos/data/AvatarPresets;", "getAll"),
+    ("Lcom/cleo/cleos/data/AvatarPresets;", "copyToStore"),
+    ("Lcom/cleo/cleos/data/AvatarPreset;", "isSelected"),
+    ("Lcom/cleo/cleos/data/AvatarSaveQueue;", "submit"),
+    ("Lcom/cleo/cleos/ui/settings/SettingsViewModel;", "setAvatarPreset"),
+    ("Lcom/cleo/cleos/ui/settings/AvatarPresetPickerKt;", "AvatarPresetPicker"),
+):
+    assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled avatar selection wiring missing")
+print("Compiled avatar presets verified: all 14 original images, picker, per-TA image storage, selection state and ordered saving.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
-print(f"Verified APK: version=0.37.12 code=62029 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.13 code=62030 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")

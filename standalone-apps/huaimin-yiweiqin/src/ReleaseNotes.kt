@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
  * Update [CURRENT_RELEASE_NOTES] for every release.
  */
 internal val CURRENT_RELEASE_NOTES = listOf(
-    "Mossland 新增「少女音」按钮，与「青年音」并排显示。点选后自动填入对应音色 ID，并使用原有流程保存。",
+    "「资料与性格」新增「头像预设」，内置 14 张头像供选择。点选后保存给当前 TA，已有的相册换头像和用回默认仍可使用。",
     "保留完整备份恢复功能：已保存的 Key、接口、模型、语音、MCP 和软件设置仍可随新版备份一起迁移。",
 )
 @Composable
@@ -77,3 +77,4 @@ internal fun ReleaseNotesDialogIfNeeded() {
         },
     )
 }
+

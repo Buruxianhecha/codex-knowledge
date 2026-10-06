@@ -73,7 +73,7 @@ jobs:
         run: |
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
           git -C /tmp/huaimin-cleos add -A
-          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.12 customizations"
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.13 customizations"
 
       - name: Backport upstream read-aloud, memory import and tool grouping
         run: |
@@ -107,8 +107,8 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.12"' app/build.gradle.kts
-          grep -q 'versionCode = 62029' app/build.gradle.kts
+          grep -q 'versionName = "0.37.13"' app/build.gradle.kts
+          grep -q 'versionCode = 62030' app/build.gradle.kts
 
       - name: Apply message recall and AI awareness
         run: python3 standalone-apps/huaimin-yiweiqin/apply_recall.py /tmp/huaimin-cleos
@@ -121,6 +121,9 @@ jobs:
 
       - name: Apply complete configuration, credentials and undo backup
         run: python3 standalone-apps/huaimin-yiweiqin/apply_full_backup.py /tmp/huaimin-cleos
+
+      - name: Apply 14 avatar presets and persistent selection
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_avatar_presets.py /tmp/huaimin-cleos
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
@@ -149,6 +152,7 @@ jobs:
               "ai.PhoneAppsTest": 23,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
+              "data.AvatarPresetsTest": 3,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
@@ -179,3 +183,4 @@ jobs:
           path: 怀民亦未寝.apk
           if-no-files-found: error
           retention-days: 30
+
