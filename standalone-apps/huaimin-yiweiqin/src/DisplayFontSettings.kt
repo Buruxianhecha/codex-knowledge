@@ -34,20 +34,30 @@ internal fun DisplayFontSettings(vm: SettingsViewModel) {
     val resolver = LocalContext.current.applicationContext.contentResolver
     var draft by rememberSaveable(settings.displayFont) { mutableStateOf(settings.displayFont) }
     val selected = settings.displayFonts.firstOrNull { it.file == draft }
+    val presets = settings.displayFonts.filter(DisplayFonts::isBundled)
+    val imported = settings.displayFonts.filterNot(DisplayFonts::isBundled)
     val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.importDisplayFont(uri, resolver) { draft = it.file }
     }
 
     Section("字体（全软件）") {
         Text("应用到聊天、日记、设置和按钮文字。选好后点保存，退出和重开也会保留。", color = palette.contentSecondary, fontSize = 12.sp)
+        Text("字体预设", color = palette.content, fontSize = 13.sp)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Chip("系统默认", selected = draft == null) { draft = null }
-            settings.displayFonts.forEach { font ->
+            presets.forEach { font ->
                 Chip(font.name, selected = draft == font.file) { draft = font.file }
             }
         }
-        if (settings.displayFonts.isEmpty()) {
-            Text("还没有自定义字体，可以从手机导入 TTF 或 OTF 文件。", color = palette.contentSecondary, fontSize = 12.sp)
+        if (imported.isNotEmpty()) {
+            Text("我的字体", color = palette.content, fontSize = 13.sp)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                imported.forEach { font ->
+                    Chip(font.name, selected = draft == font.file) { draft = font.file }
+                }
+            }
+        } else {
+            Text("还没有自己导入的字体，也可以继续从手机添加 TTF 或 OTF 文件。", color = palette.contentSecondary, fontSize = 12.sp)
         }
         ProvideDisplayFont(selected?.let { vm.displayFontFile(it.file) }) {
             GlassSurface(
@@ -63,7 +73,7 @@ internal fun DisplayFontSettings(vm: SettingsViewModel) {
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(onClick = { pick.launch(arrayOf("*/*")) }, enabled = !vm.fontBusy && !vm.backupBusy && settings.displayFonts.size < DisplayFonts.MAX_FONTS, modifier = Modifier.heightIn(min = 48.dp)) {
+            TextButton(onClick = { pick.launch(arrayOf("*/*")) }, enabled = !vm.fontBusy && !vm.backupBusy && imported.size < DisplayFonts.MAX_IMPORTED_FONTS, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(if (vm.fontBusy) "处理中…" else "导入字体")
             }
             TextButton(onClick = { vm.saveDisplayFont(draft) }, enabled = !vm.fontBusy && !vm.backupBusy, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -75,6 +85,6 @@ internal fun DisplayFontSettings(vm: SettingsViewModel) {
         }
         vm.fontResult?.let { Text(it, color = if (vm.fontFailed) palette.error else palette.contentSecondary, fontSize = 12.sp) }
         Text("当前使用：${settings.displayFonts.firstOrNull { it.file == settings.displayFont }?.name ?: "系统默认"}", color = palette.contentSecondary, fontSize = 12.sp)
-        Text("导入的字体和选择会一起备份。没有相应字形的文字会使用手机的默认字体。", color = palette.contentSecondary, fontSize = 12.sp)
+        Text("内置预设、导入的字体和当前选择都会跟着完整备份。没有相应字形的文字会使用手机的默认字体。", color = palette.contentSecondary, fontSize = 12.sp)
     }
 }
