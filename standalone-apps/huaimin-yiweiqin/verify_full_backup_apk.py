@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.20"
-assert apk.get_androidversion_code() == "62037"
+assert apk.get_androidversion_name() == "0.37.21"
+assert apk.get_androidversion_code() == "62038"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -183,6 +183,20 @@ assert "Lcom/cleo/cleos/data/db/MessageDao;->delete" not in edit_calls, "edit un
 assert any(ref in edit_calls for ref in ("Lcom/cleo/cleos/ai/ChatRepository;->reply", "Lcom/cleo/cleos/ai/ChatRepository;->access$reply")), "edited message does not trigger a model reply"
 print("Compiled edit/resend verified: own-message menu, editor, shared recall fence, transaction, preserved original conversation, new history rows and real model reply.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
-print(f"Verified APK: version=0.37.20 code=62037 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+for cls, name in (
+    ("Lcom/cleo/cleos/ai/FreeTopicRules;", "level"),
+    ("Lcom/cleo/cleos/ai/FreeTopics;", "configure"),
+    ("Lcom/cleo/cleos/ai/FreeTopics;", "run"),
+    ("Lcom/cleo/cleos/ai/FollowUpRules;", "eligible"),
+    ("Lcom/cleo/cleos/ai/FollowUps;", "plan"),
+    ("Lcom/cleo/cleos/ai/FollowUps;", "run"),
+    ("Lcom/cleo/cleos/ui/settings/FreeTopicSectionKt;", "FreeTopicSection"),
+    ("Lcom/cleo/cleos/ui/settings/ProactiveHistorySectionKt;", "ProactiveHistorySection"),
+):
+    assert any(m.startswith(f"{cls}->{name}") for m in definitions), (name, "proactive feature missing from APK")
+assert any("Lcom/cleo/cleos/data/db/AppDatabase;->freeTopics" in call for call in calls), "free-topic DAO not wired"
+assert any("Lcom/cleo/cleos/ai/ChatRepository;->cancelFollowUp" in call for call in calls), "user-input cancellation not wired"
+print("Compiled proactive system verified: persona/free-topic rules, follow-up scheduler, settings/history UI and cancellation wiring.")
+print(f"Verified APK: version=0.37.21 code=62038 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
