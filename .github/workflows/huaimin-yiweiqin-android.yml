@@ -148,6 +148,22 @@ jobs:
       - name: Apply own-message edit and preserved conversation continuation
         run: python3 standalone-apps/huaimin-yiweiqin/apply_message_edit.py /tmp/huaimin-cleos
 
+      - name: Upload generated source snapshot for feature integration
+        uses: actions/upload-artifact@v4
+        with:
+          name: huaimin-generated-source
+          path: |
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/CleosApp.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/ChatRepository.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Later.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/Daos.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/Entities.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/SettingsViewModel.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/TaPages.kt
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
         run: |
