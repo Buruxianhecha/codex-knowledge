@@ -71,8 +71,8 @@ rep(entities,
 )''',
 '''    val recapUntilAt: Long? = null,
     val recapUntilId: Long? = null,
-    val followUpMessageId: Long? = null,
-    val followUpAt: Long? = null,
+    @kotlinx.serialization.Transient val followUpMessageId: Long? = null,
+    @kotlinx.serialization.Transient val followUpAt: Long? = null,
 )''')
 
 db="app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt"
@@ -423,7 +423,7 @@ rep(pages,
         if (vm.followUpEnabled) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 com.cleo.cleos.ai.FollowUpRules.OPTIONS.forEach { seconds ->
-                    Chip(if (seconds == 30) "30 秒" else "\${seconds / 60} 分钟", selected = vm.followUpDelaySeconds == seconds) {
+                    Chip(if (seconds == 30) "30 秒" else (seconds / 60).toString() + " 分钟", selected = vm.followUpDelaySeconds == seconds) {
                         vm.setFollowUpDelay(seconds)
                     }
                 }
@@ -436,5 +436,14 @@ rep(pages,
     }
     ProactiveHistorySection(vm)
 }''')
+
+# Restoring a portable backup keeps user settings but discards stale scheduler runtime state.
+rep(vm,
+'''                        try { action() } finally { reloadBackupFields() }''',
+'''                        try {
+                            val restored = action()
+                            c.freeTopics.resetAfterRestore()
+                            restored
+                        } finally { reloadBackupFields() }''')
 
 print("人格驱动主动聊天补丁已应用。")
