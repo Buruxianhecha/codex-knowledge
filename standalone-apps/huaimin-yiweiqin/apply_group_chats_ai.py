@@ -113,14 +113,24 @@ rep(chat,
         val members = db.groupMembers().idsFor(conversationId).mapNotNull { companions.get(it) }
         if (members.isEmpty()) return
         val firstHistory = Recap.sent(recaps.live(conversation), s.historySize)
-        val lastInput = firstHistory.lastOrNull { it.role == "user" && it.note == null && it.error == null }
-        lastInput?.let { m -> answeredUpTo.merge(conversationId, m.createdAt) { a, b -> maxOf(a, b) } }
-        val mentions = GroupChats.mentioned(lastInput?.content.orEmpty(), members)
+        val trigger = firstHistory.lastOrNull { m ->
+            (m.role == "user" && m.note == null && m.error == null) ||
+                (m.role == "pat" && Pats.decode(m.content)?.who == Pats.AI)
+        }
+        trigger?.let { m -> answeredUpTo.merge(conversationId, m.createdAt) { a, b -> maxOf(a, b) } }
+        val pat = trigger?.takeIf { it.role == "pat" }?.let { Pats.decode(it.content) }
+        val patTarget = pat?.targetCompanionId
+        val latestText = trigger?.takeIf { it.role == "user" }?.content.orEmpty()
+        val mentions = GroupChats.mentioned(latestText, members)
         val names = members.associate { it.id to it.name.trim().ifEmpty { "TA" } }
         val lastSpeaker = firstHistory.lastOrNull { it.role == "assistant" }?.senderCompanionId
         val start = members.indexOfFirst { it.id == lastSpeaker }.let { if (it < 0) 0 else (it + 1) % members.size }
         val naturalOrder = members.drop(start) + members.take(start)
-        val candidates = if (mentions.isNotEmpty()) mentions else naturalOrder.take(GroupChats.MAX_OPPORTUNITIES)
+        val candidates = when {
+            patTarget != null -> members.filter { it.id == patTarget }
+            mentions.isNotEmpty() -> mentions
+            else -> naturalOrder.take(GroupChats.MAX_OPPORTUNITIES)
+        }
         var said = 0
         for (ta in candidates.take(GroupChats.MAX_MEMBERS)) {
             currentCoroutineContext().ensureActive()
@@ -128,10 +138,10 @@ rep(chat,
             val latestConversation = db.conversations().get(conversationId) ?: return
             val raw = Recap.sent(recaps.live(latestConversation), s.historySize)
             val shaped = GroupChats.historyFor(raw, ta.id, names, conversation.companionId)
-            val context = worldContext(conversationId, lastInput?.content.orEmpty(), s)
+            val context = worldContext(conversationId, latestText, s)
             show(StreamingReply(conversationId, "", thinking = false, activity = "${ta.name.trim().ifEmpty { "TA" }}正在输入"))
             try {
-                if (groupTurn(conversationId, ta, members, shaped, context, targeted = mentions.isNotEmpty())) said++
+                if (groupTurn(conversationId, ta, members, shaped, context, targeted = patTarget != null || mentions.isNotEmpty())) said++
             } finally {
                 hide(conversationId)
             }
