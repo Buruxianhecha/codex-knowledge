@@ -111,6 +111,12 @@ rep(appdb,
     ],
     version = 18,''')
 rep(appdb,
+'''        AutoMigration(from = 15, to = 16),
+        AutoMigration(from = 16, to = 17),
+    ],''',
+'''        AutoMigration(from = 15, to = 16),
+    ],''')
+rep(appdb,
 '''import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.db.SupportSQLiteDatabase''',
 '''import androidx.room.migration.AutoMigrationSpec
@@ -121,7 +127,32 @@ rep(appdb,
     abstract fun freeTopics(): FreeTopicDao''',
 '''abstract class AppDatabase : RoomDatabase() {
     companion object {
-        /** 17 -> 18 is explicit so an installed 0.37.21 can upgrade without a checked-in schema-17 snapshot. */
+        /** 16 -> 17 is the 0.37.21 proactive schema, explicit because schema 17 was not checked in. */
+        val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE companions ADD COLUMN followUpEnabled INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE companions ADD COLUMN followUpDelaySeconds INTEGER NOT NULL DEFAULT 60")
+                db.execSQL("ALTER TABLE companions ADD COLUMN freeTopicEnabled INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE companions ADD COLUMN freeTopicLevel INTEGER NOT NULL DEFAULT -1")
+                db.execSQL("ALTER TABLE companions ADD COLUMN freeTopicQuietOn INTEGER NOT NULL DEFAULT 1")
+                db.execSQL("ALTER TABLE companions ADD COLUMN freeTopicQuietStart INTEGER NOT NULL DEFAULT 1380")
+                db.execSQL("ALTER TABLE companions ADD COLUMN freeTopicQuietEnd INTEGER NOT NULL DEFAULT 480")
+                db.execSQL("ALTER TABLE conversations ADD COLUMN followUpMessageId INTEGER")
+                db.execSQL("ALTER TABLE conversations ADD COLUMN followUpAt INTEGER")
+                db.execSQL(
+                    """CREATE TABLE IF NOT EXISTS free_topics (
+                        companionId INTEGER NOT NULL,
+                        nextAt INTEGER NOT NULL,
+                        attemptDay INTEGER,
+                        attempts INTEGER NOT NULL,
+                        PRIMARY KEY(companionId),
+                        FOREIGN KEY(companionId) REFERENCES companions(id) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )""".trimIndent(),
+                )
+            }
+        }
+
+        /** 17 -> 18 adds multi-character rooms and records the real speaker of AI messages. */
         val MIGRATION_17_18 = object : Migration(17, 18) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE conversations ADD COLUMN isGroup INTEGER NOT NULL DEFAULT 0")
@@ -152,7 +183,7 @@ cleos = 'app/src/main/java/com/cleo/cleos/CleosApp.kt'
 rep(cleos,
 '''    val db: AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "cleos.db").build()''',
 '''    val db: AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "cleos.db")
-        .addMigrations(AppDatabase.MIGRATION_17_18)
+        .addMigrations(AppDatabase.MIGRATION_16_17, AppDatabase.MIGRATION_17_18)
         .build()''')
 
 daos = 'app/src/main/java/com/cleo/cleos/data/db/Daos.kt'
