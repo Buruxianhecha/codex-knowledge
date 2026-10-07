@@ -40,8 +40,8 @@ import com.cleo.cleos.glass.LocalGlassPalette
 import com.cleo.cleos.ui.settings.Chip
 import kotlinx.coroutines.launch
 
-/** What an avatar in the chat can do: [pat] the TA (true) or the person themself (false), or open the settings for it. */
-internal class PatActions(val pat: (ai: Boolean) -> Unit, val edit: () -> Unit)
+/** What an avatar can do. [targetCompanionId] disambiguates which TA was patted in a group. */
+internal class PatActions(val pat: (ai: Boolean, targetCompanionId: Long?) -> Unit, val edit: () -> Unit)
 
 internal val LocalPat = staticCompositionLocalOf<PatActions?> { null }
 
@@ -52,16 +52,16 @@ private val WIGGLE = listOf(-14f, 12f, -8f, 5f, 0f)
  * opens what the pat says and whether the phone buzzes. Without [LocalPat], an avatar is a picture.
  */
 @Composable
-internal fun Modifier.pattable(ai: Boolean): Modifier {
+internal fun Modifier.pattable(ai: Boolean, targetCompanionId: Long? = null): Modifier {
     val wiggle = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
     val actions = LocalPat.current ?: return this
     return this
         .graphicsLayer { rotationZ = wiggle.value }
-        .pointerInput(ai, actions) {
+        .pointerInput(ai, targetCompanionId, actions) {
             detectTapGestures(
                 onDoubleTap = {
-                    actions.pat(ai)
+                    actions.pat(ai, targetCompanionId)
                     scope.launch { for (angle in WIGGLE) wiggle.animateTo(angle, tween(55)) }
                 },
                 onLongPress = { if (ai) actions.edit() },
