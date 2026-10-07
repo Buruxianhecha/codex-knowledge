@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.21"
-assert apk.get_androidversion_code() == "62038"
+assert apk.get_androidversion_name() == "0.37.22"
+assert apk.get_androidversion_code() == "62039"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -197,6 +197,17 @@ for cls, name in (
 assert any("Lcom/cleo/cleos/data/db/AppDatabase;->freeTopics" in call for call in calls), "free-topic DAO not wired"
 assert any("Lcom/cleo/cleos/ai/ChatRepository;->cancelFollowUp" in call for call in calls), "user-input cancellation not wired"
 print("Compiled proactive system verified: persona/free-topic rules, follow-up scheduler, settings/history UI and cancellation wiring.")
-print(f"Verified APK: version=0.37.21 code=62038 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+for cls, name in (
+    ("Lcom/cleo/cleos/ai/GroupChats;", "mentioned"),
+    ("Lcom/cleo/cleos/ai/GroupChats;", "historyFor"),
+    ("Lcom/cleo/cleos/ai/GroupChats;", "sharedContext"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "newGroupConversation"),
+    ("Lcom/cleo/cleos/data/db/AppDatabase;", "groupMembers"),
+    ("Lcom/cleo/cleos/ui/chat/ChatViewModel;", "createGroup"),
+):
+    assert any(m.startswith(f"{cls}->{name}") for m in definitions), (name, "group-chat feature missing from APK")
+assert any("Lcom/cleo/cleos/data/db/MessageEntity;->getSenderCompanionId" in call for call in calls), "group speaker identity not consumed"
+print("Compiled group chat verified: membership, cross-character context, per-speaker messages and creation UI wiring.")
+print(f"Verified APK: version=0.37.22 code=62039 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
