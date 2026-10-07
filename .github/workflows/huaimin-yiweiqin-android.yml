@@ -87,7 +87,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_sticker_image_presets.py /tmp/huaimin-cleos
           git -C /tmp/huaimin-cleos add -A
-          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.20 customizations"
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.21 customizations"
 
       - name: Backport upstream read-aloud, memory import and tool grouping
         run: |
@@ -121,8 +121,8 @@ jobs:
 
           # Final identity/version guard after all upstream backports.
           grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
-          grep -q 'versionName = "0.37.20"' app/build.gradle.kts
-          grep -q 'versionCode = 62037' app/build.gradle.kts
+          grep -q 'versionName = "0.37.21"' app/build.gradle.kts
+          grep -q 'versionCode = 62038' app/build.gradle.kts
 
       - name: Apply message recall and AI awareness
         run: python3 standalone-apps/huaimin-yiweiqin/apply_recall.py /tmp/huaimin-cleos
@@ -147,6 +147,9 @@ jobs:
 
       - name: Apply own-message edit and preserved conversation continuation
         run: python3 standalone-apps/huaimin-yiweiqin/apply_message_edit.py /tmp/huaimin-cleos
+
+      - name: Apply personality-driven proactive chat
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_persona_proactive.py /tmp/huaimin-cleos
 
       - name: Upload generated source snapshot for feature integration
         uses: actions/upload-artifact@v4
@@ -198,6 +201,8 @@ jobs:
               "ai.AssistantBubbleDeliveryTest": 7,
               "data.MessageEditsTest": 18,
               "ai.MessageEditCommitTest": 9,
+              "ai.FreeTopicRulesTest": 6,
+              "ai.FollowUpRulesTest": 4,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
