@@ -111,18 +111,49 @@ rep(appdb,
     ],
     version = 18,''')
 rep(appdb,
-'''        AutoMigration(from = 16, to = 17),
-    ],''',
-'''        AutoMigration(from = 16, to = 17),
-        // 17 -> 18: shared group membership, group marker, and the assistant speaker on each message.
-        AutoMigration(from = 17, to = 18),
-    ],''')
+'''import androidx.room.migration.AutoMigrationSpec
+import androidx.sqlite.db.SupportSQLiteDatabase''',
+'''import androidx.room.migration.AutoMigrationSpec
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase''')
 rep(appdb,
 '''abstract class AppDatabase : RoomDatabase() {
     abstract fun freeTopics(): FreeTopicDao''',
 '''abstract class AppDatabase : RoomDatabase() {
-    abstract fun groupMembers(): ConversationMemberDao
+    companion object {
+        /** 17 -> 18 is explicit so an installed 0.37.21 can upgrade without a checked-in schema-17 snapshot. */
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE conversations ADD COLUMN isGroup INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_conversations_isGroup ON conversations(isGroup)")
+                db.execSQL("ALTER TABLE messages ADD COLUMN senderCompanionId INTEGER")
+                db.execSQL(
+                    """CREATE TABLE IF NOT EXISTS conversation_members (
+                        conversationId INTEGER NOT NULL,
+                        companionId INTEGER NOT NULL,
+                        position INTEGER NOT NULL,
+                        PRIMARY KEY(conversationId, companionId),
+                        FOREIGN KEY(conversationId) REFERENCES conversations(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+                        FOREIGN KEY(companionId) REFERENCES companions(id) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )""".trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_conversation_members_companionId ON conversation_members(companionId)")
+            }
+        }
+    }
+
     abstract fun freeTopics(): FreeTopicDao''')
+rep(appdb,
+'''    abstract fun freeTopics(): FreeTopicDao''',
+'''    abstract fun groupMembers(): ConversationMemberDao
+    abstract fun freeTopics(): FreeTopicDao''')
+
+cleos = 'app/src/main/java/com/cleo/cleos/CleosApp.kt'
+rep(cleos,
+'''    val db: AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "cleos.db").build()''',
+'''    val db: AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "cleos.db")
+        .addMigrations(AppDatabase.MIGRATION_17_18)
+        .build()''')
 
 daos = 'app/src/main/java/com/cleo/cleos/data/db/Daos.kt'
 rep(daos,
