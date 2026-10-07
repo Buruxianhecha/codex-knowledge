@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.19"
-assert apk.get_androidversion_code() == "62036"
+assert apk.get_androidversion_name() == "0.37.20"
+assert apk.get_androidversion_code() == "62037"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -153,7 +153,35 @@ row_calls = "\n".join(
 assert "Lcom/cleo/cleos/data/db/MessageEntity;-><init>" in row_calls, "individual bubble rows not constructed"
 assert "Lcom/cleo/cleos/data/db/MessageDao;->insert" in row_calls, "individual bubble rows not persisted"
 print("Compiled sentence-message delivery verified: splitter, explicit-count fallback, cancellable pacing and independent MessageEntity inserts.")
+for cls, name in (
+    ("Lcom/cleo/cleos/data/MessageEdits;", "canEdit"),
+    ("Lcom/cleo/cleos/data/MessageEdits;", "canSubmit"),
+    ("Lcom/cleo/cleos/data/MessageEdits;", "prefix"),
+    ("Lcom/cleo/cleos/data/MessageEdits;", "copyRow"),
+    ("Lcom/cleo/cleos/data/MessageEdits;", "copyConversation"),
+    ("Lcom/cleo/cleos/ai/MessageEditCommitKt;", "commitMessageEdit"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "editAndResend"),
+    ("Lcom/cleo/cleos/ui/chat/ChatViewModel;", "edit"),
+    ("Lcom/cleo/cleos/ui/chat/ChatViewModel;", "resendEdited"),
+    ("Lcom/cleo/cleos/ui/chat/MessageEditDialogKt;", "MessageEditDialog"),
+    ("Lcom/cleo/cleos/data/SettingsRepository;", "openEditedConversation"),
+    ("Lcom/cleo/cleos/data/db/MessageDao;", "prefixForEdit"),
+    ("Lcom/cleo/cleos/data/db/ConversationDao;", "updateForMessageEdit"),
+):
+    assert any(f"{cls}->{name}" in call for call in calls), (name, "compiled edit/resend wiring missing")
+edit_calls = "\n".join(
+    ins.get_output() for method in methods
+    if ("ChatRepository$editAndResend$" in method.get_class_name() or
+        (method.get_class_name() == "Lcom/cleo/cleos/ai/ChatRepository;" and method.get_name() == "editAndResend")) and method.get_code() is not None
+    for ins in method.get_instructions() if ins.get_name().startswith("invoke")
+)
+assert "Lcom/cleo/cleos/ai/RecallCoordinator;->perform" in edit_calls, "edit does not share the recall fence"
+assert "Lcom/cleo/cleos/data/db/ConversationDao;->insert" in edit_calls, "original conversation is not preserved by branching"
+assert "Lcom/cleo/cleos/data/db/MessageDao;->insert" in edit_calls, "edited history is not persisted"
+assert "Lcom/cleo/cleos/data/db/MessageDao;->delete" not in edit_calls, "edit unexpectedly deletes original messages"
+assert any(ref in edit_calls for ref in ("Lcom/cleo/cleos/ai/ChatRepository;->reply", "Lcom/cleo/cleos/ai/ChatRepository;->access$reply")), "edited message does not trigger a model reply"
+print("Compiled edit/resend verified: own-message menu, editor, shared recall fence, transaction, preserved original conversation, new history rows and real model reply.")
 print(f"Full backup DEX wiring verified: {sum(map(len, required.values()))} methods, serializers and prior features.")
-print(f"Verified APK: version=0.37.19 code=62036 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.20 code=62037 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
