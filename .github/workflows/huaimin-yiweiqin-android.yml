@@ -164,6 +164,15 @@ jobs:
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/Entities.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/SettingsViewModel.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/TaPages.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatViewModel.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/MainScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/CleosNavHost.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Prompt.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Tools.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/Companions.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/BackupService.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/SettingsRepository.kt
           if-no-files-found: error
           retention-days: 1
 
