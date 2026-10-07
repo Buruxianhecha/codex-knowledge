@@ -46,7 +46,7 @@ rep(vm,
             val primary = list.firstOrNull { it.id == conversation?.companionId } ?: list.firstOrNull()
             primary?.let {
                 val members = if (conversation?.isGroup == true) membership.mapNotNull { row -> list.firstOrNull { it.id == row.companionId } } else listOf(it)
-                Triple(conversation, it, members)
+                Triple(conversation, it, members to list)
             }
         }.filterNotNull()''')
 rep(vm,
@@ -55,14 +55,15 @@ rep(vm,
         ) { messages, (streaming, transcribing), (conversation, ta), hasKey, s ->''',
 '''            here.map { it.second.apiBaseUrl }.distinctUntilChanged().flatMapLatest { c.secrets.hasKey(it) },
             c.settings.settings,
-        ) { messages, (streaming, transcribing), (conversation, ta, members), hasKey, s ->''')
+        ) { messages, (streaming, transcribing), (conversation, ta, groupData), hasKey, s ->
+            val (members, allCompanions) = groupData''')
 rep(vm,
 '''                companionId = ta.id,
                 aiName = ta.name,''',
 '''                companionId = ta.id,
                 isGroup = conversation?.isGroup == true,
                 groupMembers = members.map { GroupMemberUi(it.id, it.name, it.avatar, it.avatarEmoji) },
-                groupSpeakers = if (conversation?.isGroup == true) list.map { GroupMemberUi(it.id, it.name, it.avatar, it.avatarEmoji) } else emptyList(),
+                groupSpeakers = if (conversation?.isGroup == true) allCompanions.map { GroupMemberUi(it.id, it.name, it.avatar, it.avatarEmoji) } else emptyList(),
                 aiName = if (conversation?.isGroup == true) conversation.title else ta.name,''')
 rep(vm,
 '''                model = ta.apiModel,
