@@ -35,6 +35,8 @@ rep(vm,
     val companionId: Long = 0,
     val isGroup: Boolean = false,
     val groupMembers: List<GroupMemberUi> = emptyList(),
+    /** All current TAs, so historical group bubbles keep their real speaker after someone leaves. */
+    val groupSpeakers: List<GroupMemberUi> = emptyList(),
     val aiName: String = "",''')
 rep(vm,
 '''        val here = combine(c.db.conversations().observe(id), c.companions.all) { conversation, list ->
@@ -60,6 +62,7 @@ rep(vm,
 '''                companionId = ta.id,
                 isGroup = conversation?.isGroup == true,
                 groupMembers = members.map { GroupMemberUi(it.id, it.name, it.avatar, it.avatarEmoji) },
+                groupSpeakers = if (conversation?.isGroup == true) list.map { GroupMemberUi(it.id, it.name, it.avatar, it.avatarEmoji) } else emptyList(),
                 aiName = if (conversation?.isGroup == true) conversation.title else ta.name,''')
 rep(vm,
 '''                model = ta.apiModel,
@@ -82,6 +85,20 @@ rep(vm,
             val ordered = (listOf(current) + memberIds).distinct()
             if (ordered.size < 2) return@launch
             c.settings.setCurrentConversation(c.chat.newGroupConversation(ordered))
+        }
+    }
+
+    fun updateGroupMembers(memberIds: Set<Long>) {
+        val id = state.value.conversationId ?: return
+        if (!state.value.isGroup || memberIds.size < 2) return
+        viewModelScope.launch { c.chat.updateGroupConversationMembers(id, memberIds.toList()) }
+    }
+
+    fun openSingle(companionId: Long) {
+        viewModelScope.launch {
+            val id = c.chat.singleConversation(companionId)
+            c.companions.select(companionId)
+            c.settings.setCurrentConversation(id)
         }
     }
 
