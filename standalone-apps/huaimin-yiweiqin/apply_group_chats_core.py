@@ -25,7 +25,7 @@ cp('GroupChats.kt', 'app/src/main/java/com/cleo/cleos/ai/GroupChats.kt')
 cp('GroupChatsTest.kt', 'app/src/test/java/com/cleo/cleos/ai/GroupChatsTest.kt')
 
 # Version this feature as the next directly-upgradable build.
-rep('app/build.gradle.kts', 'versionCode = 62038', 'versionCode = 62041')
+rep('app/build.gradle.kts', 'versionCode = 62038', 'versionCode = 62042')
 rep('app/build.gradle.kts', 'versionName = "0.37.21"', 'versionName = "0.37.22"')
 
 entities = 'app/src/main/java/com/cleo/cleos/data/db/Entities.kt'
