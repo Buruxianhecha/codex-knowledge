@@ -132,17 +132,29 @@ class FollowUps(
                 db.companions().get(ta.id)?.followUpEnabled == true && latest(id)?.id == anchor &&
                 db.wakes().sentSince(ta.id, db.messages().lastUserFor(ta.id) ?: 0L) < LaterRules.UNANSWERED_MAX
         })
-        if (result is ChatRepository.WakeResult.Sent) {
-            db.withTransaction {
-                if (db.companions().get(ta.id) != null) {
-                    db.wakes().insert(WakeEntity(companionId = ta.id, at = System.currentTimeMillis(), outcome = WakeEntity.SENT,
-                        detail = ("聊完补充：" + result.messages.joinToString(" / ") { it.content }).take(200)))
-                    db.wakes().prune(ta.id, 50)
-                }
+        when (result) {
+            is ChatRepository.WakeResult.Sent -> {
+                log(ta.id, WakeEntity.SENT, result.messages.joinToString(" / ") { it.content })
+                if (!showing(id) && db.companions().get(ta.id) != null) notifier.messages(ta, id, result.messages)
             }
-            if (!showing(id) && db.companions().get(ta.id) != null) notifier.messages(ta, id, result.messages)
+            is ChatRepository.WakeResult.Skipped -> log(ta.id, WakeEntity.SKIPPED, result.why.ifBlank { "TA 选择保持安静" })
+            ChatRepository.WakeResult.Busy -> log(ta.id, WakeEntity.HELD, "正在聊天，补充机会取消")
+            is ChatRepository.WakeResult.Failed -> log(ta.id, WakeEntity.FAILED, result.why)
         }
         // SKIP, cancellation and failures all consume the opportunity. Never schedule from a wake.
+    }
+
+    private suspend fun log(companionId: Long, outcome: String, detail: String) {
+        db.withTransaction {
+            if (db.companions().get(companionId) == null) return@withTransaction
+            db.wakes().insert(WakeEntity(
+                companionId = companionId,
+                at = System.currentTimeMillis(),
+                outcome = outcome,
+                detail = ("聊完补充：" + detail).take(200),
+            ))
+            db.wakes().prune(companionId, 50)
+        }
     }
 }
 
