@@ -61,7 +61,7 @@ object GroupChats {
         val selfName = self.name.trim().ifEmpty { "TA" }
         val names = members.joinToString("、") { it.name.trim().ifEmpty { "TA" } }
         val choice = if (targeted) {
-            "对方刚刚明确 @ 了你，所以正常回应；除非内容确实不需要回答，否则不要 SKIP。"
+            "对方刚刚明确点到了你（例如 @ 你，或在群里拍了拍你），所以正常回应；除非内容确实不需要回答，否则不要 SKIP。"
         } else {
             "这是一次自然发言机会。先判断此刻像真实群聊一样你有没有必要开口：没必要就严格只回复 SKIP，不要为了轮到你而硬说。"
         }
