@@ -28,6 +28,7 @@ rep(screen,
     aiFace: Face? = null,
     aiLabel: String? = null,
     patEnabled: Boolean = true,
+    patTargetCompanionId: Long? = null,
     editEnabled: Boolean = true,
     retryEnabled: Boolean = true,
     readEnabled: Boolean = true,
@@ -39,8 +40,27 @@ rep(screen,
 '''                Avatar(faces.ai.file, faces.ai.letter, AvatarSize, Modifier.pattable(ai = true))
                 Spacer(Modifier.width(AvatarGap))''',
 '''                val face = aiFace ?: faces.ai
-                Avatar(face.file, face.letter, AvatarSize, if (patEnabled) Modifier.pattable(ai = true) else Modifier)
+                Avatar(
+                    face.file,
+                    face.letter,
+                    AvatarSize,
+                    if (patEnabled) Modifier.pattable(ai = true, targetCompanionId = patTargetCompanionId) else Modifier,
+                )
                 Spacer(Modifier.width(AvatarGap))''')
+# Resolve the exact TA name for a pat line in a group.
+rep(screen,
+'''                                m.role == "pat" -> PatLine(Pats.decode(m.content), state.aiName)''',
+'''                                m.role == "pat" -> {
+                                    val pat = Pats.decode(m.content)
+                                    val name = when {
+                                        !state.isGroup -> state.aiName
+                                        pat?.who == Pats.AI -> state.groupSpeakers.firstOrNull { it.id == pat.targetCompanionId }?.name ?: "TA"
+                                        pat?.who == Pats.FROM_AI -> state.groupSpeakers.firstOrNull { it.id == pat.sourceCompanionId }?.name ?: "TA"
+                                        else -> state.aiName
+                                    }
+                                    PatLine(pat, name)
+                                }''')
+
 # Speaker label above assistant body in group.
 rep(screen,
 '''                Column(
@@ -157,7 +177,7 @@ private fun GroupMembersDialog(
  */''')
 rep(screen,
 '                                        patEnabled = !state.isGroup,\n                                        canRetry = row.isLast && !state.replying,',
-'                                        patEnabled = !state.isGroup,\n                                        editEnabled = !state.isGroup,\n                                        retryEnabled = !state.isGroup,\n                                        readEnabled = !state.isGroup,\n                                        reactEnabled = !state.isGroup,\n                                        canRetry = row.isLast && !state.replying,')
+'                                        patEnabled = true,\n                                        patTargetCompanionId = if (state.isGroup) speaker?.id else null,\n                                        editEnabled = !state.isGroup,\n                                        retryEnabled = !state.isGroup,\n                                        readEnabled = !state.isGroup,\n                                        reactEnabled = !state.isGroup,\n                                        canRetry = row.isLast && !state.replying,')
 rep(screen, 'if (!mine && message.error == null) {\n                        ReactionPicker', 'if (reactEnabled && !mine && message.error == null) {\n                        ReactionPicker')
 rep(screen, 'if (!mine && message.error == null && audio == null && words.isNotBlank()) {', 'if (readEnabled && !mine && message.error == null && audio == null && words.isNotBlank()) {')
 rep(screen, 'if (!mine && canRetry) {', 'if (retryEnabled && !mine && canRetry) {')
