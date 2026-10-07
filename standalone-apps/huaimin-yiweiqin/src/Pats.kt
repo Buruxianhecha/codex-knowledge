@@ -10,7 +10,16 @@ import kotlinx.serialization.json.Json
  * ending is changed later.
  */
 @Serializable
-data class PatRecord(val who: String, val count: Int = 1, val verb: String = Pats.VERB, val suffix: String = "")
+data class PatRecord(
+    val who: String,
+    val count: Int = 1,
+    val verb: String = Pats.VERB,
+    val suffix: String = "",
+    /** In a group: the exact TA the person patted. Null keeps old single-chat rows compatible. */
+    val targetCompanionId: Long? = null,
+    /** In a group: which TA patted the person back. Null keeps old rows compatible. */
+    val sourceCompanionId: Long? = null,
+)
 
 /**
  * 拍一拍: a double tap on an avatar leaves a line in the chat. Patting the TA is an interaction
@@ -61,11 +70,26 @@ object Pats {
      * The pat to record now: one more on [prev] when it is the same side's and still warm ([prevAt]
      * is when it was last patted), otherwise a first one.
      */
-    fun again(prev: PatRecord?, prevAt: Long, who: String, verb: String, suffix: String, now: Long): PatRecord =
-        if (prev != null && prev.who == who && now - prevAt <= STREAK_MS) {
+    fun again(
+        prev: PatRecord?,
+        prevAt: Long,
+        who: String,
+        verb: String,
+        suffix: String,
+        now: Long,
+        targetCompanionId: Long? = null,
+        sourceCompanionId: Long? = null,
+    ): PatRecord =
+        if (
+            prev != null &&
+            prev.who == who &&
+            prev.targetCompanionId == targetCompanionId &&
+            prev.sourceCompanionId == sourceCompanionId &&
+            now - prevAt <= STREAK_MS
+        ) {
             prev.copy(count = prev.count + 1, verb = verb, suffix = suffix)
         } else {
-            PatRecord(who, 1, verb, suffix)
+            PatRecord(who, 1, verb, suffix, targetCompanionId, sourceCompanionId)
         }
 
     private fun once(v: String) = "${v}了$v"

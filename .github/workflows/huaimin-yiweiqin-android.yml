@@ -151,6 +151,18 @@ jobs:
       - name: Apply personality-driven proactive chat
         run: python3 standalone-apps/huaimin-yiweiqin/apply_persona_proactive.py /tmp/huaimin-cleos
 
+      - name: Apply cross-character history and multi-character group chat
+        run: |
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_core.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_data.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_ai.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_vm.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_screen_shell.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_screen_bubbles.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_mentions.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.37.22"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62042' /tmp/huaimin-cleos/app/build.gradle.kts
+
       - name: Upload generated source snapshot for feature integration
         uses: actions/upload-artifact@v4
         with:
@@ -164,6 +176,24 @@ jobs:
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/Entities.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/SettingsViewModel.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/TaPages.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatViewModel.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ConversationsScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/MainScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/CleosNavHost.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/SettingsRepository.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/Companions.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Prompt.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Recap.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatViewModel.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/MainScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/CleosNavHost.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Prompt.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Tools.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/Companions.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/BackupService.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/SettingsRepository.kt
           if-no-files-found: error
           retention-days: 1
 
@@ -203,6 +233,7 @@ jobs:
               "ai.MessageEditCommitTest": 9,
               "ai.FreeTopicRulesTest": 6,
               "ai.FollowUpRulesTest": 4,
+              "ai.GroupChatsTest": 5,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"

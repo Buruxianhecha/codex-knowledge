@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.21"
-assert apk.get_androidversion_code() == "62038"
+assert apk.get_androidversion_name() == "0.37.22"
+assert apk.get_androidversion_code() == "62042"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -197,6 +197,33 @@ for cls, name in (
 assert any("Lcom/cleo/cleos/data/db/AppDatabase;->freeTopics" in call for call in calls), "free-topic DAO not wired"
 assert any("Lcom/cleo/cleos/ai/ChatRepository;->cancelFollowUp" in call for call in calls), "user-input cancellation not wired"
 print("Compiled proactive system verified: persona/free-topic rules, follow-up scheduler, settings/history UI and cancellation wiring.")
-print(f"Verified APK: version=0.37.21 code=62038 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+for cls, name in (
+    ("Lcom/cleo/cleos/ai/GroupChats;", "mentioned"),
+    ("Lcom/cleo/cleos/ai/GroupChats;", "historyFor"),
+    ("Lcom/cleo/cleos/ai/GroupChats;", "sharedContext"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "newGroupConversation"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "updateGroupConversationMembers"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "singleConversation"),
+    ("Lcom/cleo/cleos/data/db/AppDatabase;", "groupMembers"),
+    ("Lcom/cleo/cleos/data/db/ConversationDao;", "setPinned"),
+    ("Lcom/cleo/cleos/data/db/ConversationDao;", "setManualRank"),
+    ("Lcom/cleo/cleos/data/db/ConversationMemberDao;", "deleteFor"),
+    ("Lcom/cleo/cleos/ui/chat/ChatViewModel;", "createGroup"),
+    ("Lcom/cleo/cleos/ui/chat/ChatViewModel;", "updateGroupMembers"),
+):
+    assert any(m.startswith(f"{cls}->{name}") for m in definitions), (name, "group-chat feature missing from APK")
+assert any("Lcom/cleo/cleos/data/db/MessageEntity;->getSenderCompanionId" in call for call in calls), "group speaker identity not consumed"
+assert any(m.startswith("Lcom/cleo/cleos/data/PatRecord;->getTargetCompanionId") for m in definitions), "group pat target is not stored"
+assert any("Lcom/cleo/cleos/ui/chat/PatActions;->" in call for call in calls), "pat gesture wiring missing"
+print("Compiled group pat verified: exact target identity survives gesture, storage and group routing.")
+ui_strings = "\n".join(
+    ins.get_output() for method in methods if method.get_code() is not None
+    for ins in method.get_instructions() if ins.get_name() in ("const-string", "const-string/jumbo")
+)
+assert "@所有人" in ui_strings, "compiled group @ picker is missing @所有人"
+assert "没有匹配的群成员" in ui_strings, "compiled group @ picker suggestions are missing"
+print("Compiled group mentions verified: dedicated picker, @所有人 and member suggestions are present.")
+print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
+print(f"Verified APK: version=0.37.22 code=62042 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
