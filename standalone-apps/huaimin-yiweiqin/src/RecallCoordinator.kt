@@ -12,7 +12,8 @@ internal class RecallCoordinator(
 ) {
     private val locks = ConcurrentHashMap<Long, Mutex>()
 
-    suspend fun perform(conversationId: Long, eligible: suspend () -> Boolean, commit: suspend () -> Unit): Boolean =
+    suspend fun perform(conversationId: Long, eligible: suspend () -> Boolean,
+                        resumeWith: ((Long) -> Unit)? = null, commit: suspend () -> Unit): Boolean =
         locks.getOrPut(conversationId) { Mutex() }.withLock {
             if (!eligible()) return@withLock false
             pause(conversationId)
@@ -21,7 +22,7 @@ internal class RecallCoordinator(
                 commit()
                 true
             } finally {
-                resume(conversationId)
+                (resumeWith ?: resume)(conversationId)
             }
         }
 }

@@ -168,7 +168,7 @@ jobs:
               "ai.AssistantBubbleSplitterTest": 25,
               "ai.AssistantBubbleDeliveryTest": 7,
               "data.MessageEditsTest": 18,
-              "ai.MessageEditCommitTest": 7,
+              "ai.MessageEditCommitTest": 9,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"

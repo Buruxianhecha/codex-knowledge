@@ -98,4 +98,32 @@ class MessageEditCommitTest {
         assertEquals(listOf("pause", "stop", "stage", "commit", "answer", "resume"), trace.take(6))
         assertTrue(recalled)
     }
+
+    @Test fun editReleaseDoesNotReplayTheOriginalConversation() = runBlocking {
+        var paused = false
+        var originalReplies = 0
+        var branchReplies = 0
+        val fence = RecallCoordinator({ paused = true }, {}, { paused = false; originalReplies++ })
+        fence.perform(7, { true }, resumeWith = { paused = false }) {
+            commitMessageEdit<Long>({}, { 12L }, {}, { assertTrue(paused); branchReplies++ })
+        }
+        assertFalse(paused)
+        assertEquals(0, originalReplies)
+        assertEquals(1, branchReplies)
+        // Ordinary recall still uses its own resume path and asks for a real reply.
+        fence.perform(7, { true }) { }
+        assertEquals(1, originalReplies)
+    }
+
+    @Test fun failedEditAlsoReleasesWithoutAnsweringTheOldRequest() = runBlocking {
+        var paused = false
+        var originalReplies = 0
+        val fence = RecallCoordinator({ paused = true }, {}, { paused = false; originalReplies++ })
+        try {
+            fence.perform(7, { true }, resumeWith = { paused = false }) { error("stale snapshot") }
+            fail("expected stale edit failure")
+        } catch (e: IllegalStateException) { assertEquals("stale snapshot", e.message) }
+        assertFalse(paused)
+        assertEquals(0, originalReplies)
+    }
 }

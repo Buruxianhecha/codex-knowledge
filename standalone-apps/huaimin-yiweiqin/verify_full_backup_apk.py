@@ -176,6 +176,7 @@ edit_calls = "\n".join(
     for ins in method.get_instructions() if ins.get_name().startswith("invoke")
 )
 assert "Lcom/cleo/cleos/ai/RecallCoordinator;->perform" in edit_calls, "edit does not share the recall fence"
+assert "Lcom/cleo/cleos/ai/RecallCoordinator;->perform$default" not in edit_calls, "edit reused the recall resume callback and could replay old inputs"
 assert "Lcom/cleo/cleos/data/db/ConversationDao;->insert" in edit_calls, "original conversation is not preserved by branching"
 assert "Lcom/cleo/cleos/data/db/MessageDao;->insert" in edit_calls, "edited history is not persisted"
 assert "Lcom/cleo/cleos/data/db/MessageDao;->delete" not in edit_calls, "edit unexpectedly deletes original messages"

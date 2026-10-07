@@ -36,8 +36,15 @@ def apply_message_edit(root: Path):
         val originalId = expected.conversationId
         if (calling == originalId) throw MessageEditException("请先结束电话，再编辑消息。")
         var branchId: Long? = null
+        val beforeSends = sends[originalId]
         val accepted = recallCoordinator.perform(originalId,
             eligible = { calling != originalId && db.messages().get(expected.id) == expected && MessageEdits.canSubmit(expected, text) },
+            resumeWith = { id ->
+                synchronized(lock) { recalling -= id }
+                // Do not re-execute historical inputs in the retained original conversation.
+                // Only something actually sent while editing may need a reply there.
+                if (sends[id] != beforeSends) answerSoon(id)
+            },
         ) {
             recaps.withoutFolding(originalId) {
                 val source = db.conversations().get(originalId) ?: throw MessageEditException("原对话已经删除。")
@@ -200,6 +207,7 @@ def apply_message_edit(root: Path):
     for name, directory in [
         ("MessageEdits.kt", "main/java/com/cleo/cleos/data"),
         ("MessageEditCommit.kt", "main/java/com/cleo/cleos/ai"),
+        ("RecallCoordinator.kt", "main/java/com/cleo/cleos/ai"),
         ("MessageEditDialog.kt", "main/java/com/cleo/cleos/ui/chat"),
         ("MessageEditsTest.kt", "test/java/com/cleo/cleos/data"),
         ("MessageEditCommitTest.kt", "test/java/com/cleo/cleos/ai"),
