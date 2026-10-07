@@ -74,26 +74,78 @@ private fun GroupCreateDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("选择至少两个角色。进入群聊后，他们能看到彼此在群里的发言，也能参考其他真实聊天记录。", fontSize = 13.sp)
-                companions.take(GroupChats.MAX_MEMBERS).forEach { ta ->
+                companions.forEach { ta ->
                     val checked = ta.id in selected
+                    val fixed = ta.id == currentId
+                    val canToggle = !fixed && (checked || selected.size < GroupChats.MAX_MEMBERS)
                     Row(
-                        Modifier.fillMaxWidth().clickable {
+                        Modifier.fillMaxWidth().clickable(enabled = canToggle) {
                             selected = if (checked) selected - ta.id else selected + ta.id
                         },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Checkbox(checked = checked, onCheckedChange = { on -> selected = if (on) selected + ta.id else selected - ta.id })
+                        Checkbox(
+                            checked = checked,
+                            enabled = canToggle,
+                            onCheckedChange = { on -> selected = if (on) selected + ta.id else selected - ta.id },
+                        )
                         Spacer(Modifier.width(8.dp))
                         Avatar(ta.avatar, ta.avatarEmoji ?: avatarLetter(ta.name, "TA"), 30.dp)
                         Spacer(Modifier.width(10.dp))
                         Text(ta.name.ifBlank { "TA" })
                     }
                 }
-                if (companions.size > GroupChats.MAX_MEMBERS) Text("一次群聊最多 ${GroupChats.MAX_MEMBERS} 个角色。", fontSize = 12.sp)
+                if (selected.size >= GroupChats.MAX_MEMBERS || companions.size > GroupChats.MAX_MEMBERS) Text("一次群聊最多 ${GroupChats.MAX_MEMBERS} 个角色。", fontSize = 12.sp)
             }
         },
         confirmButton = {
             TextButton(onClick = { onCreate(selected) }, enabled = selected.size >= 2) { Text("创建") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+@Composable
+private fun GroupMembersDialog(
+    companions: List<com.cleo.cleos.data.db.CompanionEntity>,
+    initial: Set<Long>,
+    onSave: (Set<Long>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var selected by remember(companions, initial) { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("管理群成员") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("可以随时添加或移除角色，历史消息不会被删除。群聊至少保留两个角色。", fontSize = 13.sp)
+                companions.forEach { ta ->
+                    val checked = ta.id in selected
+                    val canToggle = checked || selected.size < GroupChats.MAX_MEMBERS
+                    Row(
+                        Modifier.fillMaxWidth().clickable(enabled = canToggle) {
+                            selected = if (checked) selected - ta.id else selected + ta.id
+                        },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(
+                            checked = checked,
+                            enabled = canToggle,
+                            onCheckedChange = { on -> selected = if (on) selected + ta.id else selected - ta.id },
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Avatar(ta.avatar, ta.avatarEmoji ?: avatarLetter(ta.name, "TA"), 30.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Text(ta.name.ifBlank { "TA" })
+                    }
+                }
+                if (selected.size >= GroupChats.MAX_MEMBERS || companions.size > GroupChats.MAX_MEMBERS) {
+                    Text("一次群聊最多 ${GroupChats.MAX_MEMBERS} 个角色。", fontSize = 12.sp)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(selected) }, enabled = selected.size >= 2 && selected != initial) { Text("保存") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
