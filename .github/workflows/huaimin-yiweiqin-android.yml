@@ -166,6 +166,15 @@ jobs:
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/TaPages.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatScreen.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatViewModel.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ConversationsScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/MainScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/CleosNavHost.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/SettingsRepository.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/Companions.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Prompt.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Recap.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/chat/ChatViewModel.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/MainScreen.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/CleosNavHost.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Prompt.kt
