@@ -118,7 +118,8 @@ class FollowUps(
             val ta = db.companions().get(row.companionId) ?: return
             val now = System.currentTimeMillis()
             val unanswered = db.wakes().sentSince(ta.id, db.messages().lastUserFor(ta.id) ?: 0L)
-            if (!FollowUpRules.eligible(ta.followUpEnabled, anchor, latest(id)?.id, row.followUpAt, now,
+            val promisedDue = db.later().dueFor(ta.id, now).isNotEmpty()
+            if (promisedDue || !FollowUpRules.eligible(ta.followUpEnabled, anchor, latest(id)?.id, row.followUpAt, now,
                     chat.busy(id) || chat.isTyping(id)) || revision(id) != version || unanswered >= LaterRules.UNANSWERED_MAX) {
                 db.conversations().cancelFollowUp(id)
                 return
