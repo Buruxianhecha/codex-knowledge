@@ -18,7 +18,7 @@ path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
 assert apk.get_androidversion_name() == "0.37.22"
-assert apk.get_androidversion_code() == "62040"
+assert apk.get_androidversion_code() == "62041"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -213,7 +213,10 @@ for cls, name in (
 ):
     assert any(m.startswith(f"{cls}->{name}") for m in definitions), (name, "group-chat feature missing from APK")
 assert any("Lcom/cleo/cleos/data/db/MessageEntity;->getSenderCompanionId" in call for call in calls), "group speaker identity not consumed"
+assert any(m.startswith("Lcom/cleo/cleos/data/PatRecord;->getTargetCompanionId") for m in definitions), "group pat target is not stored"
+assert any("Lcom/cleo/cleos/ui/chat/PatActions;->" in call for call in calls), "pat gesture wiring missing"
+print("Compiled group pat verified: exact target identity survives gesture, storage and group routing.")
 print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
-print(f"Verified APK: version=0.37.22 code=62040 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.22 code=62041 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
