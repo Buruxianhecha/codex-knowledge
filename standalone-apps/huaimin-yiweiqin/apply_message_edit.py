@@ -44,7 +44,7 @@ def apply_message_edit(root: Path):
                 val snapshot = MessageEdits.prefix(db.messages().prefixForEdit(originalId, expected.createdAt, expected.id), expected, text)
                 val copied = mutableMapOf<String, String>()
                 val staged = mutableListOf<String>()
-                commitMessageEdit(
+                commitMessageEdit<Long>(
                     stage = {
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                             val files = snapshot.flatMap { m -> MessageImages.decode(m.images).map { it.file } +
