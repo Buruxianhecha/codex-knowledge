@@ -18,7 +18,7 @@ path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
 assert apk.get_androidversion_name() == "0.37.22"
-assert apk.get_androidversion_code() == "62039"
+assert apk.get_androidversion_code() == "62040"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -202,12 +202,18 @@ for cls, name in (
     ("Lcom/cleo/cleos/ai/GroupChats;", "historyFor"),
     ("Lcom/cleo/cleos/ai/GroupChats;", "sharedContext"),
     ("Lcom/cleo/cleos/ai/ChatRepository;", "newGroupConversation"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "updateGroupConversationMembers"),
+    ("Lcom/cleo/cleos/ai/ChatRepository;", "singleConversation"),
     ("Lcom/cleo/cleos/data/db/AppDatabase;", "groupMembers"),
+    ("Lcom/cleo/cleos/data/db/ConversationDao;", "setPinned"),
+    ("Lcom/cleo/cleos/data/db/ConversationDao;", "setManualRank"),
+    ("Lcom/cleo/cleos/data/db/ConversationMemberDao;", "deleteFor"),
     ("Lcom/cleo/cleos/ui/chat/ChatViewModel;", "createGroup"),
+    ("Lcom/cleo/cleos/ui/chat/ChatViewModel;", "updateGroupMembers"),
 ):
     assert any(m.startswith(f"{cls}->{name}") for m in definitions), (name, "group-chat feature missing from APK")
 assert any("Lcom/cleo/cleos/data/db/MessageEntity;->getSenderCompanionId" in call for call in calls), "group speaker identity not consumed"
-print("Compiled group chat verified: membership, cross-character context, per-speaker messages and creation UI wiring.")
-print(f"Verified APK: version=0.37.22 code=62039 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
+print(f"Verified APK: version=0.37.22 code=62040 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
