@@ -50,6 +50,25 @@ rep(chat,
             id
         }
     }
+
+    /** Change an existing group's members without deleting any historical messages. */
+    suspend fun updateGroupConversationMembers(conversationId: Long, memberIds: List<Long>) {
+        val group = db.conversations().get(conversationId) ?: return
+        require(group.isGroup) { "这不是群聊" }
+        val valid = memberIds.distinct().mapNotNull { companions.get(it) }.take(GroupChats.MAX_MEMBERS)
+        require(valid.size >= 2) { "群聊至少保留两个角色" }
+        db.withTransaction {
+            db.groupMembers().deleteFor(conversationId)
+            db.groupMembers().insertAll(valid.mapIndexed { index, ta -> ConversationMemberEntity(conversationId, ta.id, index) })
+            if (valid.none { it.id == group.companionId }) {
+                db.conversations().reassignCompanion(conversationId, valid.first().id)
+            }
+        }
+    }
+
+    /** A real one-to-one chat even when the remembered screen is currently a group. */
+    suspend fun singleConversation(companionId: Long): Long =
+        db.conversations().latestFor(companionId)?.id ?: newConversation(companionId)
 ''')
 # ChatRepository needs Room transaction and new entity imports if absent.
 rep(chat,
