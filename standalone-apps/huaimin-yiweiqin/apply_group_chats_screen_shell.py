@@ -29,6 +29,7 @@ rep(screen,
     var readingRecap by remember { mutableStateOf(false) }''',
 '''    var switching by remember { mutableStateOf(false) }
     var creatingGroup by remember { mutableStateOf(false) }
+    var managingGroup by remember { mutableStateOf(false) }
     var readingRecap by remember { mutableStateOf(false) }''')
 # Top bar title/subtitle/call behavior.
 rep(screen,
@@ -52,9 +53,19 @@ rep(screen,
 rep(screen,
 '''                        DropdownMenuItem(
                             text = { Text("添加一个 TA") },''',
-'''                        if (companions.size >= 2) {
+'''                        if (state.isGroup) {
                             DropdownMenuItem(
-                                text = { Text("创建群聊") },
+                                text = { Text("管理群成员") },
+                                leadingIcon = { Icon(Icons.Rounded.Forum, contentDescription = null) },
+                                onClick = {
+                                    switching = false
+                                    managingGroup = true
+                                },
+                            )
+                        }
+                        if (companions.size >= 2) {
+                            DropdownMenuItem(
+                                text = { Text(if (state.isGroup) "创建另一个群聊" else "创建群聊") },
                                 leadingIcon = { Icon(Icons.Rounded.Forum, contentDescription = null) },
                                 onClick = {
                                     switching = false
@@ -70,7 +81,7 @@ rep(screen,
                                         message = m,
                                         showFace = row.showFace,''',
 '''                                    val speaker = if (state.isGroup && m.role == "assistant") {
-                                        state.groupMembers.firstOrNull { it.id == (m.senderCompanionId ?: state.companionId) }
+                                        state.groupSpeakers.firstOrNull { it.id == (m.senderCompanionId ?: state.companionId) }
                                     } else null
                                     MessageBubble(
                                         message = m,
@@ -94,6 +105,17 @@ rep(screen,
                 creatingGroup = false
             },
             onDismiss = { creatingGroup = false },
+        )
+    }
+    if (managingGroup) {
+        GroupMembersDialog(
+            companions = companions,
+            initial = state.groupMembers.map { it.id }.toSet(),
+            onSave = {
+                vm.updateGroupMembers(it)
+                managingGroup = false
+            },
+            onDismiss = { managingGroup = false },
         )
     }
 
