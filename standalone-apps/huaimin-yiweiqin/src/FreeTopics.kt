@@ -104,10 +104,18 @@ class FreeTopics(
         val conversations = db.conversations().idsFor(id).toSet()
         val target = db.conversations().latestFor(id)?.id
         val lastUser = db.messages().lastUserFor(id)
-        val reason = FreeTopicRules.held(true, FreeTopicRules.quiet(now, ta.freeTopicQuietOn, start(ta), end(ta)),
-            conversations.any { chat.busy(it) || chat.isTyping(it) },
-            if (lastUser == null) null else db.messages().lastActivityFor(id), stamp,
-            db.wakes().sentSince(id, lastUser ?: 0L), attempts, level.dailyMax)
+        val promisedDue = db.later().dueFor(id, stamp).isNotEmpty()
+        val followUpSoon = db.conversations().all().any {
+            it.companionId == id && it.followUpAt?.let { at -> at <= stamp + 5 * 60_000L } == true
+        }
+        val reason = when {
+            promisedDue -> "之前约好的事情已经到点，先处理那件事"
+            followUpSoon -> "刚聊完的补充机会还在，先不抢话"
+            else -> FreeTopicRules.held(true, FreeTopicRules.quiet(now, ta.freeTopicQuietOn, start(ta), end(ta)),
+                conversations.any { chat.busy(it) || chat.isTyping(it) },
+                if (lastUser == null) null else db.messages().lastActivityFor(id), stamp,
+                db.wakes().sentSince(id, lastUser ?: 0L), attempts, level.dailyMax)
+        }
         val next = if (attempts >= level.dailyMax) {
             FreeTopicRules.outsideQuiet(now.plusDays(1).withHour(8).withMinute(0).withSecond(0).withNano(0),
                 ta.freeTopicQuietOn, start(ta), end(ta)).toInstant().toEpochMilli()
@@ -122,7 +130,18 @@ class FreeTopics(
         val mine = Active(target, conversations)
         if (active.putIfAbsent(id, mine) != null) return next
         try {
-            val result = chat.wake(target, FreeTopicRules.instruction, followUp = true, allowed = {
+            val recent = db.messages().recentProactiveFor(id, 6)
+                .map { StickerText.plain(it.content).trim() }
+                .filter { it.isNotBlank() }
+                .reversed()
+            val instruction = buildString {
+                append(FreeTopicRules.instruction)
+                if (recent.isNotEmpty()) {
+                    append("\n\n最近你已经主动说过这些内容，仅用于避免重复：\n")
+                    recent.forEach { append("· ").append(it.take(120)).append('\n') }
+                }
+            }
+            val result = chat.wake(target, instruction, followUp = true, allowed = {
                 val current = db.companions().get(id)
                 current != null && current.freeTopicEnabled && db.freeTopics().get(id)?.nextAt == next &&
                     !FreeTopicRules.quiet(now(), current.freeTopicQuietOn, start(current), end(current)) &&
