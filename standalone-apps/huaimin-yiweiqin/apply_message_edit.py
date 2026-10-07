@@ -36,6 +36,7 @@ def apply_message_edit(root: Path):
         val originalId = expected.conversationId
         if (calling == originalId) throw MessageEditException("请先结束电话，再编辑消息。")
         var branchId: Long? = null
+        var editedAt = 0L
         val beforeSends = sends[originalId]
         val accepted = recallCoordinator.perform(originalId,
             eligible = { calling != originalId && db.messages().get(expected.id) == expected && MessageEdits.canSubmit(expected, text) },
@@ -85,12 +86,16 @@ def apply_message_edit(root: Path):
                                 ids[row.id] = db.messages().insert(next)
                             }
                             db.conversations().updateForMessageEdit(MessageEdits.copyConversation(source, expected, ids, at).copy(id = newId))
+                            editedAt = at
                             newId
                         }
                     },
                     rollback = { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { images.delete(staged) } },
                     answer = { newId ->
                         branchId = newId
+                        // The explicit attempt handles this input even if no Key is configured.
+                        // A later genuine input can still enter the ordinary reply queue.
+                        answeredUpTo.merge(newId, editedAt) { a, b -> maxOf(a, b) }
                         // An explicit resend answers at once, even while a separate draft is in the input.
                         if (!start(newId) { reply(newId); answerUntilQuiet(newId) }) answerSoon(newId)
                     },
