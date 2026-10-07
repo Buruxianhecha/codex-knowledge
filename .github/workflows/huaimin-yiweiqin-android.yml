@@ -160,7 +160,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_screen_shell.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_chats_screen_bubbles.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.22"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62040' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62041' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Upload generated source snapshot for feature integration
         uses: actions/upload-artifact@v4
