@@ -75,6 +75,38 @@ rep(screen,
                         }
                         DropdownMenuItem(
                             text = { Text("添加一个 TA") },''')
+# In a group, tapping a TA in the title menu opens that TA's real one-to-one chat instead of silently staying in the group.
+rep(screen,
+'''                        companions.forEach { ta ->
+                            val here = ta.id == state.companionId
+                            DropdownMenuItem(
+                                text = { Text(ta.name.ifBlank { "TA" }, fontWeight = if (here) FontWeight.SemiBold else FontWeight.Normal) },
+                                leadingIcon = { Avatar(ta.avatar, ta.avatarEmoji ?: avatarLetter(ta.name, "TA"), 28.dp) },
+                                trailingIcon = if (here) ({ Icon(Icons.Rounded.Check, contentDescription = "正在聊") }) else null,
+                                onClick = {
+                                    switching = false
+                                    if (!here) vm.switchTo(ta.id)
+                                },
+                            )
+                        }''',
+'''                        companions.forEach { ta ->
+                            val here = ta.id == state.companionId
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        if (state.isGroup) "和${ta.name.ifBlank { "TA" }}单聊" else ta.name.ifBlank { "TA" },
+                                        fontWeight = if (!state.isGroup && here) FontWeight.SemiBold else FontWeight.Normal,
+                                    )
+                                },
+                                leadingIcon = { Avatar(ta.avatar, ta.avatarEmoji ?: avatarLetter(ta.name, "TA"), 28.dp) },
+                                trailingIcon = if (!state.isGroup && here) ({ Icon(Icons.Rounded.Check, contentDescription = "正在聊") }) else null,
+                                onClick = {
+                                    switching = false
+                                    if (state.isGroup) vm.openSingle(ta.id) else if (!here) vm.switchTo(ta.id)
+                                },
+                            )
+                        }''')
+
 # Pass per-speaker face/name to bubble.
 rep(screen,
 '''                                    MessageBubble(
