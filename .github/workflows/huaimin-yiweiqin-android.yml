@@ -2,6 +2,10 @@ name: Build 怀民亦未寝 Android APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "standalone-apps/huaimin-yiweiqin/**"
+      - ".github/workflows/huaimin-yiweiqin-android.yml"
   push:
     branches: [master]
     paths:
@@ -20,6 +24,9 @@ jobs:
     steps:
       - name: Checkout codex-knowledge
         uses: actions/checkout@v4
+
+      - name: Install icon verification dependencies
+        run: python3 -m pip install --user "Pillow==12.3.0" "androguard==4.1.4"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -48,22 +55,193 @@ jobs:
           git -C /tmp/huaimin-cleos remote add origin https://github.com/jqzhang921-sudo/cleos.git
           git -C /tmp/huaimin-cleos fetch --depth 1 origin c19e50bcc0f75b09e0b54dff8f45a2e74163eb37
           git -C /tmp/huaimin-cleos checkout --detach FETCH_HEAD
+          # Fetch every pinned backport with its parent, independent of a moving main branch.
+          git -C /tmp/huaimin-cleos fetch --depth 2 origin \
+            4b9c1db2e823ed84e542c9096c2cfbfa90d473dc \
+            def48d938c2c4194f8613bc91eb3e644271beaa3 \
+            c0fa5b3eb657552417bc7b595fb361c544f6be3b \
+            789a17a2fc86f213fe3485ecb18f77c60c03bbb9 \
+            b1487281dc454621313f36216d18511ad2fbcb06 \
+            4cb5641824b9ecdcf9dff912bec6c5dcf3e692b3 \
+            51d83a31f0b244422b3571fe9f4e410242ad5df5 \
+            06c021c6b156a70a94811fcc5e9d89b18dc97036 \
+            b73749c12acfa76869036672d3c46487d77319e3 \
+            30932b8d4d3983d8ef3f19c8ea81b6acd30a9c77 \
+            5e2edae3c3e27a276925813bee361b4879a72885 \
+            efd2da66e26e126a8588042a7ea12654fe4ad4e2 \
+            68c67e3df1a5497bbac2922b56ea44bc019e7f99
+          git -C /tmp/huaimin-cleos config user.name "Huaimin Builder"
+          git -C /tmp/huaimin-cleos config user.email "builder@huaimin.local"
+
+      - name: Backport upstream compatibility and tool details
+        run: |
+          set -euo pipefail
+          cd /tmp/huaimin-cleos
+          for commit in             4b9c1db2e823ed84e542c9096c2cfbfa90d473dc             def48d938c2c4194f8613bc91eb3e644271beaa3             c0fa5b3eb657552417bc7b595fb361c544f6be3b             789a17a2fc86f213fe3485ecb18f77c60c03bbb9             b1487281dc454621313f36216d18511ad2fbcb06             4cb5641824b9ecdcf9dff912bec6c5dcf3e692b3             51d83a31f0b244422b3571fe9f4e410242ad5df5
+          do
+            git cherry-pick "$commit"
+          done
 
       - name: Apply 怀民亦未寝 patch
         run: |
           python3 standalone-apps/huaimin-yiweiqin/apply_huaimin.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_sticker_image_presets.py /tmp/huaimin-cleos
+          git -C /tmp/huaimin-cleos add -A
+          git -C /tmp/huaimin-cleos commit -m "Apply 怀民亦未寝 0.37.21 customizations"
+
+      - name: Backport upstream read-aloud, memory import and tool grouping
+        run: |
+          set -euo pipefail
+          cd /tmp/huaimin-cleos
+
+          pick_upstream() {
+            commit="$1"
+            if git cherry-pick "$commit"; then
+              return 0
+            fi
+
+            conflicts="$(git diff --name-only --diff-filter=U)"
+            if [ "$conflicts" = "app/build.gradle.kts" ]; then
+              echo "Resolving upstream version-number conflict in favor of 怀民亦未寝"
+              git checkout --ours app/build.gradle.kts
+              git add app/build.gradle.kts
+              GIT_EDITOR=true git cherry-pick --continue
+              return 0
+            fi
+
+            echo "Unexpected cherry-pick conflict in $commit:"
+            git status --short
+            exit 1
+          }
+
+          for commit in             06c021c6b156a70a94811fcc5e9d89b18dc97036             b73749c12acfa76869036672d3c46487d77319e3             30932b8d4d3983d8ef3f19c8ea81b6acd30a9c77             5e2edae3c3e27a276925813bee361b4879a72885             efd2da66e26e126a8588042a7ea12654fe4ad4e2             68c67e3df1a5497bbac2922b56ea44bc019e7f99
+          do
+            pick_upstream "$commit"
+          done
+
+          # Final identity/version guard after all upstream backports.
+          grep -q 'applicationId = "com.lin.huaimin"' app/build.gradle.kts
+          grep -q 'versionName = "0.37.21"' app/build.gradle.kts
+          grep -q 'versionCode = 62038' app/build.gradle.kts
+
+      - name: Apply message recall and AI awareness
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_recall.py /tmp/huaimin-cleos
+
+      - name: Apply menu reaction awareness and replies
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_reactions.py /tmp/huaimin-cleos
+
+      - name: Apply phone App launch and confirmed QQ Music playback
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_phone_apps.py /tmp/huaimin-cleos
+
+      - name: Apply complete configuration, credentials and undo backup
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_full_backup.py /tmp/huaimin-cleos
+
+      - name: Apply 14 avatar presets and persistent selection
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_avatar_presets.py /tmp/huaimin-cleos
+
+      - name: Apply custom display font import, preview and backup
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_display_fonts.py /tmp/huaimin-cleos
+
+      - name: Apply paced sentence-by-sentence chat messages
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_multi_bubble.py /tmp/huaimin-cleos
+
+      - name: Apply own-message edit and preserved conversation continuation
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_message_edit.py /tmp/huaimin-cleos
+
+      - name: Apply personality-driven proactive chat
+        run: python3 standalone-apps/huaimin-yiweiqin/apply_persona_proactive.py /tmp/huaimin-cleos
+
+      - name: Upload generated source snapshot for feature integration
+        uses: actions/upload-artifact@v4
+        with:
+          name: huaimin-generated-source
+          path: |
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/CleosApp.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/ChatRepository.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/Later.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/Daos.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/Entities.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/SettingsViewModel.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/settings/TaPages.kt
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Run unit tests
         working-directory: /tmp/huaimin-cleos
         run: |
           chmod +x gradlew
           ./gradlew testDebugUnitTest --stacktrace
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          expected = {
+              "ui.settings.ModelSettingsWriterTest": 6,
+              "ai.StickerVisionTest": 8,
+              "data.PatsTest": 8,
+              "ai.PatPromptTest": 5,
+              "ai.PatToolTest": 2,
+              "data.ToolSettingsTest": 4,
+              "ai.AddressFallbackTest": 15,
+              "ai.ReadAloudTest": 4,
+              "data.ForeignMemoryTest": 5,
+              "ui.chat.ToolDetailsTest": 3,
+              "ui.chat.ToolRunsTest": 2,
+              "data.RecallsTest": 9,
+              "ai.RecallPromptTest": 8,
+              "ai.RecallCoordinatorTest": 5,
+              "data.ReactionEventsTest": 10,
+              "ai.ReactionPromptTest": 10,
+              "ai.PhoneAppsTest": 23,
+              "ai.QqSearchPlanTest": 21,
+              "data.PortableConfigurationTest": 24,
+              "data.AvatarPresetsTest": 3,
+              "data.DisplayFontsTest": 19,
+              "data.StickerPresetCatalogTest": 4,
+              "ai.AssistantBubbleSplitterTest": 25,
+              "ai.AssistantBubbleDeliveryTest": 7,
+              "data.MessageEditsTest": 18,
+              "ai.MessageEditCommitTest": 9,
+              "ai.FreeTopicRulesTest": 6,
+              "ai.FollowUpRulesTest": 4,
+          }
+          for name, count in expected.items():
+              report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
+              suite = ET.parse(report).getroot()
+              assert int(suite.attrib["tests"]) == count, suite.attrib
+              assert all(int(suite.attrib.get(k, 0)) == 0 for k in ("failures", "errors", "skipped")), suite.attrib
+              print(f"{name}: {count} regression tests passed; no failures or skipped tests.")
+          PY
 
       - name: Build installable APK
         working-directory: /tmp/huaimin-cleos
         run: |
           ./gradlew assembleDebug --stacktrace
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/怀民亦未寝.apk"
+
+      - name: Verify packaged icon and APK signature
+        run: |
+          python3 standalone-apps/huaimin-yiweiqin/verify_icon.py \
+            --source standalone-apps/huaimin-yiweiqin/assets/app_icon.jpg \
+            --apk 怀民亦未寝.apk
+          python3 standalone-apps/huaimin-yiweiqin/verify_full_backup_apk.py --apk 怀民亦未寝.apk
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose 怀民亦未寝.apk
+
+      - name: Package signing tools for final local font injection
+        run: |
+          rm -rf huaimin-signing-tools
+          mkdir -p huaimin-signing-tools/lib huaimin-signing-tools/lib64
+          cp "$ANDROID_HOME/build-tools/37.0.0/apksigner" huaimin-signing-tools/
+          cp "$ANDROID_HOME/build-tools/37.0.0/zipalign" huaimin-signing-tools/
+          cp "$ANDROID_HOME/build-tools/37.0.0/lib/apksigner.jar" huaimin-signing-tools/lib/
+          cp "$ANDROID_HOME/build-tools/37.0.0/lib64/libc++.so" huaimin-signing-tools/lib64/
+
+      - name: Upload signing tools
+        uses: actions/upload-artifact@v4
+        with:
+          name: huaimin-signing-tools
+          path: huaimin-signing-tools
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -72,3 +250,6 @@ jobs:
           path: 怀民亦未寝.apk
           if-no-files-found: error
           retention-days: 30
+
+
+
