@@ -18,7 +18,7 @@ path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
 assert apk.get_androidversion_name() == "0.37.22"
-assert apk.get_androidversion_code() == "62041"
+assert apk.get_androidversion_code() == "62042"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -216,7 +216,14 @@ assert any("Lcom/cleo/cleos/data/db/MessageEntity;->getSenderCompanionId" in cal
 assert any(m.startswith("Lcom/cleo/cleos/data/PatRecord;->getTargetCompanionId") for m in definitions), "group pat target is not stored"
 assert any("Lcom/cleo/cleos/ui/chat/PatActions;->" in call for call in calls), "pat gesture wiring missing"
 print("Compiled group pat verified: exact target identity survives gesture, storage and group routing.")
+ui_strings = "\n".join(
+    ins.get_output() for method in methods if method.get_code() is not None
+    for ins in method.get_instructions() if ins.get_name() in ("const-string", "const-string/jumbo")
+)
+assert "@所有人" in ui_strings, "compiled group @ picker is missing @所有人"
+assert "没有匹配的群成员" in ui_strings, "compiled group @ picker suggestions are missing"
+print("Compiled group mentions verified: dedicated picker, @所有人 and member suggestions are present.")
 print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
-print(f"Verified APK: version=0.37.22 code=62041 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.22 code=62042 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
