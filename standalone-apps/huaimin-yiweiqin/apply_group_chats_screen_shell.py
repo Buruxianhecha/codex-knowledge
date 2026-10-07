@@ -121,4 +121,130 @@ rep(screen,
 
     vm.editingMessage?.let { original ->''')
 
+
+# Conversation list management: rename, pin/unpin, persistent up/down ordering, delete.
+convs = 'app/src/main/java/com/cleo/cleos/ui/chat/ConversationsScreen.kt'
+rep(convs,
+'''import androidx.compose.material3.TextButton
+''',
+'''import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.room.withTransaction
+''')
+rep(convs,
+'''    var confirm by remember { mutableStateOf<ConversationEntity?>(null) }
+''',
+'''    var actions by remember { mutableStateOf<ConversationEntity?>(null) }
+    var confirm by remember { mutableStateOf<ConversationEntity?>(null) }
+    var renaming by remember { mutableStateOf<ConversationEntity?>(null) }
+    var renameText by remember { mutableStateOf("") }
+
+    fun moveConversation(conv: ConversationEntity, offset: Int) {
+        val section = conversations.filter { it.pinned == conv.pinned }
+        val from = section.indexOfFirst { it.id == conv.id }
+        val to = from + offset
+        if (from < 0 || to !in section.indices) return
+        val ordered = section.toMutableList().also { list ->
+            val item = list.removeAt(from)
+            list.add(to, item)
+        }
+        c.appScope.launch {
+            val base = System.currentTimeMillis()
+            c.db.withTransaction {
+                ordered.forEachIndexed { index, item -> c.db.conversations().setManualRank(item.id, base - index) }
+            }
+        }
+    }
+''')
+rep(convs,
+'''                subtitle = "长按可以删除",''',
+'''                subtitle = "长按可重命名、置顶和排序",''')
+rep(convs,
+'''                            onLongClick = { confirm = conv },''',
+'''                            onLongClick = { actions = conv },''')
+rep(convs,
+'''                            Text(Dates.chatStamp(conv.updatedAt), color = palette.contentSecondary, fontSize = 12.sp)''',
+'''                            Text(
+                                (if (conv.pinned) "置顶 · " else "") + Dates.chatStamp(conv.updatedAt),
+                                color = if (conv.pinned) palette.accentContent else palette.contentSecondary,
+                                fontSize = 12.sp,
+                            )''')
+rep(convs,
+'''    confirm?.let { conv ->
+        AlertDialog(''',
+'''    actions?.let { conv ->
+        val section = conversations.filter { it.pinned == conv.pinned }
+        val at = section.indexOfFirst { it.id == conv.id }
+        AlertDialog(
+            onDismissRequest = { actions = null },
+            title = { Text("管理会话") },
+            text = {
+                Column {
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            actions = null
+                            renaming = conv
+                            renameText = conv.title
+                        },
+                    ) { Text("重命名") }
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            actions = null
+                            c.appScope.launch {
+                                c.db.conversations().setPinned(conv.id, !conv.pinned, System.currentTimeMillis())
+                            }
+                        },
+                    ) { Text(if (conv.pinned) "取消置顶" else "置顶") }
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = at > 0,
+                        onClick = { actions = null; moveConversation(conv, -1) },
+                    ) { Text("上移") }
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = at >= 0 && at < section.lastIndex,
+                        onClick = { actions = null; moveConversation(conv, 1) },
+                    ) { Text("下移") }
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { actions = null; confirm = conv },
+                    ) { Text("删除", color = LocalGlassPalette.current.error) }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { actions = null }) { Text("关闭") } },
+        )
+    }
+
+    renaming?.let { conv ->
+        AlertDialog(
+            onDismissRequest = { renaming = null },
+            title = { Text("重命名会话") },
+            text = {
+                OutlinedTextField(
+                    value = renameText,
+                    onValueChange = { renameText = it.take(60) },
+                    singleLine = true,
+                    label = { Text("会话名称") },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = renameText.trim().isNotEmpty(),
+                    onClick = {
+                        val title = renameText.trim()
+                        renaming = null
+                        c.appScope.launch { c.db.conversations().rename(conv.id, title) }
+                    },
+                ) { Text("保存") }
+            },
+            dismissButton = { TextButton(onClick = { renaming = null }) { Text("取消") } },
+        )
+    }
+
+    confirm?.let { conv ->
+        AlertDialog(''')
+
 print('apply_group_chats_screen_shell.py applied')
