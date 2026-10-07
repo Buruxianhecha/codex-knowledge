@@ -63,6 +63,11 @@ class FreeTopics(
         else { onEnabled(); enqueue(id, at, ExistingWorkPolicy.REPLACE) }
     }
 
+    suspend fun resetAfterRestore() {
+        db.freeTopics().clear()
+        for (ta in db.companions().all()) configure(ta.id)
+    }
+
     fun restore() = scope.launch {
         for (ta in db.companions().all().filter { it.freeTopicEnabled }) {
             onEnabled()
