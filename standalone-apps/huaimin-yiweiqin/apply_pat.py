@@ -130,12 +130,20 @@ def apply_pat(root: Path):
      * 拍一拍: leaves a line in [conversationId], or adds one to the run of pats just before it.
      * Nothing is answered: the TA hears of it with the person's next message (Prompt).
      */
-    fun pat(conversationId: Long, who: String, verb: String, suffix: String) {
+    fun pat(conversationId: Long, who: String, verb: String, suffix: String, targetCompanionId: Long? = null) {
         scope.launch {
             patting.withLock {
                 val last = db.messages().newest(conversationId, 1).firstOrNull()?.takeIf { it.role == "pat" }
                 val now = stamp()
-                val record = Pats.again(Pats.decode(last?.content), last?.createdAt ?: 0L, who, verb, suffix, now)
+                val record = Pats.again(
+                    Pats.decode(last?.content),
+                    last?.createdAt ?: 0L,
+                    who,
+                    verb,
+                    suffix,
+                    now,
+                    targetCompanionId = targetCompanionId,
+                )
                 if (last != null && record.count > 1) {
                     db.messages().setPat(last.id, Pats.encode(record), now)
                 } else {
@@ -226,10 +234,10 @@ def apply_pat(root: Path):
     fun react(messageId: Long, emoji: String) = c.chat.react(messageId, emoji)
 """,
         """    /** 拍一拍: pats the TA ([ai]) or the person themself. A line in the chat, and no answer. */
-    fun pat(ai: Boolean) {
+    fun pat(ai: Boolean, targetCompanionId: Long? = null) {
         val s = state.value
         val id = s.conversationId ?: return
-        c.chat.pat(id, if (ai) Pats.AI else Pats.ME, s.patVerb, s.patSuffix)
+        c.chat.pat(id, if (ai) Pats.AI else Pats.ME, s.patVerb, s.patSuffix, targetCompanionId)
     }
 
     fun savePat(verb: String, suffix: String, buzz: Boolean) {
@@ -294,9 +302,9 @@ def apply_pat(root: Path):
     val buzz = state.patBuzz
     val patActions = remember(buzz) {
         PatActions(
-            pat = { ai ->
+            pat = { ai, targetCompanionId ->
                 if (buzz) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                vm.pat(ai)
+                vm.pat(ai, targetCompanionId)
             },
             edit = { editingPat = true },
         )
@@ -708,12 +716,20 @@ def apply_pat(root: Path):
     # into one counted line and therefore produce one reply, not one reply per tap.
     replace(
         repository,
-        """    fun pat(conversationId: Long, who: String, verb: String, suffix: String) {
+        """    fun pat(conversationId: Long, who: String, verb: String, suffix: String, targetCompanionId: Long? = null) {
         scope.launch {
             patting.withLock {
                 val last = db.messages().newest(conversationId, 1).firstOrNull()?.takeIf { it.role == "pat" }
                 val now = stamp()
-                val record = Pats.again(Pats.decode(last?.content), last?.createdAt ?: 0L, who, verb, suffix, now)
+                val record = Pats.again(
+                    Pats.decode(last?.content),
+                    last?.createdAt ?: 0L,
+                    who,
+                    verb,
+                    suffix,
+                    now,
+                    targetCompanionId = targetCompanionId,
+                )
                 if (last != null && record.count > 1) {
                     db.messages().setPat(last.id, Pats.encode(record), now)
                     if (record.count == Pats.HEAVY_AT && Pats.heavy(record)) answerHeavyPats(conversationId, last.id)
@@ -726,12 +742,20 @@ def apply_pat(root: Path):
         }
     }
 """,
-        """    fun pat(conversationId: Long, who: String, verb: String, suffix: String) {
+        """    fun pat(conversationId: Long, who: String, verb: String, suffix: String, targetCompanionId: Long? = null) {
         scope.launch {
             patting.withLock {
                 val last = db.messages().newest(conversationId, 1).firstOrNull()?.takeIf { it.role == "pat" }
                 val now = stamp()
-                val record = Pats.again(Pats.decode(last?.content), last?.createdAt ?: 0L, who, verb, suffix, now)
+                val record = Pats.again(
+                    Pats.decode(last?.content),
+                    last?.createdAt ?: 0L,
+                    who,
+                    verb,
+                    suffix,
+                    now,
+                    targetCompanionId = targetCompanionId,
+                )
                 if (last != null && record.count > 1) {
                     db.messages().setPat(last.id, Pats.encode(record), now)
                 } else {
