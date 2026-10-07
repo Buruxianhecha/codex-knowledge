@@ -25,7 +25,7 @@ cp('GroupChats.kt', 'app/src/main/java/com/cleo/cleos/ai/GroupChats.kt')
 cp('GroupChatsTest.kt', 'app/src/test/java/com/cleo/cleos/ai/GroupChatsTest.kt')
 
 # Version this feature as the next directly-upgradable build.
-rep('app/build.gradle.kts', 'versionCode = 62038', 'versionCode = 62039')
+rep('app/build.gradle.kts', 'versionCode = 62038', 'versionCode = 62040')
 rep('app/build.gradle.kts', 'versionName = "0.37.21"', 'versionName = "0.37.22"')
 
 entities = 'app/src/main/java/com/cleo/cleos/data/db/Entities.kt'
@@ -92,6 +92,11 @@ rep(entities,
     /** A shared conversation whose speakers are in conversation_members. Old conversations remain single-TA. */
     @ColumnInfo(defaultValue = "0")
     val isGroup: Boolean = false,
+    /** Pinned conversations stay above ordinary ones. */
+    @ColumnInfo(defaultValue = "0")
+    val pinned: Boolean = false,
+    /** Stable order after the person manually moves a conversation. */
+    val manualRank: Long? = null,
     /** What the TA keeps of the messages no longer sent verbatim: a running summary (ai/Recap.kt). */''')
 rep(entities,
 '''    val call: Long? = null,
@@ -109,7 +114,7 @@ rep(appdb,
 '''        FreeTopicStateEntity::class,
         ConversationMemberEntity::class,
     ],
-    version = 18,''')
+    version = 19,''')
 rep(appdb,
 '''        AutoMigration(from = 15, to = 16),
         AutoMigration(from = 16, to = 17),
@@ -171,6 +176,14 @@ rep(appdb,
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_conversation_members_companionId ON conversation_members(companionId)")
             }
         }
+
+        /** 18 -> 19 adds persistent pinning and manual conversation ordering. */
+        val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE conversations ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE conversations ADD COLUMN manualRank INTEGER")
+            }
+        }
     }
 
     abstract fun freeTopics(): FreeTopicDao''')
@@ -183,7 +196,7 @@ cleos = 'app/src/main/java/com/cleo/cleos/CleosApp.kt'
 rep(cleos,
 '''    val db: AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "cleos.db").build()''',
 '''    val db: AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "cleos.db")
-        .addMigrations(AppDatabase.MIGRATION_16_17, AppDatabase.MIGRATION_17_18)
+        .addMigrations(AppDatabase.MIGRATION_16_17, AppDatabase.MIGRATION_17_18, AppDatabase.MIGRATION_18_19)
         .build()''')
 
 daos = 'app/src/main/java/com/cleo/cleos/data/db/Daos.kt'
@@ -191,7 +204,10 @@ rep(daos,
 '''@Dao
 interface ConversationDao {
     @Query("SELECT * FROM conversations WHERE companionId = :companionId ORDER BY updatedAt DESC")
-    fun observeFor(companionId: Long): Flow<List<ConversationEntity>>''',
+    fun observeFor(companionId: Long): Flow<List<ConversationEntity>>
+
+    @Query("SELECT * FROM conversations WHERE companionId = :companionId ORDER BY updatedAt DESC LIMIT 1")
+    suspend fun latestFor(companionId: Long): ConversationEntity?''',
 '''@Dao
 interface ConversationMemberDao {
     @Query("SELECT * FROM conversation_members WHERE conversationId = :conversationId ORDER BY position, companionId")
@@ -206,6 +222,9 @@ interface ConversationMemberDao {
     @Insert
     suspend fun insertAll(items: List<ConversationMemberEntity>)
 
+    @Query("DELETE FROM conversation_members WHERE conversationId = :conversationId")
+    suspend fun deleteFor(conversationId: Long)
+
     @Query("SELECT * FROM conversation_members")
     suspend fun all(): List<ConversationMemberEntity>
 
@@ -215,8 +234,11 @@ interface ConversationMemberDao {
 
 @Dao
 interface ConversationDao {
-    @Query("SELECT DISTINCT c.* FROM conversations c LEFT JOIN conversation_members gm ON gm.conversationId = c.id WHERE c.companionId = :companionId OR gm.companionId = :companionId ORDER BY c.updatedAt DESC")
-    fun observeFor(companionId: Long): Flow<List<ConversationEntity>>''')
+    @Query("SELECT DISTINCT c.* FROM conversations c LEFT JOIN conversation_members gm ON gm.conversationId = c.id WHERE c.companionId = :companionId OR gm.companionId = :companionId ORDER BY c.pinned DESC, COALESCE(c.manualRank, c.updatedAt) DESC, c.id DESC")
+    fun observeFor(companionId: Long): Flow<List<ConversationEntity>>
+
+    @Query("SELECT * FROM conversations WHERE companionId = :companionId AND isGroup = 0 ORDER BY updatedAt DESC LIMIT 1")
+    suspend fun latestFor(companionId: Long): ConversationEntity?''')
 rep(daos,
 '''    @Query("SELECT id FROM conversations WHERE companionId = :companionId")
     suspend fun idsFor(companionId: Long): List<Long>''',
@@ -228,6 +250,20 @@ rep(daos,
 
     @Query("UPDATE conversations SET companionId = :companionId WHERE id = :id")
     suspend fun reassignCompanion(id: Long, companionId: Long)''')
+rep(daos,
+'''    @Query("UPDATE conversations SET title = :title WHERE id = :id")
+    suspend fun rename(id: Long, title: String)
+''',
+'''    @Query("UPDATE conversations SET title = :title WHERE id = :id")
+    suspend fun rename(id: Long, title: String)
+
+    @Query("UPDATE conversations SET pinned = :pinned, manualRank = :rank WHERE id = :id")
+    suspend fun setPinned(id: Long, pinned: Boolean, rank: Long)
+
+    @Query("UPDATE conversations SET manualRank = :rank WHERE id = :id")
+    suspend fun setManualRank(id: Long, rank: Long)
+''')
+
 rep(daos,
 '''interface MessageDao {
     @Query("SELECT MAX(m.createdAt) FROM messages m JOIN conversations c ON c.id = m.conversationId WHERE c.companionId = :companionId AND m.role = 'user' AND m.note IS NULL")''',
