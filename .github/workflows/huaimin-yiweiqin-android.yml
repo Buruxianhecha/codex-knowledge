@@ -168,8 +168,9 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_data.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_ai.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_ui.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_release_backup_guard.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.24"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62045' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62046' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Upload generated source snapshot for feature integration
         uses: actions/upload-artifact@v4
@@ -242,6 +243,7 @@ jobs:
               "ai.FreeTopicRulesTest": 6,
               "ai.FollowUpRulesTest": 4,
               "ai.GroupChatsTest": 12,
+              "data.BackupArchiveGuardTest": 7,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
