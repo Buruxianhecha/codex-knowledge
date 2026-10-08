@@ -27,10 +27,8 @@ rep(chat,
             else trigger?.takeIf { it.role == "user" }?.content.orEmpty()
         val mentions = if (continued) emptyList() else GroupChats.targeted(latestText, trigger?.mentionedCompanionIds, members)''')
 rep(chat,
-'''        val patTarget = pat?.targetCompanionId
-        val latestText''',
-'''        val patTarget = if (continued) null else pat?.targetCompanionId
-        val latestText''')
+'''        val patTarget = pat?.targetCompanionId''',
+'''        val patTarget = if (continued) null else pat?.targetCompanionId''')
 rep(chat,
 '''            // Claim before sending network traffic. This is per-group, per-local-day, across restarts.
             if (db.conversations().claimGroupCall(conversationId, java.time.LocalDate.now().toEpochDay()) == 0) break
