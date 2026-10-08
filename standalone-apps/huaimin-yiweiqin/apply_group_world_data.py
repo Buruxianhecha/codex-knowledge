@@ -11,7 +11,7 @@ def rep(path,old,new,count=1):
     if n!=count: raise SystemExit(f"{path}: wanted {count}, found {n}: {old[:110]!r}")
     p.write_text(s.replace(old,new),encoding="utf-8")
 rep("app/build.gradle.kts",'versionName = "0.37.23"','versionName = "0.37.24"')
-rep("app/build.gradle.kts",'versionCode = 62044','versionCode = 62045')
+rep("app/build.gradle.kts",'versionCode = 62044','versionCode = 62046')
 rep(base+"data/db/Entities.kt",
 '''    @ColumnInfo(defaultValue = "''") val groupMutedIds: String = "",
     /** What the TA keeps of the messages no longer sent verbatim:''',
