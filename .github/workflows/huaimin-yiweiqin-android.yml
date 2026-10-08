@@ -173,6 +173,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_release_version_03725.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_reaction_picker_03726.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_reactions_enhanced_03726.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_reaction_actors_03726.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.26"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62048' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionName = "0.37.25"' /tmp/huaimin-cleos/app/build.gradle.kts
@@ -238,6 +239,7 @@ jobs:
               "ai.RecallPromptTest": 8,
               "ai.RecallCoordinatorTest": 5,
               "data.ReactionEventsTest": 11,
+              "data.GroupReactionRulesTest": 4,
               "ai.ReactionPromptTest": 10,
               "ai.PhoneAppsTest": 23,
               "ai.QqSearchPlanTest": 21,
