@@ -58,19 +58,13 @@ rep(chat,
                     if (body.isEmpty() || GroupChats.isSkip(body)) return false''')
 # Make retrieval pick latest relevant memories before older records exhaust the context.
 g=base+"ai/GroupChats.kt"
-rep(g,
-'''        val ordered = rows.distinctBy { it.id }.sortedWith(compareBy<SharedMessageRow> { it.createdAt }.thenBy { it.id })
-        val out = StringBuilder()
-        for (r in ordered) {
-            val who = if (r.role == "user") me else names[r.senderCompanionId ?: r.ownerCompanionId] ?: "TA"
-            val content = r.content.trim().replace(Regex("\\s+"), " ").take(260)
-            if (content.isEmpty()) continue
-            val title = r.conversationTitle.trim().ifEmpty { "聊天" }
-            val line = "[$title] $who：$content\n"
-            if (out.length + line.length > SHARED_MAX_CHARS) break
-            out.append(line)
-        }''',
-'''        val recent = rows.distinctBy { it.id }
+p = root / g
+source = p.read_text(encoding="utf-8")
+first = source.find("        val ordered = rows.distinctBy { it.id }")
+last = source.find("        if (out.isEmpty()) return null", first)
+if first < 0 or last < 0:
+    raise SystemExit("Cannot locate original shared-context selection")
+replacement = '''        val recent = rows.distinctBy { it.id }
             .sortedWith(compareByDescending<SharedMessageRow> { it.createdAt }.thenByDescending { it.id })
         val selected = ArrayList<String>()
         var size = 0
@@ -84,7 +78,8 @@ rep(g,
             selected += line
             size += line.length
         }
-        val out = selected.asReversed().joinToString("")''')
-rep(g,'''        if (out.isEmpty()) return null''','''        if (out.isEmpty()) return null''')
-# Unit test will ensure recent excerpts are kept.
+        val out = selected.asReversed().joinToString("")
+'''
+p.write_text(source[:first] + replacement + source[last:], encoding="utf-8")
+
 print("v0.37.24 continuation, attempt-count ledger and recent-first shared memory applied")
