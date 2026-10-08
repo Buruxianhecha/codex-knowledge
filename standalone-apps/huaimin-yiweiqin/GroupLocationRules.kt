@@ -6,7 +6,7 @@ package com.cleo.cleos.ai
  */
 object GroupLocationRules {
     private val topic = Regex("定位|位置|坐标|GPS|附近", RegexOption.IGNORE_CASE)
-    private val request = Regex("查|看|获取|读取|告诉|发给|发一下|发送|给我|分享|共享|报一下|显示|帮|能不能|可不可以|我在(?:哪|什么地方)|我(?:现在|目前)?在哪|附近(?:有|的|哪里|哪儿|怎么)", RegexOption.IGNORE_CASE)
+    private val request = Regex("查|看|获取|读取|告诉|发给|发一下|发送|给我|分享|共享|报一下|显示|帮|多少|哪里|在哪|能不能|可不可以|我在(?:哪|什么地方)|我(?:现在|目前)?在哪|附近(?:有|的|哪里|哪儿|怎么)", RegexOption.IGNORE_CASE)
     private val refusal = Regex(
         "(?:别|不要|不用|不许|不准|禁止|关闭|关掉|取消|停止|不想|无需).{0,16}(?:定位|位置|坐标|GPS)|(?:定位|位置|坐标|GPS).{0,9}(?:关闭|关掉|取消|停止|禁用)",
         RegexOption.IGNORE_CASE,
