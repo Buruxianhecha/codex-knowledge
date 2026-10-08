@@ -242,6 +242,10 @@ for cls, name in (
 ):
     assert any(m.startswith(f"{cls}->{name}") for m in definitions), (cls, name, "restore safety guard absent")
 print("Bounded backup ZIP handling and group graph preflight are compiled.")
+assert any(m.startswith("Lcom/cleo/cleos/data/GroupDeletionPolicy;->canDelete") for m in definitions), "group deletion safety rule missing"
+assert any("Lcom/cleo/cleos/data/db/ConversationMemberDao;->groupIdsFor" in call for call in calls), "group deletion member check not wired"
+print("Group role deletion protection verified in compiled APK.")
+
 
 
 
