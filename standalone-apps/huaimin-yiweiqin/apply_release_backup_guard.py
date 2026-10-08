@@ -85,4 +85,22 @@ rep(rel,
             BackupArchiveGuard.validateRows(roleIds, d.conversations, d.groupMembers, d.messages)
 
             val fullConfiguration''')
+rep(rel,
+'''            val pictures = staging.listFiles().orEmpty()
+            for (f in pictures) {
+                val dest = images.file(f.name)
+                if (!dest.exists()) f.copyTo(dest)
+            }''',
+'''            val pictures = staging.listFiles().orEmpty()
+            // A same-named file must not silently resolve to unrelated media on this device.
+            for (f in pictures) {
+                val dest = images.file(f.name)
+                if (dest.exists() && !BackupArchiveGuard.sameFileContent(f, dest))
+                    throw BackupException("备份媒体文件与本机文件同名但内容不同，已停止恢复")
+            }
+            for (f in pictures) {
+                val dest = images.file(f.name)
+                if (!dest.exists()) f.copyTo(dest)
+            }''')
+
 print("Release backup guard, preflight references and bounded ZIP extraction applied")
