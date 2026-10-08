@@ -70,10 +70,10 @@ replacement = '''        val recent = rows.distinctBy { it.id }
         var size = 0
         for (r in recent) {
             val who = if (r.role == "user") me else names[r.senderCompanionId ?: r.ownerCompanionId] ?: "TA"
-            val content = r.content.trim().replace(Regex("\\s+"), " ").take(260)
+            val content = r.content.trim().replace(Regex("\\\\s+"), " ").take(260)
             if (content.isEmpty()) continue
             val title = r.conversationTitle.trim().ifEmpty { "聊天" }
-            val line = "[$title] $who：$content\n"
+            val line = "[$title] $who：$content\\n"
             if (size + line.length > SHARED_MAX_CHARS) continue
             selected += line
             size += line.length
