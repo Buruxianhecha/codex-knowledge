@@ -176,8 +176,9 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_reaction_actors_03726.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_location_03729.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_replies_memory_03730.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.37.30"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62052' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_full_history_search_03731.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.37.31"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62053' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Verify nondestructive historical DB upgrades
         run: python3 standalone-apps/huaimin-yiweiqin/verify_release_migrations.py /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
@@ -256,6 +257,7 @@ jobs:
               "ai.GroupChatsTest": 12,
               "ai.GroupLocationRulesTest": 5,
               "ai.GroupReplyMemoryTest": 9,
+              "ai.ChatHistorySearchTest": 7,
               "data.BackupArchiveGuardTest": 8,
               "data.GroupDeletionPolicyTest": 3,
           }
@@ -294,8 +296,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.37.30", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62052", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.37.31", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62053", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
