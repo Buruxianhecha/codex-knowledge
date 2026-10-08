@@ -280,7 +280,11 @@ jobs:
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
           assert apk.get_androidversion_name() == "0.37.24", apk.get_androidversion_name()
           assert apk.get_androidversion_code() == "62046", apk.get_androidversion_code()
-          assert not apk.is_debuggable(), "Release build must not be android:debuggable"
+          from lxml import etree
+          application = apk.get_android_manifest_xml().find("application")
+          assert application is not None, "AndroidManifest is missing <application>"
+          android_debug = application.get("{http://schemas.android.com/apk/res/android}debuggable")
+          assert android_debug in (None, "false", "0"), f"Release build is debuggable: {android_debug}"
           assert len(apk.get_dex()) > 1024, "Release DEX missing"
           print("Release candidate audited: correct package/version, not debuggable, DEX present.")
           PY
