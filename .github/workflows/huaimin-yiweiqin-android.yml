@@ -172,6 +172,9 @@ jobs:
           grep -q 'versionName = "0.37.24"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62046' /tmp/huaimin-cleos/app/build.gradle.kts
 
+      - name: Verify nondestructive historical DB upgrades
+        run: python3 standalone-apps/huaimin-yiweiqin/verify_release_migrations.py /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
+
       - name: Upload generated source snapshot for feature integration
         uses: actions/upload-artifact@v4
         with:
