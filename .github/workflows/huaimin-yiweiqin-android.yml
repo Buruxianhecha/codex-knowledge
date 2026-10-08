@@ -163,8 +163,10 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_experience_data.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_experience_ai.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_experience_ui.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_reliability_model.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_reliability_ui.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.23"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62043' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62044' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Upload generated source snapshot for feature integration
         uses: actions/upload-artifact@v4
@@ -236,7 +238,7 @@ jobs:
               "ai.MessageEditCommitTest": 9,
               "ai.FreeTopicRulesTest": 6,
               "ai.FollowUpRulesTest": 4,
-              "ai.GroupChatsTest": 5,
+              "ai.GroupChatsTest": 8,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
