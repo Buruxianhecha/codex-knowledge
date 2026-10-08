@@ -1,6 +1,5 @@
 package com.cleo.cleos.data
 
-import com.cleo.cleos.data.db.CompanionEntity
 import com.cleo.cleos.data.db.ConversationEntity
 import com.cleo.cleos.data.db.ConversationMemberEntity
 import com.cleo.cleos.data.db.MessageEntity
@@ -52,13 +51,13 @@ internal object BackupArchiveGuard {
         }
 
     fun validateRows(
-        companions: List<CompanionEntity>,
+        companionIds: List<Long>,
         conversations: List<ConversationEntity>,
         members: List<ConversationMemberEntity>,
         messages: List<MessageEntity>,
     ) {
-        val ids = companions.map { it.id }.toSet()
-        if (ids.size != companions.size) throw BackupException("备份包含重复角色，没有恢复")
+        val ids = companionIds.toSet()
+        if (ids.size != companionIds.size) throw BackupException("备份包含重复角色，没有恢复")
         val conversationsById = conversations.associateBy { it.id }
         if (conversationsById.size != conversations.size) throw BackupException("备份包含重复会话，没有恢复")
         for (conversation in conversations) {
