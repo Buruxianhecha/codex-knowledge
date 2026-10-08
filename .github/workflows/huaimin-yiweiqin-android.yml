@@ -171,6 +171,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_release_backup_guard.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_release_group_deletion.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_release_version_03725.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_reaction_picker_03726.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.25"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62047' /tmp/huaimin-cleos/app/build.gradle.kts
 
