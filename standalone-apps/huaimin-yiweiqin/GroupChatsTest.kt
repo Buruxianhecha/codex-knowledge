@@ -95,6 +95,18 @@ class GroupChatsTest {
         assertTrue(text.contains("不要编造"))
     }
 
+    @Test fun contextKeepsNewestRealExcerptUnderTightBudget() {
+        val old = (1..30).map { i ->
+            SharedMessageRow(i.toLong(), 10, "旧对话", 1, 1, "assistant",
+                "过去的记录" + "旧".repeat(260), i.toLong())
+        }
+        val newest = SharedMessageRow(100, 10, "新对话", 1, 1, "assistant",
+            "刚刚讨论的新问题", 100L)
+        val result = GroupChats.sharedContext(old + newest, listOf(ta(1, "阿弦")), "我")!!
+        assertTrue(result.contains("刚刚讨论的新问题"))
+        assertTrue(result.length < 4000)
+    }
+
     @Test fun skipRecognitionIsStrictEnough() {
         assertTrue(GroupChats.isSkip("SKIP"))
         assertTrue(GroupChats.isSkip("SKIP：现在不用说"))
