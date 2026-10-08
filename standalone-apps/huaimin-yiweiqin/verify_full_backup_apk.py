@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.25"
-assert apk.get_androidversion_code() == "62047"
+assert apk.get_androidversion_name() == "0.37.26"
+assert apk.get_androidversion_code() == "62048"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -245,6 +245,17 @@ print("Bounded backup ZIP handling and group graph preflight are compiled.")
 assert any(m.startswith("Lcom/cleo/cleos/data/GroupDeletionPolicy;->canDelete") for m in definitions), "group deletion safety rule missing"
 assert any("Lcom/cleo/cleos/data/db/ConversationMemberDao;->groupIdsFor" in call for call in calls), "group deletion member check not wired"
 print("Group role deletion protection verified in compiled APK.")
+for cls, name in (
+    ("Lcom/cleo/cleos/data/GroupReactionRules;", "parse"),
+    ("Lcom/cleo/cleos/data/GroupReactionRules;", "target"),
+    ("Lcom/cleo/cleos/data/GroupReactionRules;", "add"),
+    ("Lcom/cleo/cleos/data/MessageReaction;", "getActorCompanionId"),
+    ("Lcom/cleo/cleos/ui/chat/StickersKt;", "ReactionChips"),
+    ("Lcom/cleo/cleos/ui/chat/StickersKt;", "ReactionPicker"),
+):
+    assert any(m.startswith(f"{cls}->{name}") for m in definitions), (cls, name, "group reaction code not compiled")
+assert any("Lcom/cleo/cleos/data/GroupReactionRules;->parse" in call for call in calls), "group AI emoji action not wired"
+print("Compiled group actor emoji actions and reaction chips verified.")
 
 
 
@@ -262,6 +273,6 @@ for cls, name in (
 print("Compiled group controls checked: authorized history, request budget, group modes and voice settings.")
 
 print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
-print(f"Verified APK: version=0.37.25 code=62047 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.26 code=62048 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 

@@ -171,8 +171,11 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_release_backup_guard.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_release_group_deletion.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_release_version_03725.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.37.25"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62047' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_reaction_picker_03726.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_reactions_enhanced_03726.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_reaction_actors_03726.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.37.26"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62048' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Verify nondestructive historical DB upgrades
         run: python3 standalone-apps/huaimin-yiweiqin/verify_release_migrations.py /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
@@ -233,7 +236,8 @@ jobs:
               "data.RecallsTest": 9,
               "ai.RecallPromptTest": 8,
               "ai.RecallCoordinatorTest": 5,
-              "data.ReactionEventsTest": 10,
+              "data.ReactionEventsTest": 11,
+              "data.GroupReactionRulesTest": 4,
               "ai.ReactionPromptTest": 10,
               "ai.PhoneAppsTest": 23,
               "ai.QqSearchPlanTest": 21,
@@ -286,8 +290,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.37.25", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62047", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.37.26", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62048", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
