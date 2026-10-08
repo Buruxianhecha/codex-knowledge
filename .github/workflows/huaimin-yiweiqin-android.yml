@@ -246,7 +246,7 @@ jobs:
               "ai.FreeTopicRulesTest": 6,
               "ai.FollowUpRulesTest": 4,
               "ai.GroupChatsTest": 12,
-              "data.BackupArchiveGuardTest": 7,
+              "data.BackupArchiveGuardTest": 8,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
