@@ -10,12 +10,12 @@ root=Path(sys.argv[1]).resolve()
 here=Path(__file__).resolve().parent
 prefix="app/src/main/java/com/cleo/cleos/"
 
-def update(rel, before, after):
+def update(rel, before, after, expected=1):
     path=root/rel
     source=path.read_text(encoding="utf-8")
     count=source.count(before)
-    if count!=1: raise SystemExit(f"{rel}: needed 1 anchor but got {count}: {before[:120]!r}")
-    path.write_text(source.replace(before,after,1),encoding="utf-8")
+    if count!=expected: raise SystemExit(f"{rel}: needed {expected} anchors but got {count}: {before[:120]!r}")
+    path.write_text(source.replace(before,after,expected),encoding="utf-8")
 
 # Critical: the original ReactionEvents whitelist only knew seven emojis.
 # Without this, the expanded UI silently discards a tap on every newly added emoji.
@@ -58,8 +58,7 @@ update(ui, '''    var expanded by androidx.compose.runtime.remember { androidx.c
         onPick(emoji)
     }
     Column(Modifier.width(272.dp).padding(horizontal = 4.dp, vertical = 2.dp)) {''')
-update(ui, ".clickable { onPick(emoji) }", ".clickable { select(emoji) }")
-update(ui, ".clickable { onPick(emoji) }", ".clickable { select(emoji) }")
+update(ui, ".clickable { onPick(emoji) }", ".clickable { select(emoji) }", expected=2)
 update(ui, '''        if (expanded) {
             Text("点选回应 · 再点取消",''',
 '''        if (expanded) {
@@ -127,7 +126,7 @@ update(ui, '''fun ReactionChips(reactions: List<MessageReaction>, onClick: () ->
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Avatar(avatar, letter, 28.dp)
-                    Text("\${userName.ifBlank { "我" }}  \${emoji}")
+                    Text("${userName.ifBlank { "我" }}  ${emoji}")
                 }
             },
             confirmButton = {
