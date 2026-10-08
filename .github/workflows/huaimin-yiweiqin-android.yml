@@ -169,6 +169,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_ai.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_ui.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_release_backup_guard.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_release_group_deletion.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.24"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62046' /tmp/huaimin-cleos/app/build.gradle.kts
 
@@ -247,6 +248,7 @@ jobs:
               "ai.FollowUpRulesTest": 4,
               "ai.GroupChatsTest": 12,
               "data.BackupArchiveGuardTest": 8,
+              "data.GroupDeletionPolicyTest": 3,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
