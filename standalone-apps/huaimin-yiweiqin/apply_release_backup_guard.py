@@ -15,6 +15,7 @@ def rep(rel,old,new,count=1):
     p.write_text(s.replace(old,new),encoding="utf-8")
 
 base="app/src/main/java/com/cleo/cleos/"
+rep("app/build.gradle.kts", 'versionCode = 62045', 'versionCode = 62046')
 shutil.copyfile(here/"BackupArchiveGuard.kt",root/base/"data/BackupArchiveGuard.kt")
 shutil.copyfile(here/"BackupArchiveGuardTest.kt",root/"app/src/test/java/com/cleo/cleos/data/BackupArchiveGuardTest.kt")
 rel=base+"data/BackupService.kt"
