@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.37.23"
-assert apk.get_androidversion_code() == "62044"
+assert apk.get_androidversion_name() == "0.37.24"
+assert apk.get_androidversion_code() == "62045"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -227,6 +227,15 @@ assert any(m.startswith("Lcom/cleo/cleos/data/db/MessageEntity;->getMentionedCom
 assert any(m.startswith("Lcom/cleo/cleos/ai/GroupChats;->selectedMentionIds") for m in definitions), "selected mention validation absent"
 assert any("Lcom/cleo/cleos/ai/GroupChats;->targeted" in call for call in calls), "stable-ID targeting not consumed"
 print("Stable-ID @ mentions verified in compiled APK.")
+for cls, name in (
+    ("Lcom/cleo/cleos/data/db/ConversationDao;", "setGroupAvatar"),
+    ("Lcom/cleo/cleos/data/db/ConversationDao;", "recordGroupText"),
+    ("Lcom/cleo/cleos/data/db/ConversationEntity;", "getGroupTotalCalls"),
+    ("Lcom/cleo/cleos/ui/chat/ChatUiState;", "getGroupAvatarEmoji"),
+):
+    assert any(m.startswith(f"{cls}->{name}") for m in definitions), (cls, name, "group world feature missing")
+print("Group identity, durable actual call counters and explicitly approximate text statistics are compiled.")
+
 
 for cls, name in (
     ("Lcom/cleo/cleos/data/db/ConversationDao;", "claimGroupCall"),
@@ -241,6 +250,6 @@ for cls, name in (
 print("Compiled group controls checked: authorized history, request budget, group modes and voice settings.")
 
 print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
-print(f"Verified APK: version=0.37.23 code=62044 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.37.24 code=62045 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 

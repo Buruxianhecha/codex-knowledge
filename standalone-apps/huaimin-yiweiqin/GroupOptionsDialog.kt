@@ -29,10 +29,11 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GroupOptionsDialog(
     state: ChatUiState,
-    onSave: (mode: Int, maxReplies: Int, dailyLimit: Int, shareOutside: Boolean, announcement: String, muted: Set<Long>, voices: Map<Long, String>) -> Unit,
+    onSave: (mode: Int, maxReplies: Int, dailyLimit: Int, shareOutside: Boolean, announcement: String, muted: Set<Long>, voices: Map<Long, String>, avatar: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var mode by remember(state.conversationId) { mutableIntStateOf(state.groupMode) }
+    var groupAvatar by remember(state.conversationId) { mutableStateOf(state.groupAvatarEmoji) }
     var maxReplies by remember(state.conversationId) { mutableStateOf(state.groupMaxReplies.toString()) }
     var dailyLimit by remember(state.conversationId) { mutableStateOf(state.groupDailyLimit.toString()) }
     var share by remember(state.conversationId) { mutableStateOf(state.groupShareOutside) }
@@ -51,6 +52,17 @@ fun GroupOptionsDialog(
                 modifier = Modifier.heightIn(max = 490.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(9.dp),
             ) {
+                Text("群头像（表情样式）", fontSize = 15.sp)
+                val avatars = listOf("👥", "🌙", "🌿", "🍵", "☁️", "✨", "🌸", "🐱")
+                avatars.chunked(4).forEach { line ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        line.forEach { emoji ->
+                            TextButton(onClick = { groupAvatar = emoji }) {
+                                Text(if (groupAvatar == emoji) "✓$emoji" else emoji, fontSize = 21.sp)
+                            }
+                        }
+                    }
+                }
                 Text("发言方式", fontSize = 15.sp)
                 listOf(
                     0 to "自然聊天（角色决定是否发言）",
@@ -74,7 +86,11 @@ fun GroupOptionsDialog(
                     singleLine = true,
                     label = { Text("本群每天最多模型请求（1–120）") },
                 )
-                Text("今天已尝试 ${state.groupCallsToday} 次。包含 SKIP 和失败请求，避免隐藏消耗；实际 Token 账单以模型服务商为准。", fontSize = 12.sp)
+                Text("今日实际请求尝试：${state.groupCallsToday} 次；累计尝试：${state.groupTotalCalls} 次（含 SKIP 和重试）。", fontSize = 12.sp)
+                Text(
+                    "文本统计：约 ${state.groupTextInputChars} 输入字符 / ${state.groupTextOutputChars} 输出字符。仅为聊天文本粗略计数，不含完整系统提示、图片、语音或实际 Token；费用以服务商账单为准。",
+                    fontSize = 12.sp,
+                )
                 Row(modifier = Modifier.fillMaxWidth().clickable { share = !share }) {
                     Checkbox(checked = share, onCheckedChange = { share = it })
                     Text("本群 AI 可检索其他授权会话的真实记录", modifier = Modifier.padding(top = 4.dp), fontSize = 13.sp)
@@ -119,6 +135,7 @@ fun GroupOptionsDialog(
                         announcement.trim(),
                         muted,
                         voiceValues.toMap(),
+                        groupAvatar,
                     )
                 },
             ) { Text("保存") }
