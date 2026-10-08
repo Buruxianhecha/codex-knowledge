@@ -12,15 +12,39 @@ object GroupChats {
     const val MAX_BUBBLES = 2
     private const val SHARED_MAX_CHARS = 3200
 
-    /** @name is explicit; without one every member gets a chance and may answer SKIP. */
-    fun mentioned(text: String, members: List<CompanionEntity>): List<CompanionEntity> {
-        val body = text.trim()
-        if (body.isEmpty()) return emptyList()
-        if ("@所有人" in body || "＠所有人" in body) return members
-        return members.filter { ta ->
-            val name = ta.name.trim()
-            name.isNotEmpty() && ("@$name" in body || "＠$name" in body)
+    /** Matches a complete @ token, not a prefix of another person's name. */
+    private fun containsMention(text: String, name: String): Boolean {
+        if (name.isBlank()) return false
+        for (prefix in listOf("@", "＠")) {
+            val token = prefix + name
+            var from = 0
+            while (true) {
+                val at = text.indexOf(token, from)
+                if (at < 0) break
+                val after = at + token.length
+                if (after == text.length || text[after].isWhitespace() ||
+                    text[after] in "，。！？、,.;:；：@＠)") return true
+                from = at + 1
+            }
         }
+        return false
+    }
+
+    /** Legacy text-based mentions remain valid for messages typed without the picker. */
+    fun mentioned(text: String, members: List<CompanionEntity>): List<CompanionEntity> {
+        if (text.isBlank()) return emptyList()
+        if (containsMention(text, "所有人")) return members
+        return members.filter { ta -> containsMention(text, ta.name.trim()) }
+    }
+
+    /**
+     * Picker selections are stored by immutable companion ID on each user message, so renaming
+     * a character does not redirect an older @ to someone else with the same old display name.
+     */
+    fun targeted(text: String, storedIds: String?, members: List<CompanionEntity>): List<CompanionEntity> {
+        if (containsMention(text, "所有人")) return members
+        val ids = storedIds.orEmpty().split(',').mapNotNull { it.trim().toLongOrNull() }.toSet()
+        return if (ids.isNotEmpty()) members.filter { it.id in ids } else mentioned(text, members)
     }
 
     fun isSkip(text: String): Boolean = text.trim().let { it == "SKIP" || it.startsWith("SKIP:") || it.startsWith("SKIP：") }
