@@ -4,6 +4,7 @@ import com.cleo.cleos.data.db.ConversationEntity
 import com.cleo.cleos.data.db.ConversationMemberEntity
 import com.cleo.cleos.data.db.MessageEntity
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -49,6 +50,24 @@ internal object BackupArchiveGuard {
             copyLimited(input, output, maximum, onChunk)
             output.toByteArray()
         }
+
+    /** Never silently substitute an unrelated local image for a backup's same-named file. */
+    fun sameFileContent(source: File, destination: File): Boolean {
+        if (!source.isFile || !destination.isFile || source.length() != destination.length()) return false
+        source.inputStream().buffered().use { a ->
+            destination.inputStream().buffered().use { b ->
+                val ab = ByteArray(32 * 1024)
+                val bb = ByteArray(32 * 1024)
+                while (true) {
+                    val count = a.read(ab)
+                    val other = b.read(bb)
+                    if (count != other) return false
+                    if (count == -1) return true
+                    if (!ab.copyOfRange(0, count).contentEquals(bb.copyOfRange(0, count))) return false
+                }
+            }
+        }
+    }
 
     fun validateRows(
         companionIds: List<Long>,
