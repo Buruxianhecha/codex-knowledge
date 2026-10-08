@@ -41,6 +41,27 @@ class GroupChatsTest {
         assertTrue(GroupChats.targeted("没有任何@", "", listOf(a, b)).isEmpty())
     }
 
+    @Test fun mentionRequiresWholeMemberName() {
+        val a = ta(1, "阿弦")
+        val b = ta(2, "阿弦子")
+        assertEquals(listOf(b), GroupChats.mentioned("@阿弦子 你怎么看？", listOf(a, b)))
+        assertEquals(listOf(a), GroupChats.mentioned("@阿弦：你呢", listOf(a, b)))
+    }
+
+    @Test fun pickerSelectionsAreCheckedAgainstActualText() {
+        val chosen = mapOf(1L to "阿弦", 2L to "小许")
+        assertEquals(setOf(1L), GroupChats.selectedMentionIds("你好 @阿弦 我想问你", chosen))
+        assertTrue(GroupChats.selectedMentionIds("你好，已经删掉了 @ 标签", chosen).isEmpty())
+    }
+
+    @Test fun storedMemberIdSurvivesRenamingAndNeverSelectsExMembers() {
+        val renamed = ta(9, "小月")
+        val other = ta(5, "阿弦")
+        assertEquals(listOf(renamed), GroupChats.targeted("@阿弦 你怎么看", "9", listOf(renamed,other)))
+        assertTrue(GroupChats.targeted("@阿弦", "9", listOf(other)).contains(other).not())
+        assertEquals(listOf(other), GroupChats.targeted("@阿弦", null, listOf(other)))
+    }
+
     @Test fun otherAssistantBecomesSomeoneElsesTurn() {
         val history = listOf(
             MessageEntity(id = 1, conversationId = 9, role = "user", content = "你们呢", createdAt = 1),
