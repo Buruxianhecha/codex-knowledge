@@ -60,7 +60,7 @@ once(chat,
         val missing = if (GroupMemoryBridge.isHistoryQuestion(latestText) && named.isNotEmpty() && directSections.isEmpty())
             "当前没有检索到这些角色允许共享的私聊记录（可能未有私聊、原会话禁止共享或内容不在记录中），不要编造，也不要说永远不能跨会话读取。"
             else null
-        return (directSections + listOfNotNull(missing, ordinary)).joinToString("\n\n").ifBlank { null }
+        return (directSections + listOfNotNull(missing, ordinary)).joinToString("\\n\\n").ifBlank { null }
     }
 
     /** Allow one deliberate continuation''')
@@ -142,7 +142,7 @@ once(chat,
             // Count actual outgoing attempts''',
 '''            recap = null, stickers = stickers, sendStickers = false,
             extraContext = if (retryTargeted) extra +
-                "\n\n刚刚是用户在群里的明确提问或 @，上次没有发出有效文本。请像真人直接回应对方的问题；不能确定就说明不知道，不要再写 SKIP。" else extra,
+                "\\n\\n刚刚是用户在群里的明确提问或 @，上次没有发出有效文本。请像真人直接回应对方的问题；不能确定就说明不知道，不要再写 SKIP。" else extra,
         )
         var messages = prepare(build())
         while (true) {
