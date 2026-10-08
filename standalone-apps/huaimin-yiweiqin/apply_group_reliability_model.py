@@ -134,12 +134,14 @@ rep(chat,
                 val names = members.associate { it.id to it.name.trim().ifEmpty { "TA" } }
                 val shaped = GroupChats.historyFor(history, speaker.id, names, convo.companionId)
                 val query = history.lastOrNull { it.role == "user" }?.content.orEmpty()
+                val priorIds = db.messages().newest(conversationId, 16).map { it.id }.toSet()
                 val produced = groupTurn(conversationId, speaker, members, shaped,
                     worldContext(conversationId, query, settings.current()), targeted = true)
                 if (produced) {
-                    val replacement = db.messages().newest(conversationId, 8).any {
-                        it.id != row.id && it.role == "assistant" && it.senderCompanionId == speaker.id &&
-                        it.createdAt >= row.createdAt && it.error == null && it.content.isNotBlank()
+                    val replacement = db.messages().newest(conversationId, 16).any {
+                        it.id !in priorIds && it.role == "assistant" &&
+                        it.senderCompanionId == speaker.id && it.error == null &&
+                        it.content.isNotBlank()
                     }
                     if (replacement) db.messages().delete(row.id)
                 }
