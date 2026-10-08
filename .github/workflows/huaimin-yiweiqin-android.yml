@@ -168,8 +168,14 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_data.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_ai.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_world_ui.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.37.24"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62045' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_release_backup_guard.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_release_group_deletion.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_release_version_03725.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.37.25"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62047' /tmp/huaimin-cleos/app/build.gradle.kts
+
+      - name: Verify nondestructive historical DB upgrades
+        run: python3 standalone-apps/huaimin-yiweiqin/verify_release_migrations.py /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
 
       - name: Upload generated source snapshot for feature integration
         uses: actions/upload-artifact@v4
@@ -242,6 +248,8 @@ jobs:
               "ai.FreeTopicRulesTest": 6,
               "ai.FollowUpRulesTest": 4,
               "ai.GroupChatsTest": 12,
+              "data.BackupArchiveGuardTest": 8,
+              "data.GroupDeletionPolicyTest": 3,
           }
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
@@ -264,6 +272,38 @@ jobs:
             --apk 怀民亦未寝.apk
           python3 standalone-apps/huaimin-yiweiqin/verify_full_backup_apk.py --apk 怀民亦未寝.apk
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose 怀民亦未寝.apk
+
+      - name: Build optimized unsigned Release APK
+        working-directory: /tmp/huaimin-cleos
+        run: |
+          ./gradlew assembleRelease --stacktrace
+          test -f app/build/outputs/apk/release/app-release-unsigned.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk "$GITHUB_WORKSPACE/怀民亦未寝-release-unsigned.apk"
+
+      - name: Inspect production Release manifest
+        run: |
+          python3 - <<'PY'
+          from androguard.core.apk import APK
+          apk = APK("怀民亦未寝-release-unsigned.apk")
+          assert apk.get_package() == "com.lin.huaimin", apk.get_package()
+          assert apk.get_androidversion_name() == "0.37.25", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62047", apk.get_androidversion_code()
+          from lxml import etree
+          application = apk.get_android_manifest_xml().find("application")
+          assert application is not None, "AndroidManifest is missing <application>"
+          android_debug = application.get("{http://schemas.android.com/apk/res/android}debuggable")
+          assert android_debug in (None, "false", "0"), f"Release build is debuggable: {android_debug}"
+          assert len(apk.get_dex()) > 1024, "Release DEX missing"
+          print("Release candidate audited: correct package/version, not debuggable, DEX present.")
+          PY
+
+      - name: Upload unsigned optimized Release for fixed-certificate signing
+        uses: actions/upload-artifact@v4
+        with:
+          name: 怀民亦未寝-release-unsigned
+          path: 怀民亦未寝-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Package signing tools for final local font injection
         run: |
