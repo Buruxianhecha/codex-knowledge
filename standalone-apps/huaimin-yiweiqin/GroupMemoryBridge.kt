@@ -42,7 +42,7 @@ object GroupMemoryBridge {
             val speaker = if (m.role == "user") me else who[m.senderCompanionId ?: m.ownerCompanionId] ?: "TA"
             val title = m.conversationTitle.trim().ifEmpty { "私聊" }
             val line = "[$title] $speaker：${m.content.trim().replace(Regex("\\s+"), " ").take(250)}"
-            if (line.length <= 18 || used + line.length > MAX_CHARACTERS) continue
+            if (m.content.isBlank() || used + line.length > MAX_CHARACTERS) continue
             chosen.add(line)
             used += line.length
             if (chosen.size >= MAX_LINES) break
