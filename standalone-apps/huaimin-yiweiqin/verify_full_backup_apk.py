@@ -245,6 +245,17 @@ print("Bounded backup ZIP handling and group graph preflight are compiled.")
 assert any(m.startswith("Lcom/cleo/cleos/data/GroupDeletionPolicy;->canDelete") for m in definitions), "group deletion safety rule missing"
 assert any("Lcom/cleo/cleos/data/db/ConversationMemberDao;->groupIdsFor" in call for call in calls), "group deletion member check not wired"
 print("Group role deletion protection verified in compiled APK.")
+for cls, name in (
+    ("Lcom/cleo/cleos/data/GroupReactionRules;", "parse"),
+    ("Lcom/cleo/cleos/data/GroupReactionRules;", "target"),
+    ("Lcom/cleo/cleos/data/GroupReactionRules;", "add"),
+    ("Lcom/cleo/cleos/data/MessageReaction;", "getActorCompanionId"),
+    ("Lcom/cleo/cleos/ui/chat/StickersKt;", "ReactionChips"),
+    ("Lcom/cleo/cleos/ui/chat/StickersKt;", "ReactionPicker"),
+):
+    assert any(m.startswith(f"{cls}->{name}") for m in definitions), (cls, name, "group reaction code not compiled")
+assert any("Lcom/cleo/cleos/data/GroupReactionRules;->parse" in call for call in calls), "group AI emoji action not wired"
+print("Compiled group actor emoji actions and reaction chips verified.")
 
 
 
