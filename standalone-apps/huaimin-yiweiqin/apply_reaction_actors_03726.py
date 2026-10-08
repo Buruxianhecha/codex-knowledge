@@ -89,6 +89,7 @@ end=s.index("/** Compact quick reactions",start)
 replacement='''data class ReactionPerson(val name: String, val avatar: String?, val letter: String)
 
 /** Per-emoji chips, up to three real reactor avatars and full detail on tap. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReactionChips(
     reactions: List<MessageReaction>,
@@ -108,7 +109,13 @@ fun ReactionChips(
         verticalArrangement = Arrangement.spacedBy(4.dp)) {
         groups.forEach { (emoji, actors) ->
             GlassSurface(
-                modifier = Modifier.clickable { selected = emoji },
+                modifier = Modifier.combinedClickable(
+                    onClick = { selected = emoji },
+                    onLongClick = {
+                        if (actors.any { it.actorCompanionId == null }) onRemove(emoji)
+                        else selected = emoji
+                    },
+                ),
                 style = palette.notice,
                 shape = GlassShape.Capsule,
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
