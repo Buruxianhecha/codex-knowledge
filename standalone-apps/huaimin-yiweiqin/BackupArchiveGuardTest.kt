@@ -64,6 +64,21 @@ class BackupArchiveGuardTest {
         }
     }
 
+    @Test fun sameNamedArchiveMediaMustHaveIdenticalContent() {
+        val first = kotlin.io.path.createTempFile("huaimin-avatar-", ".webp").toFile()
+        val second = kotlin.io.path.createTempFile("huaimin-avatar-", ".webp").toFile()
+        try {
+            first.writeBytes(byteArrayOf(1, 2, 3, 4))
+            second.writeBytes(byteArrayOf(1, 2, 3, 4))
+            assertTrue(BackupArchiveGuard.sameFileContent(first, second))
+            second.writeBytes(byteArrayOf(1, 2, 3, 5))
+            assertTrue(!BackupArchiveGuard.sameFileContent(first, second))
+        } finally {
+            first.delete()
+            second.delete()
+        }
+    }
+
     @Test fun oversizedZipEntryIsRejectedBeforeOverflowWrite() {
         val out = ByteArrayOutputStream()
         try {
