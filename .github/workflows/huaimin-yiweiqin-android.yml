@@ -176,8 +176,6 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_reaction_actors_03726.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.26"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62048' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionName = "0.37.25"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62047' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Verify nondestructive historical DB upgrades
         run: python3 standalone-apps/huaimin-yiweiqin/verify_release_migrations.py /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
