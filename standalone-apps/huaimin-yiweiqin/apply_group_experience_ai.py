@@ -70,13 +70,13 @@ replace(chat,
         val all = db.companions().all()
         val named = all.filter { ta -> ta.name.trim().takeIf { it.isNotEmpty() }?.let { latestText.contains(it) } == true }.take(3)
         val keywords = latestText
-            .split(Regex("[\\\\s，。！？、:：,.!?@＠]+"))
+            .split(' ', '，', '。', '！', '？', '、', ':', '：', ',', '.', '!', '?', '@', '＠')
             .map { it.trim() }
             .filter { it.length in 2..22 && it !in setOf("你们", "他们", "我们", "什么", "今天", "昨天", "知道") }
             .take(3)
         val rows = buildList {
             for (term in keywords) {
-                val safe = term.replace("%", "\\\\%").replace("_", "\\\\_")
+                val safe = term.replace("%", "").replace("_", "")
                 addAll(db.messages().sharedMatches(conversationId, "%$safe%", 12))
             }
             for (ta in named) addAll(db.messages().sharedForCompanion(conversationId, ta.id, 12))
