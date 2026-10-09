@@ -6,6 +6,7 @@ import com.cleo.cleos.AppContainer
 import com.cleo.cleos.CleosApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import java.util.concurrent.TimeUnit
 
 /** Unlimited by-app-policy AI Moments work. Android may defer periodic background work. */
@@ -13,7 +14,7 @@ class MomentsAutonomy(private val c:AppContainer) {
     suspend fun tick() {
         // Every real companion participates, including existing installs without an AI settings row.
         // Explicitly switched-off roles still remain off; no implicit daily/quiet-hour quota.
-        for(ta in c.companions.all.value) {
+        for(ta in c.companions.all.first()) {
             val secret=c.secrets.key(ta.apiBaseUrl).orEmpty()
             if(secret.isBlank()||ta.apiModel.isBlank())continue
             try {
