@@ -40,9 +40,33 @@ data class MomentPost(
 )
 
 @Serializable
+data class MomentProfile(val name:String="",val bio:String="",val cover:String?=null,val avatar:String?=null)
+@Serializable
+data class MomentAiSettings(
+    val companionId:Long,
+    val browsing:Boolean=false,
+    val posting:Boolean=false,
+    val lastBrowseAt:Long=0L,
+    val lastPostAt:Long=0L,
+    val lastSeenPostId:String?=null
+)
+@Serializable
+data class SavedMessage(
+    val id:String=UUID.randomUUID().toString(),
+    val sourceId:Long,
+    val sourceConversationId:Long,
+    val author:String,
+    val text:String="",
+    val audioFile:String?=null,
+    val createdAt:Long=System.currentTimeMillis()
+)
+@Serializable
 data class MomentsSnapshot(
-    val version: Int = 1,
-    val posts: List<MomentPost> = emptyList(),
+    val version:Int=1,
+    val posts:List<MomentPost> = emptyList(),
+    val profile:MomentProfile=MomentProfile(),
+    val ai:List<MomentAiSettings> = emptyList(),
+    val savedMessages:List<SavedMessage> = emptyList()
 )
 
 object MomentsRules {
