@@ -188,6 +188,8 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_autonomy_memory_03737.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_auto_recall_03737.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_version_03737beta.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_multi_key_failover_03737beta.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_multi_key_settings_03737beta.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.37beta"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62060' /tmp/huaimin-cleos/app/build.gradle.kts
 
@@ -271,6 +273,7 @@ jobs:
               "data.GroupPatSpeakerTest": 1,
               "ai.GroupLiveCallTest": 4,
               "ai.GroupMemoryRankerTest": 4,
+              "ai.ApiKeyFailureTest": 6,
               "ai.GroupAutonomyTest": 2,
               "ai.GroupLocationRulesTest": 5,
               "ai.GroupReplyMemoryTest": 9,
