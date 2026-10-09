@@ -273,7 +273,7 @@ jobs:
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
               "data.DisplayFontsTest": 22,
-              "data.MomentsRulesTest": 5,
+              "data.MomentsRulesTest": 8,
               "data.StickerPresetCatalogTest": 4,
               "ai.AssistantBubbleSplitterTest": 25,
               "ai.AssistantBubbleDeliveryTest": 7,
