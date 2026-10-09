@@ -18,6 +18,7 @@ for source,dest in [
     ("MomentsMyProfile_0380.kt","app/src/main/java/com/cleo/cleos/ui/MomentsMyProfile.kt"),
     ("FavoritesScreen_0380.kt","app/src/main/java/com/cleo/cleos/ui/FavoritesScreen.kt"),
     ("MomentsAutonomy_0380.kt","app/src/main/java/com/cleo/cleos/ai/MomentsAutonomy.kt"),
+    ("MomentAudienceDialog_0380.kt","app/src/main/java/com/cleo/cleos/ui/MomentAudienceDialog.kt"),
 ]:
     output=root/dest
     output.parent.mkdir(parents=True,exist_ok=True)
