@@ -139,13 +139,13 @@ patch(fields,
 # management patch has already inserted extra UI in this function.
 p=root/page
 code=p.read_text(encoding="utf-8")
-start=code.find("private fun ServiceChips(fields: EndpointFields) {")
+start=code.find("private fun ServiceChips(fields: EndpointFields, enabled: Boolean = true) {")
 end=code.find("/** Address, key and model",start)
 if start<0 or end<0: raise RuntimeError("Cannot locate existing provider chips")
 section=code[start:end]
 if "editingProviderFallback" in section: raise RuntimeError("Duplicate provider fallback UI")
 section=section.replace(
-    "private fun ServiceChips(fields: EndpointFields) {",
+    "private fun ServiceChips(fields: EndpointFields, enabled: Boolean = true) {",
     "private fun ServiceChips(fields: EndpointFields) {\n"
     "    var editingProviderFallback by remember { mutableStateOf(false) }",1)
 close=section.rfind("\n}")
