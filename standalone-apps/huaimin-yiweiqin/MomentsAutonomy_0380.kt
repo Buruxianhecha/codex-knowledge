@@ -57,7 +57,6 @@ class MomentsAutonomy(private val c:AppContainer) {
             (post.text.isNotBlank() || post.photos.isNotEmpty())
         }
         for (entry in entries) {
-        c.moments.markAiBrowse(id,entry.id) // Persist visit BEFORE any billable model call.
         val choices=buildList {
             add("SKIP")
             if(allowLikes && id !in entry.aiLikes) add("LIKE")
@@ -74,6 +73,8 @@ class MomentsAutonomy(private val c:AppContainer) {
             "\n附有"+entry.photos.size+"张照片，但你没有收到图片内容，不得推测画面。"
         val raw=ask(url,model,key,system,"朋友发表的文字：\n"+entry.text.take(1000)+imageNote)
             .trim().take(240)
+        if(raw.isBlank()) continue // Retry if the provider gave no usable result.
+        c.moments.markAiBrowse(id,entry.id) // Mark visited only after an actual model answer.
         // Exact parser, not substring guessing. Invalid output is treated as skip.
         val upper=raw.uppercase(java.util.Locale.ROOT)
         val hasLiked=id in entry.aiLikes
