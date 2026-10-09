@@ -183,6 +183,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_parity_03735.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_parity_events_recap_03735.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_capabilities_03736.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_pat_identity_03736.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.36"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62058' /tmp/huaimin-cleos/app/build.gradle.kts
 
@@ -263,6 +264,7 @@ jobs:
               "ai.GroupChatsTest": 12,
               "ai.GroupRecapIdentityTest": 3,
               "ai.GroupHistoryRecallTest": 4,
+              "data.GroupPatSpeakerTest": 1,
               "ai.GroupLocationRulesTest": 5,
               "ai.GroupReplyMemoryTest": 9,
               "ai.ChatHistorySearchTest": 7,
