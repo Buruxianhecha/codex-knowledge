@@ -218,4 +218,38 @@ for name, dest in (
     output = root / dest
     output.parent.mkdir(parents=True, exist_ok=True)
     copyfile(here / name, output)
+
+# Event-only reactions/withdrawals must never inherit an old @ mention.
+patch(ai,
+'''        val userBurst = if (continued) emptyList() else GroupTurnRecovery.activeUserMessages(firstHistory)
+''',
+'''        val userBurst = if (continued || trigger?.role != "user") emptyList()
+            else GroupTurnRecovery.activeUserMessages(firstHistory)
+''', "event routing cannot steal previous @")
+
+patch(ai,
+'''            conversation.groupMode == 2 -> emptyList()
+            conversation.groupMode == 1 -> eligible
+            eventTurn -> naturalOrder.filter { it.id !in muted }.take(1)
+''',
+'''            eventTurn -> naturalOrder.filter { it.id !in muted }.take(1)
+            conversation.groupMode == 2 -> emptyList()
+            conversation.groupMode == 1 -> eligible
+''', "recall event may reply even in only-at mode")
+
+patch(ai,
+'''            sendStickers = toolSupport && sendStickers,
+''',
+'''            sendStickers = sendStickers,
+''', "all members can send stickers in group")
+
+patch(ai,
+'''            val toolPool = (if (toolSupport) tools.specs(permittedGroups) +
+                externalTools.map { it.spec } else speechOnly) +
+''',
+'''            val toolPool = (if (toolSupport) tools.specs(permittedGroups) +
+                externalTools.map { it.spec } else speechOnly +
+                    (if (ToolGroup.Memory in s.tools) tools.specs(setOf(ToolGroup.Memory)) else emptyList())) +
+''', "each AI may operate its own permitted memory tool")
+
 print("0.37.36 group own-history, opt-in autonomous chat and speaking parity applied")
