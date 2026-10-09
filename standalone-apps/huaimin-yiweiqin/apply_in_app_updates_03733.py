@@ -37,9 +37,10 @@ once(pages,'''import com.cleo.cleos.glass.GlassShape''',
 '''import com.cleo.cleos.glass.GlassShape
 import com.cleo.cleos.update.UpdateSettingsSection''')
 text = pages.read_text(encoding="utf-8")
-start = text.find('    Section("Cleos ¤{version.orEmpty()}") {'.replace('¤','$'))
+about = text.find('internal fun AboutPage()')
+start = text.find('    Section(', about)
 end = text.find('    // For whoever wants to give something back.', start)
-if start < 0 or end < 0 or end <= start:
+if about < 0 or start < 0 or end < 0 or end <= start:
     raise SystemExit("app-update patch: inherited About section not found")
 text = text[:start] + '    UpdateSettingsSection()\n\n' + text[end:]
 pages.write_text(text,encoding="utf-8")
