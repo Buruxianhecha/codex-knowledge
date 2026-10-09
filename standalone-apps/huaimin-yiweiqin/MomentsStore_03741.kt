@@ -37,6 +37,7 @@ data class MomentPost(
     val createdAt: Long = System.currentTimeMillis(),
     val liked: Boolean = false,
     val comments: List<MomentReply> = emptyList(),
+    val aiLikes: List<Long> = emptyList(),
 )
 
 @Serializable
@@ -48,7 +49,8 @@ data class MomentAiSettings(
     val posting:Boolean=false,
     val lastBrowseAt:Long=0L,
     val lastPostAt:Long=0L,
-    val lastSeenPostId:String?=null
+    val lastSeenPostId:String?=null,
+    val lastPostAttemptAt:Long=0L
 )
 @Serializable
 data class SavedMessage(
@@ -192,6 +194,11 @@ class MomentsStore(context: Context, private val images: ImageStore) {
         val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
         save(current.value.copy(ai=current.value.ai.filterNot{it.companionId==id}
             +old.copy(browsing=browsing,posting=posting)))
+    }
+    suspend fun markPostAttempt(id:Long)=lock.withLock {
+        val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
+        save(current.value.copy(ai=current.value.ai.filterNot{it.companionId==id}+
+            old.copy(lastPostAttemptAt=System.currentTimeMillis())))
     }
     suspend fun markAiBrowse(id:Long,postId:String)=lock.withLock {
         val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
