@@ -42,3 +42,36 @@ fun ensureBundledDisplayFont(assets: AssetManager, directory: File): DisplayFont
     }
     return DisplayFonts.BUNDLED
 }
+
+/** Installs each real font independently, so a missing legacy font never hides the new presets.
+ * Assets are bundled in the APK; no network or external storage is needed on the phone.
+ * Only valid TTF files reach the selectable catalog. An existing file is kept unchanged.
+ */
+fun ensureExtraBundledDisplayFonts(assets: AssetManager, directory: File): List<DisplayFont> {
+    if (!directory.isDirectory && !directory.mkdirs()) throw DisplayFontException("无法准备字体预设目录")
+    return listOf(DisplayFonts.LONG_CANG, DisplayFonts.ZHI_MANG_XING).mapNotNull { font ->
+        val asset = DisplayFonts.assetFor(font) ?: return@mapNotNull null
+        runCatching {
+            val target = File(directory, font.file)
+            val ready = runCatching { DisplayFonts.validateFile(target); displayTypeface(target); true }
+                .getOrDefault(false)
+            if (!ready) {
+                val temporary = File(directory, "." + font.file + ".install")
+                try {
+                    assets.open(asset).use { input ->
+                        temporary.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    DisplayFonts.validateFile(temporary)
+                    displayTypeface(temporary)
+                    if (target.exists() && !target.delete())
+                        throw DisplayFontException("无法更新内置字体")
+                    if (!temporary.renameTo(target))
+                        throw DisplayFontException("无法完成内置字体安装")
+                } finally {
+                    temporary.delete()
+                }
+            }
+            font
+        }.getOrNull()
+    }
+}
