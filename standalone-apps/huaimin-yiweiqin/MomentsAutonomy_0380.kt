@@ -47,15 +47,17 @@ class MomentsAutonomy(private val c:AppContainer) {
     private suspend fun browse(id:Long,name:String,persona:String,url:String,model:String,
         key:String,lastId:String?,allowLikes:Boolean,allowComments:Boolean) {
         if(!allowLikes && !allowComments) return
-        val entries=c.moments.posts.value.posts
-        val entry=entries.firstOrNull { post ->
-            post.authorId!=id && post.id!=lastId &&
+        val saved=c.moments.posts.value.ai.firstOrNull{it.companionId==id}
+        val seen=(saved?.seenPostIds.orEmpty()+listOfNotNull(lastId)).toSet()
+        // Process all new, visible posts; no arbitrary one-per-worker or per-day limit.
+        // SKIP is persisted as a review too, so periodic work does not re-bill old posts.
+        val entries=c.moments.posts.value.posts.filter { post ->
+            post.authorId!=id && post.id !in seen &&
             com.cleo.cleos.data.MomentAccess.canSee(post,id) &&
-            (post.text.isNotBlank() || post.photos.isNotEmpty()) &&
-            ((allowLikes && id !in post.aiLikes) ||
-              (allowComments && post.comments.none{it.authorId==id}))
-        } ?: return
-        c.moments.markAiBrowse(id,entry.id) // Reserve budget BEFORE any billable model call.
+            (post.text.isNotBlank() || post.photos.isNotEmpty())
+        }
+        for (entry in entries) {
+        c.moments.markAiBrowse(id,entry.id) // Persist visit BEFORE any billable model call.
         val choices=buildList {
             add("SKIP")
             if(allowLikes && id !in entry.aiLikes) add("LIKE")
@@ -85,6 +87,7 @@ class MomentsAutonomy(private val c:AppContainer) {
         if(like && allowLikes && !hasLiked) c.moments.aiLike(entry.id,id)
         if(comment.isNotBlank() && allowComments && !hasCommented)
             c.moments.reply(entry.id,id,comment)
+        }
     }
     private suspend fun ask(url:String,model:String,key:String,system:String,prompt:String):String {
         val response=StringBuilder()
