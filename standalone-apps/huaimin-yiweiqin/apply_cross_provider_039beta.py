@@ -135,29 +135,31 @@ patch(fields,
     }
 ''',"settings state provider dialog")
 
-patch(page,
-'''private fun ServiceChips(fields: EndpointFields) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        ApiPresets.all.forEach { p ->
-            Chip(p.name, selected = fields.baseUrl.trimEnd('/') == p.baseUrl) { fields.applyPreset(p) }
-        }
-    }
-}''',
-'''private fun ServiceChips(fields: EndpointFields) {
-    var editingProviderFallback by remember { mutableStateOf(false) }
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        ApiPresets.all.forEach { p ->
-            Chip(p.name, selected = fields.baseUrl.trimEnd('/') == p.baseUrl) { fields.applyPreset(p) }
-        }
-    }
+# Integrate next to the existing six provider buttons even if the prior key
+# management patch has already inserted extra UI in this function.
+p=root/page
+code=p.read_text(encoding="utf-8")
+start=code.find("private fun ServiceChips(fields: EndpointFields) {")
+end=code.find("/** Address, key and model",start)
+if start<0 or end<0: raise RuntimeError("Cannot locate existing provider chips")
+section=code[start:end]
+if "editingProviderFallback" in section: raise RuntimeError("Duplicate provider fallback UI")
+section=section.replace(
+    "private fun ServiceChips(fields: EndpointFields) {",
+    "private fun ServiceChips(fields: EndpointFields) {\n"
+    "    var editingProviderFallback by remember { mutableStateOf(false) }",1)
+close=section.rfind("\n}")
+if close<0: raise RuntimeError("Missing ServiceChips closing brace")
+section=section[:close]+'''
     Chip("六家服务商 · 自动切换", selected = false) {
         fields.loadProviders()
         editingProviderFallback = true
     }
-    if(editingProviderFallback) {
-        ProviderFallbackDialog(fields) { editingProviderFallback = false }
+    if(editingProviderFallback) ProviderFallbackDialog(fields) {
+        editingProviderFallback = false
     }
-}''',"UI alongside six providers")
+'''+section[close:]
+p.write_text(code[:start]+section+code[end:],encoding="utf-8")
 
 build=root/"app/build.gradle.kts"
 code=build.read_text(encoding="utf-8")
