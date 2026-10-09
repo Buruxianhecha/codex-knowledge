@@ -271,3 +271,9 @@ rules = once(rules, "保持你自己的完整人格、记忆、态度和关系�
     "保持你自己的完整人格、记忆、态度和关系，群聊前情提要只用于回忆本群，不能将别人的话认作自己的，", "group recap identity")
 group_file.write_text(rules, encoding="utf-8")
 print("0.37.35 group parity patch applied: event triggers, recap, memories, tools, MCP, role voice and speaker identity")
+
+gradle = root / "app/build.gradle.kts"
+version = gradle.read_text(encoding="utf-8")
+version = once(version, 'versionName = "0.37.34"', 'versionName = "0.37.35"', "new versionName")
+version = once(version, 'versionCode = 62056', 'versionCode = 62057', "monotonic versionCode")
+gradle.write_text(version, encoding="utf-8")
