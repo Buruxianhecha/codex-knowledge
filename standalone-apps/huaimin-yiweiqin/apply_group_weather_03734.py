@@ -101,7 +101,7 @@ once(tools,
         }
         val city = ToolArgs.text(a, "city")?.trim().orEmpty().ifEmpty { settings.weatherCity.trim() }
         if (city.isEmpty())
-            throw ToolFailure("不知道对方在哪个城市。请用户说城市名，或者在设置里填写天气城市；若想用手机定位，需要明确提出并授权。", "没有指定天气城市")
+            throw ToolFailure("不知道对方在哪个城市。先问一下，再带上 city 查。", "没有指定天气城市")
         val report = weather.report(city, days)
         return ToolOutcome(report.text, "查了¤{report.place}的天气")
     }'''.replace("¤","$"))
