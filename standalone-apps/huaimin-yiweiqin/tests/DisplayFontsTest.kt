@@ -33,9 +33,40 @@ class DisplayFontsTest {
     }
 
     @Test fun bundledPresetDoesNotReduceImportedFontQuota() {
-        assertEquals(DisplayFonts.MAX_IMPORTED_FONTS + 1, DisplayFonts.MAX_FONTS)
+        assertEquals(DisplayFonts.MAX_IMPORTED_FONTS + 3, DisplayFonts.MAX_FONTS)
         assertEquals(0, DisplayFonts.importedCount(listOf(DisplayFonts.BUNDLED)))
         assertEquals(2, DisplayFonts.importedCount(listOf(DisplayFonts.BUNDLED, a, b)))
+    }
+
+    @Test fun bothNewOfflinePresetsHaveStableIdsAndDoNotUseImportedQuota() {
+        assertEquals("龙藏体 · Long Cang", DisplayFonts.LONG_CANG.name)
+        assertEquals("志莽行书 · Zhi Mang Xing", DisplayFonts.ZHI_MANG_XING.name)
+        assertTrue(DisplayFonts.isFontName(DisplayFonts.LONG_CANG.file))
+        assertTrue(DisplayFonts.isFontName(DisplayFonts.ZHI_MANG_XING.file))
+        assertTrue(DisplayFonts.isBundled(DisplayFonts.LONG_CANG))
+        assertTrue(DisplayFonts.isBundled(DisplayFonts.ZHI_MANG_XING))
+        assertEquals("display_fonts/LongCang-Regular.ttf",
+            DisplayFonts.assetFor(DisplayFonts.LONG_CANG))
+        assertEquals("display_fonts/ZhiMangXing-Regular.ttf",
+            DisplayFonts.assetFor(DisplayFonts.ZHI_MANG_XING))
+        assertEquals(0, DisplayFonts.importedCount(DisplayFonts.BUILT_INS))
+        assertEquals(DisplayFonts.BUILT_INS, DisplayFonts.decode(DisplayFonts.encode(DisplayFonts.BUILT_INS)))
+    }
+
+    @Test fun builtInNewFontsCannotBeDeletedEvenWhenSelected() {
+        for (font in listOf(DisplayFonts.LONG_CANG, DisplayFonts.ZHI_MANG_XING)) {
+            assertThrows(DisplayFontException::class.java) {
+                DisplayFonts.removeImported(DisplayFonts.BUILT_INS + a, font.file, font.file)
+            }
+        }
+    }
+
+    @Test fun restoringOldCatalogStillLeavesRoomForAllThreeBundledFonts() {
+        val previous = listOf(DisplayFonts.BUNDLED, a, b)
+        val extras = DisplayFonts.BUILT_INS.filterNot { it.file == DisplayFonts.BUNDLED.file }
+        val updated = extras + previous
+        assertEquals(updated, DisplayFonts.decode(DisplayFonts.encode(updated)))
+        assertEquals(2, DisplayFonts.importedCount(updated))
     }
 
     @Test fun deletingSelectedImportedFontRemovesItAndFallsBackToDefault() {
