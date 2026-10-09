@@ -27,16 +27,12 @@ start=t.index("class ChatException(")
 end=t.index(") : Exception(message)",start)
 t=t[:end]+"    val errorBody: String? = null,\n"+t[end:]
 p.write_text(t,encoding="utf-8")
-patch(client,
-'''class ChatClient(
-    private val http: OkHttpClient,
-    private val diagnostic: (String) -> Unit = { Log.i("CleosTools", it) },
-) {''',
-'''class ChatClient(
-    private val http: OkHttpClient,
-    private val diagnostic: (String) -> Unit = { Log.i("CleosTools", it) },
-    private val keyPool: ApiKeyPool? = null,
-) {''',"inject key pool")
+t=(root/client).read_text(encoding="utf-8")
+start=t.index("class ChatClient(")
+end=t.index(") {",start)
+if "keyPool:" in t[start:end]: raise RuntimeError("Duplicate key pool declaration")
+t=t[:end]+"    private val keyPool: ApiKeyPool? = null,\n"+t[end:]
+(root/client).write_text(t,encoding="utf-8")
 patch(client,
 '''    fun stream(
         endpoint: ApiEndpoint,
