@@ -182,8 +182,9 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_weather_03734.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_parity_03735.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_parity_events_recap_03735.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.37.35"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62057' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_capabilities_03736.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.37.36"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62058' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Verify nondestructive historical DB upgrades
         run: python3 standalone-apps/huaimin-yiweiqin/verify_release_migrations.py /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/db/AppDatabase.kt
@@ -261,6 +262,7 @@ jobs:
               "ai.FollowUpRulesTest": 4,
               "ai.GroupChatsTest": 12,
               "ai.GroupRecapIdentityTest": 3,
+              "ai.GroupHistoryRecallTest": 4,
               "ai.GroupLocationRulesTest": 5,
               "ai.GroupReplyMemoryTest": 9,
               "ai.ChatHistorySearchTest": 7,
@@ -305,8 +307,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.37.35", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62057", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.37.36", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62058", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
