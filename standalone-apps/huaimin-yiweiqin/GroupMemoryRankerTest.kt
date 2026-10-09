@@ -20,4 +20,9 @@ class GroupMemoryRankerTest {
         assertEquals(12,GroupMemoryRanker.rank("台风消息",r).size)
         assertTrue(GroupMemoryRanker.rank("...",r).isEmpty())
     }
+    @Test fun automaticRecallOnlyPresentsStrongContextualMatches() {
+        val rows=listOf(row(1,"我喜欢蓝色月亮在海边"),row(2,"今天买了一个西红柿"))
+        assertEquals(listOf(1L), GroupMemoryRanker.related("我喜欢蓝色月亮",rows).map { it.id })
+        assertTrue(GroupMemoryRanker.related("你好",rows).isEmpty())
+    }
 }
