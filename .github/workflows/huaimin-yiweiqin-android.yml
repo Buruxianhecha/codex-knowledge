@@ -186,6 +186,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_group_pat_identity_03736.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_live_call_03737.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_autonomy_memory_03737.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_auto_recall_03737.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.37"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62059' /tmp/huaimin-cleos/app/build.gradle.kts
 
@@ -268,7 +269,7 @@ jobs:
               "ai.GroupHistoryRecallTest": 4,
               "data.GroupPatSpeakerTest": 1,
               "ai.GroupLiveCallTest": 4,
-              "ai.GroupMemoryRankerTest": 3,
+              "ai.GroupMemoryRankerTest": 4,
               "ai.GroupAutonomyTest": 2,
               "ai.GroupLocationRulesTest": 5,
               "ai.GroupReplyMemoryTest": 9,
