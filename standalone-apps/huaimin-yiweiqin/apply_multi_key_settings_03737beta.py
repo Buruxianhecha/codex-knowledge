@@ -16,8 +16,10 @@ ui="app/src/main/java/com/cleo/cleos/ui/settings/TaPages.kt"
 
 change(fields,
 '''    var checkResult by mutableStateOf<String?>(null)
+        private set
 ''',
 '''    var checkResult by mutableStateOf<String?>(null)
+        private set
     var backupAlias by mutableStateOf("")
     var backupInput by mutableStateOf("")
     var backupModelScope by mutableStateOf("")
