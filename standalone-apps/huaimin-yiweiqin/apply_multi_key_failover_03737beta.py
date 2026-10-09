@@ -127,6 +127,15 @@ patch(client,
         errorBody = body,
     )''',
 "structured provider error data")
+# Some OpenAI-compatible relays respond with HTTP 200 and an SSE error object.
+# Classification still needs the structured error body, not the human-readable text.
+patch("app/src/main/java/com/cleo/cleos/ai/StreamParser.kt",
+    '''        obj["error"]?.let { throw ChatException("服务端报错：" + errorText(it)) }''',
+    '''        obj["error"]?.let {
+            throw ChatException("服务端报错：" + errorText(it), errorBody = data)
+        }''',
+    "SSE structured provider error")
+
 patch(app,
 '''    val companions = Companions(db, settings, secrets, images)
     val chatClient = ChatClient(http)''',
