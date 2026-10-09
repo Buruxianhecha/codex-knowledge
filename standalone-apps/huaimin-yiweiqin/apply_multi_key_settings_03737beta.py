@@ -63,11 +63,20 @@ change(fields,
         val url=baseUrl
         scope.launch { c.apiKeyPool.reset(url,id);refreshPool() }
     }
+    fun moveBackup(id:String,delta:Int) {
+        val url=baseUrl
+        scope.launch { c.apiKeyPool.move(url,id,delta);refreshPool() }
+    }
     fun removeBackup(id:String) {
         val url=baseUrl
         scope.launch { c.apiKeyPool.remove(url,id);refreshPool() }
     }
 ''',"settings key pool view-model")
+
+change(ui,
+    "import androidx.compose.foundation.layout.Column\n",
+    "import androidx.compose.foundation.layout.Column\nimport androidx.compose.foundation.rememberScrollState\nimport androidx.compose.foundation.verticalScroll\n",
+    "backup list scroll imports")
 
 change(ui,
 '''    var pickingModel by remember { mutableStateOf(false) }
@@ -92,7 +101,8 @@ change(ui,
             title = { Text("API 密钥自动切换") },
             text = {
                 Column(
-                    modifier = Modifier.heightIn(max = 480.dp),
+                    modifier = Modifier.heightIn(max = 480.dp)
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("所有 Key 只加密保存在本机。同接口内轮换，不自动换模型或服务商。", fontSize=12.sp)
@@ -107,7 +117,11 @@ change(ui,
                                 fields.setBackupEnabled(key.id,!key.enabled)
                             }
                             Chip("恢复/重新检测",selected=false) { fields.restoreBackup(key.id) }
-                            if(key.id!="primary") Chip("删除",selected=false) { fields.removeBackup(key.id) }
+                            if(key.id!="primary") {
+                                Chip("上移",selected=false) { fields.moveBackup(key.id,-1) }
+                                Chip("下移",selected=false) { fields.moveBackup(key.id,1) }
+                                Chip("删除",selected=false) { fields.removeBackup(key.id) }
+                            }
                         }
                     }
                     OutlinedTextField(value=fields.backupAlias,
