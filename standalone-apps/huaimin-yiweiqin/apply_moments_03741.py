@@ -45,6 +45,7 @@ edit(app,
 for name,dest in [
     ("MomentsStore_03741.kt","app/src/main/java/com/cleo/cleos/data/MomentsStore.kt"),
     ("MomentsScreen_03741.kt","app/src/main/java/com/cleo/cleos/ui/MomentsScreen.kt"),
+    ("MomentsRulesTest_03741.kt","app/src/test/java/com/cleo/cleos/data/MomentsRulesTest.kt"),
 ]:
     target=root/dest
     target.parent.mkdir(parents=True,exist_ok=True)
