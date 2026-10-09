@@ -87,6 +87,11 @@ object MomentsRules {
             (name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg"))
 }
 
+private val safeMediaExtensions=setOf("mp3","m4a","wav","ogg","aac","opus","amr","3gp")
+private fun String.safeMediaName():Boolean =
+    length in 1..159 && !contains('/') && !contains('\\') && !startsWith(".") &&
+    substringAfterLast('.',"").lowercase() in safeMediaExtensions
+
 class MomentsStore(context: Context, private val images: ImageStore) {
     private val target = File(context.filesDir, "moments-v1.json")
     private val lock = Mutex()
@@ -111,6 +116,14 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             MomentsRules.validatePost(it.text,it.photos.size)
             require(it.photos.all(MomentsRules::validImageName)) { "动态照片文件名无效" }
             require(it.comments.size <= 10000) { "评论数量异常" }
+        }
+        require(data.profile.name.length<=32 && data.profile.bio.length<=200)
+        require(listOfNotNull(data.profile.cover,data.profile.avatar).all(MomentsRules::validImageName))
+        require(data.ai.size<=200 && data.ai.map{it.companionId}.distinct().size==data.ai.size)
+        require(data.savedMessages.size<=20000)
+        data.savedMessages.forEach {
+            require(it.text.length<=50000 && it.author.length<=100)
+            require(it.audioFile==null || it.audioFile.safeMediaName())
         }
     }
     private fun save(data: MomentsSnapshot) {
@@ -161,6 +174,62 @@ class MomentsStore(context: Context, private val images: ImageStore) {
         val original=data.posts.firstOrNull {it.id==id && it.authorId==0L} ?: return@withLock
         save(data.copy(posts=data.posts.filterNot {it.id==id}))
         images.delete(original.photos)
+    }
+    suspend fun editProfile(name:String,bio:String)=lock.withLock {
+        require(name.length<=32 && bio.length<=200) { "昵称最多32字，简介最多200字" }
+        save(current.value.copy(profile=current.value.profile.copy(name=name.trim(),bio=bio.trim())))
+    }
+    suspend fun editProfilePhoto(uri:Uri,isCover:Boolean)=withContext(Dispatchers.IO) {
+        val image=images.import(uri,maxEdge=2048,prefix="moments-profile-").file
+        try {
+            lock.withLock {
+                val p=current.value.profile
+                save(current.value.copy(profile=if(isCover) p.copy(cover=image) else p.copy(avatar=image)))
+            }
+        } catch(e:Exception) {images.delete(listOf(image)); throw e}
+    }
+    suspend fun setAiSettings(id:Long,browsing:Boolean,posting:Boolean)=lock.withLock {
+        val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
+        save(current.value.copy(ai=current.value.ai.filterNot{it.companionId==id}
+            +old.copy(browsing=browsing,posting=posting)))
+    }
+    suspend fun markAiBrowse(id:Long,postId:String)=lock.withLock {
+        val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
+        save(current.value.copy(ai=current.value.ai.filterNot{it.companionId==id}+
+            old.copy(lastBrowseAt=System.currentTimeMillis(),lastSeenPostId=postId)))
+    }
+    suspend fun publishAi(id:Long,body:String)=lock.withLock {
+        val text=body.trim().take(500)
+        MomentsRules.validatePost(text,0)
+        val now=System.currentTimeMillis()
+        val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
+        save(current.value.copy(posts=listOf(MomentPost(authorId=id,text=text))+current.value.posts,
+            ai=current.value.ai.filterNot{it.companionId==id}+old.copy(lastPostAt=now)))
+    }
+    suspend fun favorite(message:com.cleo.cleos.data.db.MessageEntity,author:String)=withContext(Dispatchers.IO) {
+        val audio=MessageAudios.decode(message.audio)?.file
+        require(message.content.isNotBlank() || audio!=null) { "没有可以收藏的文字或语音" }
+        val copied=audio?.let { name ->
+            require(name.safeMediaName()) { "语音路径不安全" }
+            val src=images.file(name)
+            require(src.isFile) { "原语音文件不存在" }
+            val filename="favorite-"+UUID.randomUUID().toString()+"."+name.substringAfterLast('.')
+            src.copyTo(images.file(filename))
+            filename
+        }
+        try {
+            lock.withLock {
+                if(current.value.savedMessages.any{it.sourceId==message.id}) return@withLock
+                val entry=SavedMessage(sourceId=message.id,sourceConversationId=message.conversationId,
+                    author=author.take(100),text=message.content.take(50000),audioFile=copied)
+                save(current.value.copy(savedMessages=listOf(entry)+current.value.savedMessages))
+            }
+        } catch(e:Exception) {if(copied!=null)images.delete(listOf(copied));throw e}
+    }
+    suspend fun deleteFavorite(id:String)=lock.withLock {
+        val entry=current.value.savedMessages.firstOrNull{it.id==id} ?: return@withLock
+        save(current.value.copy(savedMessages=current.value.savedMessages.filterNot{it.id==id}))
+        entry.audioFile?.let{images.delete(listOf(it))}
     }
     suspend fun reload()=withContext(Dispatchers.IO) {
         lock.withLock {
