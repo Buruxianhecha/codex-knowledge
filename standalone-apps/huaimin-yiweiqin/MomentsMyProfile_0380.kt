@@ -6,6 +6,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +36,7 @@ import kotlinx.coroutines.launch
  * Moments timeline; tapping the profile can edit it without touching the chat identity.
  */
 @Composable
-fun MomentsMyProfile() {
+fun MomentsMyProfile(onOpenMyTimeline:()->Unit={}) {
     val c=appContainer()
     val data by c.moments.posts.collectAsStateWithLifecycle()
     val settings by c.settings.settings.collectAsStateWithLifecycle(null)
@@ -65,6 +67,7 @@ fun MomentsMyProfile() {
     }
     Column {
         Box(Modifier.fillMaxWidth().height(265.dp).clip(RoundedCornerShape(20.dp))
+            .clickable(onClick=onOpenMyTimeline)
             .background(Color(0xFF25374A))) {
             val cover=data.profile.cover ?: settings?.wallpaper
             if(cover!=null) AsyncImage(model=c.images.file(cover),contentDescription="我的朋友圈封面",
@@ -130,8 +133,9 @@ fun MomentsMyProfile() {
     if(aiControls) AlertDialog(
         onDismissRequest={aiControls=false},title={Text("AI 的朋友圈行为")},
         text={
-            Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                Text("每位 TA 分别设置。主动逛朋友圈约每 6 小时检查一次，每次最多互动一条；主动发帖每位 TA 每天最多一条。23:00–08:00 不执行，默认全部关闭。",
+            Column(modifier=Modifier.heightIn(max=520.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                Text("按角色单独授权：主动逛朋友圈时可按人格决定跳过、点赞、评论或同时点赞评论。每 6 小时最多尝试互动一条；主动发帖每角色每天最多一次。23:00–08:00 暂停执行。所有开关默认关闭。",
                     color=palette.contentSecondary,fontSize=12.sp)
                 people.forEach { ta ->
                     val item=data.ai.firstOrNull{it.companionId==ta.id}
@@ -141,6 +145,18 @@ fun MomentsMyProfile() {
                             Text("主动逛朋友圈",modifier=Modifier.weight(1f),color=palette.content)
                             Switch(checked=item?.browsing==true,onCheckedChange={on->
                                 scope.launch{c.moments.setAiSettings(ta.id,on,item?.posting==true)}
+                            })
+                        }
+                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                            Text("允许自动点赞",modifier=Modifier.weight(1f),color=palette.content)
+                            Switch(checked=item?.allowLikes!=false,onCheckedChange={on->
+                                scope.launch{c.moments.setAiInteractions(ta.id,on,item?.allowComments!=false)}
+                            })
+                        }
+                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                            Text("允许自动评论",modifier=Modifier.weight(1f),color=palette.content)
+                            Switch(checked=item?.allowComments!=false,onCheckedChange={on->
+                                scope.launch{c.moments.setAiInteractions(ta.id,item?.allowLikes!=false,on)}
                             })
                         }
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
