@@ -181,6 +181,7 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_in_app_updates_03733.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_weather_03734.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_group_parity_03735.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_group_parity_events_recap_03735.py /tmp/huaimin-cleos
           grep -q 'versionName = "0.37.35"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62057' /tmp/huaimin-cleos/app/build.gradle.kts
 
@@ -259,6 +260,7 @@ jobs:
               "ai.FreeTopicRulesTest": 6,
               "ai.FollowUpRulesTest": 4,
               "ai.GroupChatsTest": 12,
+              "ai.GroupRecapIdentityTest": 3,
               "ai.GroupLocationRulesTest": 5,
               "ai.GroupReplyMemoryTest": 9,
               "ai.ChatHistorySearchTest": 7,
