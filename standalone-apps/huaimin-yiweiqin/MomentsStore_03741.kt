@@ -69,6 +69,8 @@ data class MomentAiSettings(
     val companionId:Long,
     val browsing:Boolean=false,
     val posting:Boolean=false,
+    val allowLikes:Boolean=true,
+    val allowComments:Boolean=true,
     val lastBrowseAt:Long=0L,
     val lastPostAt:Long=0L,
     val lastSeenPostId:String?=null,
@@ -142,6 +144,8 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             require(it.comments.size <= 10000) { "评论数量异常" }
             require(it.audienceIds.size<=200 && it.audienceIds.all{id->id>0L})
             require(it.audienceIds.distinct().size==it.audienceIds.size)
+            require(it.aiLikes.size<=200 && it.aiLikes.distinct().size==it.aiLikes.size)
+            require(it.aiLikes.all{id->id>0L})
         }
         require(data.profile.name.length<=32 && data.profile.bio.length<=200)
         require(listOfNotNull(data.profile.cover,data.profile.avatar).all(MomentsRules::validImageName))
@@ -236,6 +240,11 @@ class MomentsStore(context: Context, private val images: ImageStore) {
         val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
         save(current.value.copy(ai=current.value.ai.filterNot{it.companionId==id}
             +old.copy(browsing=browsing,posting=posting)))
+    }
+    suspend fun setAiInteractions(id:Long,likes:Boolean,comments:Boolean)=lock.withLock {
+        val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
+        save(current.value.copy(ai=current.value.ai.filterNot{it.companionId==id}+
+            old.copy(allowLikes=likes,allowComments=comments)))
     }
     suspend fun markPostAttempt(id:Long)=lock.withLock {
         val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
