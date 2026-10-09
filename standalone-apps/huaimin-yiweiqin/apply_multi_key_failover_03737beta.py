@@ -114,13 +114,12 @@ patch(client,
         thinking: Boolean = false,
     ): Flow<ChatEvent> = callbackFlow {''',
 "safe streaming failover")
-patch(client,
-'''        rejectedFeature = ChatCompatibility.rejectedFeature(body),
-    )''',
-'''        rejectedFeature = ChatCompatibility.rejectedFeature(body),
-        errorBody = body,
-    )''',
-"structured provider error data")
+t=(root/client).read_text(encoding="utf-8")
+start=t.index("private fun httpFailure(")
+end=t.index("\n    )",start)
+if "errorBody = body" in t[start:end]: raise RuntimeError("Duplicate HTTP response body")
+t=t[:end]+"\n        errorBody = body,"+t[end:]
+(root/client).write_text(t,encoding="utf-8")
 # Some OpenAI-compatible relays respond with HTTP 200 and an SSE error object.
 # Classification still needs the structured error body, not the human-readable text.
 patch("app/src/main/java/com/cleo/cleos/ai/StreamParser.kt",
