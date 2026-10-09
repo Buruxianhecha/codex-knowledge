@@ -213,6 +213,14 @@ class MomentsStore(context: Context, private val images: ImageStore) {
         save(current.value.copy(posts=listOf(MomentPost(authorId=id,text=text))+current.value.posts,
             ai=current.value.ai.filterNot{it.companionId==id}+old.copy(lastPostAt=now)))
     }
+    suspend fun aiLike(postId:String,taId:Long)=lock.withLock {
+        val source=current.value.posts.firstOrNull{it.id==postId} ?: return@withLock
+        if(source.authorId==taId || taId in source.aiLikes) return@withLock
+        save(current.value.copy(posts=current.value.posts.map {
+            if(it.id==postId) it.copy(aiLikes=it.aiLikes+taId) else it
+        }))
+    }
+
     suspend fun favorite(message:com.cleo.cleos.data.db.MessageEntity,author:String)=withContext(Dispatchers.IO) {
         if(lock.withLock { current.value.savedMessages.any{it.sourceId==message.id} }) return@withContext
         val audio=MessageAudios.decode(message.audio)?.file
