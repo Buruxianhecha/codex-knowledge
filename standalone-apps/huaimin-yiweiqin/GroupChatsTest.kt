@@ -80,7 +80,7 @@ class GroupChatsTest {
         val prompt = GroupChats.turnInstruction(a, listOf(a, b), targeted = false)
         assertTrue(prompt.contains("SKIP"))
         assertTrue(prompt.contains("不要替别的角色发言"))
-        assertTrue(prompt.contains("最多两条"))
+        assertTrue(prompt.contains("最多三条"))
         assertFalse(GroupChats.turnInstruction(a, listOf(a, b), targeted = true).contains("为了轮到你而硬说"))
     }
 
