@@ -31,19 +31,34 @@ import com.cleo.cleos.update.UpdateNoticeHost''')
 # Preserve the existing themed container: earlier patches also change this call site.
 once(activity, 'CleosNavHost()', 'CleosNavHost(); UpdateNoticeHost()')
 
-# Show the first-party Huaimin updater instead of the inherited Cleos/蓝奏云 link.
-pages = src/"ui/settings/AppPages.kt"
-once(pages,'''import com.cleo.cleos.glass.GlassShape''',
-'''import com.cleo.cleos.glass.GlassShape
+# A separate first-party settings page, rather than altering inherited Cleos About.
+pages = src/"ui/settings/SettingsPages.kt"
+once(pages,
+'''    Data("数据与备份"),
+    About("关于"),''',
+'''    Data("数据与备份"),
+    Updates("软件更新"),
+    About("关于"),''')
+once(pages,
+'''        Entry(Icons.Rounded.Inventory2, "数据与备份", "导出、恢复、从别的 App 搬过来") { onOpen(SettingsPage.Data) }
+        RowDivider()
+        if (crashed) {''',
+'''        Entry(Icons.Rounded.Inventory2, "数据与备份", "导出、恢复、从别的 App 搬过来") { onOpen(SettingsPage.Data) }
+        RowDivider()
+        Entry(Icons.Rounded.Info, "软件更新", "启动时检查更新 · 下载安装包 · 更新日志") {
+            onOpen(SettingsPage.Updates)
+        }
+        RowDivider()
+        if (crashed) {''')
+screen = src/"ui/settings/SettingsScreen.kt"
+once(screen,
+'''import com.cleo.cleos.ui.common.GlassPage''',
+'''import com.cleo.cleos.ui.common.GlassPage
 import com.cleo.cleos.update.UpdateSettingsSection''')
-text = pages.read_text(encoding="utf-8")
-about = text.find('internal fun AboutPage()')
-start = text.find('    Section(', about)
-end = text.find('    // For whoever wants to give something back.', start)
-if about < 0 or start < 0 or end < 0 or end <= start:
-    raise SystemExit("app-update patch: inherited About section not found")
-text = text[:start] + '    UpdateSettingsSection()\n\n' + text[end:]
-pages.write_text(text,encoding="utf-8")
+once(screen,
+'''                    SettingsPage.About -> AboutPage()''',
+'''                    SettingsPage.Updates -> UpdateSettingsSection()
+                    SettingsPage.About -> AboutPage()''')
 
 # Installer goes through FileProvider and Android's explicit user confirmation.
 manifest = root/"app/src/main/AndroidManifest.xml"
