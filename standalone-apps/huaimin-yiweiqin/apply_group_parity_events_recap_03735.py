@@ -106,4 +106,9 @@ change(recap,
             client.stream(ApiEndpoint(ta.apiBaseUrl, key, ta.apiModel),
                 Recap.request(ta, s.userName, conversation.recap, batch, zone(), groupSpeakers))
 ''', "group speaker map in recap job")
+from shutil import copyfile
+here = Path(__file__).resolve().parent
+unit = root / "app/src/test/java/com/cleo/cleos/ai/GroupRecapIdentityTest.kt"
+unit.parent.mkdir(parents=True, exist_ok=True)
+copyfile(here / "GroupRecapIdentityTest.kt", unit)
 print("0.37.35 group reaction routing and recap identity applied")
