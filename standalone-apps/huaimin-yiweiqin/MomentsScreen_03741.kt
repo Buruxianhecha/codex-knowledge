@@ -19,6 +19,7 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.cleo.cleos.data.MomentPost
+import com.cleo.cleos.data.MomentVisibility
+import com.cleo.cleos.data.MomentAccess
 import com.cleo.cleos.data.MomentsRules
 import com.cleo.cleos.data.db.CompanionEntity
 import com.cleo.cleos.glass.*
@@ -61,6 +64,11 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
     var commentDraft by remember {mutableStateOf("")}
     var inviting by remember {mutableStateOf<MomentPost?>(null)}
     var deleting by remember {mutableStateOf<MomentPost?>(null)}
+    var editingAudience by remember {mutableStateOf<MomentPost?>(null)}
+    var choosingAudience by remember {mutableStateOf(false)}
+    var visibility by remember {mutableStateOf(MomentVisibility.PUBLIC)}
+    var visibleIds by remember {mutableStateOf(emptySet<Long>())}
+    var onlyMine by remember {mutableStateOf(false)}
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(9)) { chosen ->
         photos=chosen.take(MomentsRules.MAX_IMAGES)
     }
@@ -75,11 +83,11 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
             finally {busy=false}
         }
     }
-    BackHandler(onBack=onBack)
+    BackHandler { if(onlyMine) onlyMine=false else onBack() }
     LaunchedEffect(Unit) {c.moments.reload()}
     GlassPage(overlay={ page ->
-        GlassTopBar(title="朋友圈",subtitle="只在这台手机上保存的生活点滴",backdrop=page,
-            leading={ GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack,"返回发现",onBack,page) },
+        GlassTopBar(title=if(onlyMine) "我的朋友圈" else "朋友圈",subtitle="生活点滴与 AI 朋友的动态",backdrop=page,
+            leading={ GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack,"返回", { if(onlyMine) onlyMine=false else onBack() },page) },
             trailing={ GlassIconButton(Icons.Rounded.Add,"发布动态",{ posting=true },page) })
     }) {
         LazyColumn(
@@ -88,6 +96,11 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
                 bottom=bottom+25.dp),
             verticalArrangement=Arrangement.spacedBy(14.dp)
         ) {
+            item {
+                MomentsMyProfile(onOpenMyTimeline={onlyMine=true})
+            }
+            /* Old welcome placeholder replaced with the real editable profile header. */
+            /*
             item {
                 GlassSurface(modifier=Modifier.fillMaxWidth(),shape=GlassShape.Rounded(22.dp),
                     contentPadding=PaddingValues(horizontal=20.dp,vertical=20.dp)) {
@@ -98,14 +111,15 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
                     }
                 }
             }
-            if(data.posts.isEmpty()) item {
+            */
+            if((if(onlyMine)data.posts.none{it.authorId==0L} else data.posts.isEmpty())) item {
                 GlassSurface(modifier=Modifier.fillMaxWidth(),shape=GlassShape.Rounded(20.dp),
                     contentPadding=PaddingValues(22.dp)) {
                     Text("还没有动态。点击右上角 ＋，写下第一条朋友圈。",
                         color=p.contentSecondary,fontSize=15.sp)
                 }
             }
-            items(data.posts,key={it.id}) { post ->
+            items(if(onlyMine)data.posts.filter{it.authorId==0L} else data.posts,key={it.id}) { post ->
                 val authorName=if(post.authorId==0L) s?.userName?.ifBlank{"我"} ?: "我"
                     else people.firstOrNull{it.id==post.authorId}?.name ?: "已删除的 TA"
                 GlassSurface(modifier=Modifier.fillMaxWidth(),shape=GlassShape.Rounded(22.dp),
@@ -114,11 +128,24 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(authorName,color=p.content,fontSize=17.sp,fontWeight=FontWeight.SemiBold)
-                                Text(momentTime(post.createdAt),color=p.contentSecondary,fontSize=12.sp)
+                                Text(momentTime(post.createdAt)+" · "+MomentAccess.label(post.visibility),color=p.contentSecondary,fontSize=12.sp)
                             }
                             if(post.authorId==0L) {
-                                IconButton(onClick={deleting=post},enabled=!busy) {
-                                    Icon(Icons.Rounded.DeleteOutline,contentDescription="删除动态",tint=p.contentSecondary)
+                                Box {
+                                    var showActions by remember(post.id){mutableStateOf(false)}
+                                    IconButton(onClick={showActions=true},enabled=!busy) {
+                                        Icon(Icons.Rounded.MoreHoriz,contentDescription="动态管理",tint=p.contentSecondary)
+                                    }
+                                    DropdownMenu(expanded=showActions,onDismissRequest={showActions=false}) {
+                                        DropdownMenuItem(text={Text("修改可见范围")},onClick={
+                                            showActions=false
+                                            editingAudience=post
+                                        })
+                                        DropdownMenuItem(text={Text("删除动态")},onClick={
+                                            showActions=false
+                                            deleting=post
+                                        })
+                                    }
                                 }
                             }
                         }
@@ -160,6 +187,13 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
                                 Text("邀请 TA",color=p.content)
                             }
                         }
+                        if(post.aiLikes.isNotEmpty()) {
+                            val who=post.aiLikes.mapNotNull{id->
+                                people.firstOrNull{it.id==id}?.name
+                            }.joinToString("、")
+                            if(who.isNotBlank()) Text("♥ "+who+" 赞了这条动态",
+                                color=p.contentSecondary,fontSize=12.sp)
+                        }
                         if(post.comments.isNotEmpty()) {
                             HorizontalDivider()
                             post.comments.forEach { comment ->
@@ -173,11 +207,28 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
             }
         }
     }
+    if(choosingAudience) MomentAudienceDialog(
+        original=visibility,originalIds=visibleIds,people=people,
+        onSave={mode,ids->visibility=mode;visibleIds=ids;choosingAudience=false},
+        onDismiss={choosingAudience=false})
+    editingAudience?.let { target ->
+        MomentAudienceDialog(
+            original=target.visibility,originalIds=target.audienceIds.toSet(),people=people,
+            onSave={mode,ids->
+                execute {c.moments.updateVisibility(target.id,mode,ids.toList())}
+                editingAudience=null
+            },
+            onDismiss={editingAudience=null}
+        )
+    }
     if(posting) AlertDialog(
         onDismissRequest={if(!busy) posting=false},
         title={Text("发布朋友圈")},
         text={
             Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                TextButton(enabled=!busy,onClick={choosingAudience=true}) {
+                    Text("谁可以看："+MomentAccess.label(visibility))
+                }
                 OutlinedTextField(value=draft,onValueChange={if(it.length<=MomentsRules.MAX_TEXT)draft=it},
                     label={Text("分享这一刻……")},minLines=3,maxLines=7,
                     modifier=Modifier.fillMaxWidth())
@@ -194,8 +245,9 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
         },
         confirmButton={TextButton(enabled=!busy && (draft.isNotBlank() || photos.isNotEmpty()),
             onClick={execute {
-                c.moments.publish(draft,photos)
-                draft="";photos=emptyList();posting=false
+                c.moments.publish(draft,photos,visibility,visibleIds.toList())
+                draft="";photos=emptyList();visibility=MomentVisibility.PUBLIC
+                visibleIds=emptySet();posting=false
             }}) {Text(if(busy)"发布中…" else "发布")}},
         dismissButton={TextButton(enabled=!busy,onClick={posting=false}) {Text("取消")}}
     )
