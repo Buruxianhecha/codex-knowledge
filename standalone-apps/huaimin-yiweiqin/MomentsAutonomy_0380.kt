@@ -6,29 +6,26 @@ import com.cleo.cleos.AppContainer
 import com.cleo.cleos.CleosApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
-/** Opt-in, six-hour background check. Never exceeds one AI post per day. */
+/** Unlimited by-app-policy AI Moments work. Android may defer periodic background work. */
 class MomentsAutonomy(private val c:AppContainer) {
     suspend fun tick() {
-        val hour=LocalTime.now().hour
-        if(hour>=23 || hour<8)return
-        for(p in c.moments.posts.value.ai.filter{it.browsing||it.posting}.take(24)) {
-            val ta=c.companions.get(p.companionId) ?: continue
+        // Every real companion participates, including existing installs without an AI settings row.
+        // Explicitly switched-off roles still remain off; no implicit daily/quiet-hour quota.
+        for(ta in c.companions.all.value) {
             val secret=c.secrets.key(ta.apiBaseUrl).orEmpty()
             if(secret.isBlank()||ta.apiModel.isBlank())continue
             try {
-                val state=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id} ?:continue
-                if(state.browsing && System.currentTimeMillis()-state.lastBrowseAt>TimeUnit.HOURS.toMillis(6)) {
+                val state=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id}
+                    ?: com.cleo.cleos.data.MomentAiSettings(ta.id)
+                if(state.browsing) {
                     browse(ta.id,ta.name,ta.persona,ta.apiBaseUrl,ta.apiModel,secret,state.lastSeenPostId,
                         state.allowLikes,state.allowComments)
                 }
-                val newer=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id} ?:continue
-                if(newer.posting && !today(newer.lastPostAt) && !today(newer.lastPostAttemptAt)) {
+                val newer=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id}
+                    ?: com.cleo.cleos.data.MomentAiSettings(ta.id)
+                if(newer.posting) {
                     c.moments.markPostAttempt(ta.id)
                     val request="你是"+ta.name+"，性格："+ta.persona.take(2500)+
                         "。请以自己的口吻发表一条自然短小的朋友圈动态，最多200字。"+
@@ -40,7 +37,7 @@ class MomentsAutonomy(private val c:AppContainer) {
               catch(e:Exception) {android.util.Log.w("MomentsAutonomy","Skipped request",e)}
         }
     }
-    /** One bounded user-approved periodic interaction; the AI decides LIKE, COMMENT, BOTH or SKIP.
+    /** Periodic interaction without a six-hour gate; the AI decides LIKE, COMMENT, BOTH or SKIP.
      * Never feed an excluded/private post to the model. Revalidate on writes to handle
      * privacy edits racing a network response.
      */
@@ -99,17 +96,12 @@ class MomentsAutonomy(private val c:AppContainer) {
         }
         return response.toString()
     }
-    private fun today(at:Long):Boolean {
-        if(at<=0)return false
-        val zone=ZoneId.systemDefault()
-        return LocalDate.ofInstant(Instant.ofEpochMilli(at),zone)==LocalDate.now(zone)
-    }
     companion object {
         fun schedule(context:Context) {
-            val task=PeriodicWorkRequestBuilder<MomentsAutonomyWorker>(6,TimeUnit.HOURS)
+            val task=PeriodicWorkRequestBuilder<MomentsAutonomyWorker>(15,TimeUnit.MINUTES)
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork("huaimin-moments",
-                ExistingPeriodicWorkPolicy.KEEP,task)
+                ExistingPeriodicWorkPolicy.UPDATE,task)
         }
     }
 }
