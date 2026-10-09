@@ -55,6 +55,14 @@ for cls in ("Lcom/cleo/cleos/data/ConfigurationBackup;", "Lcom/cleo/cleos/data/B
 assert any("Lcom/cleo/cleos/data/BackupService;->restoreFrom" in call for call in calls)
 assert any("Lcom/cleo/cleos/data/BackupService;->write" in call for call in calls)
 assert any("Lcom/cleo/cleos/ai/PhoneAppActions;->" in call for call in calls), "phone-App tools disappeared"
+# Verify actual Moments function calls reach the shared store in the compiled APK.
+for method in ("execute",):
+    assert any("Lcom/cleo/cleos/ai/MomentsChatBridge;->" + method in call for call in calls), (
+        method, "compiled chat-to-Moments tool bridge is missing")
+for method in ("aiLike", "reply", "publishAi"):
+    assert any("Lcom/cleo/cleos/data/MomentsStore;->" + method in call for call in calls), (
+        method, "real Moments write path is missing")
+
 assert any("Lcom/cleo/cleos/data/Recalls;->" in call for call in calls), "recall disappeared"
 assert any("Lcom/cleo/cleos/data/ReactionEvents;->" in call for call in calls), "reaction awareness disappeared"
 speech_init = next(
