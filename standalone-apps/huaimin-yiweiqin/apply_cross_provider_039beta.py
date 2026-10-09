@@ -146,12 +146,12 @@ section=code[start:end]
 if "editingProviderFallback" in section: raise RuntimeError("Duplicate provider fallback UI")
 section=section.replace(
     "private fun ServiceChips(fields: EndpointFields, enabled: Boolean = true) {",
-    "private fun ServiceChips(fields: EndpointFields) {\n"
+    "private fun ServiceChips(fields: EndpointFields, enabled: Boolean = true) {\n"
     "    var editingProviderFallback by remember { mutableStateOf(false) }",1)
 close=section.rfind("\n}")
 if close<0: raise RuntimeError("Missing ServiceChips closing brace")
 section=section[:close]+'''
-    Chip("六家服务商 · 自动切换", selected = false) {
+    Chip("六家服务商 · 自动切换", selected = false, enabled = enabled) {
         fields.loadProviders()
         editingProviderFallback = true
     }
