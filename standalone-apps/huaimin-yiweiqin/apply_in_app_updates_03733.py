@@ -28,14 +28,8 @@ once(activity,
 '''import com.cleo.cleos.ui.theme.CleosTheme''',
 '''import com.cleo.cleos.ui.theme.CleosTheme
 import com.cleo.cleos.update.UpdateNoticeHost''')
-once(activity,
-'''                CleosTheme(s, container.images) { CleosNavHost() }
-                AskForNotifications(container, s)''',
-'''                CleosTheme(s, container.images) {
-                    CleosNavHost()
-                    UpdateNoticeHost()
-                }
-                AskForNotifications(container, s)''')
+# Preserve the existing themed container: earlier patches also change this call site.
+once(activity, 'CleosNavHost()', 'CleosNavHost(); UpdateNoticeHost()')
 
 # Show the first-party Huaimin updater instead of the inherited Cleos/蓝奏云 link.
 pages = src/"ui/settings/AppPages.kt"
