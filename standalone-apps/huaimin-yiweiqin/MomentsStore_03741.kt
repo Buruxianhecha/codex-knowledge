@@ -214,6 +214,7 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             ai=current.value.ai.filterNot{it.companionId==id}+old.copy(lastPostAt=now)))
     }
     suspend fun favorite(message:com.cleo.cleos.data.db.MessageEntity,author:String)=withContext(Dispatchers.IO) {
+        if(lock.withLock { current.value.savedMessages.any{it.sourceId==message.id} }) return@withContext
         val audio=MessageAudios.decode(message.audio)?.file
         require(message.content.isNotBlank() || audio!=null) { "没有可以收藏的文字或语音" }
         val copied=audio?.let { name ->
@@ -226,7 +227,10 @@ class MomentsStore(context: Context, private val images: ImageStore) {
         }
         try {
             lock.withLock {
-                if(current.value.savedMessages.any{it.sourceId==message.id}) return@withLock
+                if(current.value.savedMessages.any{it.sourceId==message.id}) {
+                    if(copied!=null)images.delete(listOf(copied))
+                    return@withLock
+                }
                 val entry=SavedMessage(sourceId=message.id,sourceConversationId=message.conversationId,
                     author=author.take(100),text=message.content.take(50000),audioFile=copied)
                 save(current.value.copy(savedMessages=listOf(entry)+current.value.savedMessages))
