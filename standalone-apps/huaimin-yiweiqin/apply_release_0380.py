@@ -74,6 +74,13 @@ change(app,
 "schedule persistent, default-off AI work")
 
 change(chat,
+'''    val palette = LocalGlassPalette.current
+    val mine = message.role == "user"''',
+'''    val palette = LocalGlassPalette.current
+    val favoritesContainer = appContainer()
+    val mine = message.role == "user"''',
+"capture Compose app container before asynchronous favorites action")
+change(chat,
 '''                    if (words.isNotBlank()) {
                         DropdownMenuItem(text = { Text("复制") }, onClick = {''',
 '''                    if (message.role in listOf("user","assistant") &&
@@ -82,7 +89,7 @@ change(chat,
                             menu = false
                             scope.launch {
                                 try {
-                                    appContainer().moments.favorite(
+                                    favoritesContainer.moments.favorite(
                                         message, if (mine) "我" else aiLabel ?: "TA")
                                 } catch (e: Exception) {
                                     android.util.Log.w("Favorites","保存消息失败",e)
