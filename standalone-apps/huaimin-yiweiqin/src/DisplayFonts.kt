@@ -18,9 +18,9 @@ class DisplayFontException(message: String) : Exception(message)
 object DisplayFonts {
     const val CATALOG_KEY = "display_fonts"
     const val SELECTED_KEY = "display_font"
-    /** One bundled preset plus up to 20 fonts imported by the person. */
+    /** Three fixed bundled identities plus up to 20 user-imported fonts. */
     const val MAX_IMPORTED_FONTS = 20
-    const val MAX_FONTS = MAX_IMPORTED_FONTS + 1
+    const val MAX_FONTS = MAX_IMPORTED_FONTS + 3
     const val MAX_BYTES = 32 * 1024 * 1024
 
     /** Stable private-store name used by the bundled 萌系80 preset. */
@@ -28,12 +28,26 @@ object DisplayFonts {
     const val BUNDLED_NAME = "萌系80"
     const val BUNDLED_ASSET = "display_fonts/mengxi80.ttf"
     val BUNDLED = DisplayFont(BUNDLED_FILE, BUNDLED_NAME)
+    /** Fixed UUID-like names survive reinstalls, upgrades and backup restore. */
+    const val LONG_CANG_FILE = "font-00000000-0000-0000-0000-000000000081.ttf"
+    const val ZHI_MANG_XING_FILE = "font-00000000-0000-0000-0000-000000000082.ttf"
+    const val LONG_CANG_ASSET = "display_fonts/LongCang-Regular.ttf"
+    const val ZHI_MANG_XING_ASSET = "display_fonts/ZhiMangXing-Regular.ttf"
+    val LONG_CANG = DisplayFont(LONG_CANG_FILE, "龙藏体 · Long Cang")
+    val ZHI_MANG_XING = DisplayFont(ZHI_MANG_XING_FILE, "志莽行书 · Zhi Mang Xing")
+    val BUILT_INS: List<DisplayFont> = listOf(BUNDLED, LONG_CANG, ZHI_MANG_XING)
+    fun assetFor(font: DisplayFont): String? = when (font.file) {
+        LONG_CANG_FILE -> LONG_CANG_ASSET
+        ZHI_MANG_XING_FILE -> ZHI_MANG_XING_ASSET
+        BUNDLED_FILE -> BUNDLED_ASSET
+        else -> null
+    }
     private val json = Json { ignoreUnknownKeys = true }
     private val filename = Regex("font-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(ttf|otf)")
 
     fun isFontName(name: String) = filename.matches(name)
 
-    fun isBundled(font: DisplayFont) = font.file == BUNDLED_FILE
+    fun isBundled(font: DisplayFont) = BUILT_INS.any { it.file == font.file }
     fun importedCount(fonts: List<DisplayFont>) = fonts.count { !isBundled(it) }
 
     /** Remove only a user-imported font; built-in presets are permanent. */
