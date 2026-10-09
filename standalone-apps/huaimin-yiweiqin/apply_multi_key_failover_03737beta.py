@@ -92,6 +92,8 @@ patch(client,
                     pool.record(endpoint.baseUrl,candidate.id,failure.kind)
                 val switchable=failure.kind==KeyFailureKind.QUOTA_EXHAUSTED ||
                     failure.kind==KeyFailureKind.INVALID_CREDENTIAL
+                if(failure.kind==KeyFailureKind.RATE_LIMITED && !output)
+                    notice("⏳ 当前接口请求过于频繁，密钥已进入短暂冷却；不代表余额耗尽。")
                 if(!switchable || output) throw e
                 if(keys.drop(index+1).none { it.id !in tried }) {
                     notice(if(pool.allConfirmedExhausted(endpoint.baseUrl,endpoint.model))
