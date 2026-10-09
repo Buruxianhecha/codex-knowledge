@@ -127,7 +127,7 @@ private fun ContactImage(ta:CompanionEntity) {
     if(avatar!=null) {
         AsyncImage(model=c.images.file(avatar),contentDescription=name+"的头像",
             contentScale=ContentScale.Crop,modifier=Modifier.size(48.dp).clip(CircleShape))
-    } else Box(Modifier.size(48.dp).clip(CircleShape).background(p.accentSurface),
+    } else Box(Modifier.size(48.dp).clip(CircleShape).background(p.accentContent.copy(alpha=0.17f)),
         contentAlignment=Alignment.Center) {
         Text(ta.avatarEmoji?.takeIf{it.isNotBlank()} ?: name.take(1),
             color=p.accentContent,fontSize=22.sp)
