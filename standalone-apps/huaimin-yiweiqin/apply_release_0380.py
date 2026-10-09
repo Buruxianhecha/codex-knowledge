@@ -56,10 +56,10 @@ change(main,
 
 p=root/screen
 text=p.read_text(encoding="utf-8")
-start=text.index('            item {\n                GlassSurface',text.index("LazyColumn("))
-end=text.index('            if(data.posts.isEmpty()) item',start)
-text=text[:start]+'            item { MomentsMyProfile() }\n'+text[end:]
-p.write_text(text,encoding="utf-8")
+if 'MomentsMyProfile(onOpenMyTimeline=' not in text:
+    raise RuntimeError("Edited Moments profile was not connected to the feed")
+# The updated screen already contains the real clickable profile and the user timeline.
+
 
 change(app,
 '''    val chatClient = ChatClient(http, keyPool=apiKeyPool, providerPool=providerFailoverPool)''',
