@@ -135,7 +135,7 @@ fun MomentsMyProfile(onOpenMyTimeline:()->Unit={}) {
         text={
             Column(modifier=Modifier.heightIn(max=520.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                Text("按角色单独授权：主动逛朋友圈时可按人格决定跳过、点赞、评论或同时点赞评论。每 6 小时最多尝试互动一条；主动发帖每角色每天最多一次。23:00–08:00 暂停执行。所有开关默认关闭。",
+                Text("AI 默认可以自主浏览、点赞、评论和发布动态。没有夜间禁用、六小时冷却或每日发帖次数上限。后台由 Android 系统定期唤醒，频繁调用会消耗 API 额度；需要暂停某位 AI 时可手动关掉对应选项。",
                     color=palette.contentSecondary,fontSize=12.sp)
                 people.forEach { ta ->
                     val item=data.ai.firstOrNull{it.companionId==ta.id}
@@ -143,8 +143,8 @@ fun MomentsMyProfile(onOpenMyTimeline:()->Unit={}) {
                         Text(ta.name,color=palette.content,fontWeight=FontWeight.Medium)
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                             Text("主动逛朋友圈",modifier=Modifier.weight(1f),color=palette.content)
-                            Switch(checked=item?.browsing==true,onCheckedChange={on->
-                                scope.launch{c.moments.setAiSettings(ta.id,on,item?.posting==true)}
+                            Switch(checked=item?.browsing!=false,onCheckedChange={on->
+                                scope.launch{c.moments.setAiSettings(ta.id,on,item?.posting!=false)}
                             })
                         }
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
@@ -161,8 +161,8 @@ fun MomentsMyProfile(onOpenMyTimeline:()->Unit={}) {
                         }
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                             Text("主动发自己的动态",modifier=Modifier.weight(1f),color=palette.content)
-                            Switch(checked=item?.posting==true,onCheckedChange={on->
-                                scope.launch{c.moments.setAiSettings(ta.id,item?.browsing==true,on)}
+                            Switch(checked=item?.posting!=false,onCheckedChange={on->
+                                scope.launch{c.moments.setAiSettings(ta.id,item?.browsing!=false,on)}
                             })
                         }
                     }
