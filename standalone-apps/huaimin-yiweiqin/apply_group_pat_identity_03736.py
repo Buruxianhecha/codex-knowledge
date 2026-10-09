@@ -23,7 +23,9 @@ app = "app/src/main/java/com/cleo/cleos/CleosApp.kt"
 
 patch(tools,
 '''private val patBack: suspend (conversationId: Long, suffix: String) -> Unit = { _, _ -> },''',
-'''private val patBack: suspend (conversationId: Long, suffix: String, speakerId: Long) -> Unit = { _, _, _ -> },''',
+'''private val patBack: suspend (conversationId: Long, suffix: String) -> Unit = { _, _ -> },
+    private val patBackWithActor: suspend (conversationId: Long, suffix: String, speakerId: Long) -> Unit =
+        { id, suffix, _ -> patBack(id, suffix) },''',
 "per-character patBack callback")
 patch(tools,
 '''ToolSpecs.patUser.name -> patUser(args, conversationId)''',
@@ -33,11 +35,11 @@ patch(tools,
 '''private suspend fun patUser(a: JsonObject, conversationId: Long): ToolOutcome {
         patBack(conversationId, Pats.cleanSuffix(ToolArgs.text(a, "suffix").orEmpty()))''',
 '''private suspend fun patUser(a: JsonObject, conversationId: Long, companionId: Long): ToolOutcome {
-        patBack(conversationId, Pats.cleanSuffix(ToolArgs.text(a, "suffix").orEmpty()), companionId)''',
+        patBackWithActor(conversationId, Pats.cleanSuffix(ToolArgs.text(a, "suffix").orEmpty()), companionId)''',
 "pat user callback receives companionId")
 patch(app,
 '''patBack = { id, suffix -> chat.patBack(id, suffix) },''',
-'''patBack = { id, suffix, actor -> chat.patBack(id, suffix, actor) },''',
+'''patBackWithActor = { id, suffix, actor -> chat.patBack(id, suffix, actor) },''',
 "app callback is role aware")
 patch(chat,
 '''suspend fun patBack(conversationId: Long, suffix: String) {''',
