@@ -106,6 +106,81 @@ change(recap,
             client.stream(ApiEndpoint(ta.apiBaseUrl, key, ta.apiModel),
                 Recap.request(ta, s.userName, conversation.recap, batch, zone(), groupSpeakers))
 ''', "group speaker map in recap job")
+
+# Exactly one character per user turn receives operational tools, even if it
+# refuses to speak. This avoids duplicate todos, calendar events, music commands
+# and external actions from several group members independently obeying one request.
+change(chat,
+'''        var said = 0
+        for (ta in candidates.take(GroupChats.MAX_MEMBERS)) {
+''',
+'''        var said = 0
+        var toolExecutorReserved = false
+        for (ta in candidates.take(GroupChats.MAX_MEMBERS)) {
+''', "one side-effect executor per group turn")
+change(chat,
+'''            show(StreamingReply(conversationId, "", thinking = false, activity = "''',
+'''            val canOperateTools = allowToolCalls && !toolExecutorReserved
+            if (canOperateTools) toolExecutorReserved = true
+            show(StreamingReply(conversationId, "", thinking = false, activity = "''', "reserve group tool actor")
+change(chat,
+'''                    allowToolCalls = allowToolCalls,
+''',
+'''                    allowToolCalls = canOperateTools,
+''', "prevent duplicate group operations")
+
+# A manual continuation now means a *bounded* short conversation rather than
+# requiring another click after 45 seconds for each line. All turns still count
+# against the group's actual per-day API budget and remain cancellable.
+change(chat,
+'''    /** Allow one deliberate continuation; anti-spam: at most once every 45 seconds per group. */
+    private val groupContinuationAt = ConcurrentHashMap<Long, Long>()
+
+    fun continueGroup(conversationId: Long) {
+        scope.launch {
+            val convo = db.conversations().get(conversationId) ?: return@launch
+            if (!convo.isGroup || convo.groupMode == 2) return@launch
+            val now = System.currentTimeMillis()
+            val previous = groupContinuationAt[conversationId] ?: 0L
+            if (now - previous < 45_000) return@launch
+            groupContinuationAt[conversationId] = now
+            start(conversationId) { groupReply(conversationId, convo, continued = true) }
+        }
+    }
+''',
+'''    /** A user-invoked, cancellable continuation; never an endless background chat. */
+    private val groupContinuationAt = ConcurrentHashMap<Long, Long>()
+
+    fun continueGroup(conversationId: Long) {
+        scope.launch {
+            val convo = db.conversations().get(conversationId) ?: return@launch
+            if (!convo.isGroup || convo.groupMode == 2) return@launch
+            val now = System.currentTimeMillis()
+            val previous = groupContinuationAt[conversationId] ?: 0L
+            if (now - previous < 10_000) return@launch
+            groupContinuationAt[conversationId] = now
+            start(conversationId) {
+                repeat(3) { round ->
+                    currentCoroutineContext().ensureActive()
+                    val current = db.conversations().get(conversationId) ?: return@start
+                    if (!current.isGroup || current.groupMode == 2) return@start
+                    val before = db.messages().newest(conversationId, 16).firstOrNull {
+                        it.role == "assistant" && it.senderCompanionId != null &&
+                            it.error == null && it.content.isNotBlank()
+                    }?.id
+                    groupReply(conversationId, current, continued = true)
+                    val after = db.messages().newest(conversationId, 16).firstOrNull {
+                        it.role == "assistant" && it.senderCompanionId != null &&
+                            it.error == null && it.content.isNotBlank()
+                    }?.id
+                    if (after == before) return@start
+                    if (round < 2) delay(1900)
+                }
+            }
+        }
+    }
+''', "bounded natural continuation")
+
 from shutil import copyfile
 here = Path(__file__).resolve().parent
 unit = root / "app/src/test/java/com/cleo/cleos/ai/GroupRecapIdentityTest.kt"
