@@ -252,4 +252,17 @@ patch(ai,
                     (if (ToolGroup.Memory in s.tools) tools.specs(setOf(ToolGroup.Memory)) else emptyList())) +
 ''', "each AI may operate its own permitted memory tool")
 
+
+# Make the actual tool declaration truthful: its own group's original messages
+# remain readable even when external cross-conversation sharing is disabled.
+toolFile = "app/src/main/java/com/cleo/cleos/ai/Tools.kt"
+patch(toolFile,
+'''description = "按角色、关键词、日期、页码从设备已保存且允许共享的其他聊天会话逐条读取原始消息。问到其他角色私聊、之前说过什么、原话是什么时优先调用；不要把摘要当原始记录。可多次调用：offset=0 开始，下一页使用返回的 offset。不确定角色名就不要乱填。",''',
+'''description = "读取设备中真实保存的原始聊天消息。当前群聊可以用本群的 conversation_id 查自己的历史，即使没有开放其他会话共享；查询别的私聊或群聊仍须原会话授权与当前群的跨会话共享授权。结果可用 offset 翻页，绝不要把摘要冒充原文，也不要推断已删除的内容。",''',
+"tool schema explains local-group versus outside history privacy")
+patch(toolFile,
+'''"conversation_id" to prop("integer", "可选：上次查到的具体会话编号"),''',
+'''"conversation_id" to prop("integer", "可选：具体会话编号；在当前群聊中填当前群编号可查本群原文，查其他会话须共享授权"),''',
+"history tool current-group parameter help")
+
 print("0.37.36 group own-history, opt-in autonomous chat and speaking parity applied")
