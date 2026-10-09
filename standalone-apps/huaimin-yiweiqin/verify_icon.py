@@ -9,6 +9,8 @@ from pathlib import Path
 from PIL import Image
 
 ANDROID = "{http://schemas.android.com/apk/res/android}"
+# User-approved cream background and forest-green 怀民 icon. Prevent old icon fallback.
+APPROVED_ICON_SHA256 = "ac7bb65016fdd1775904ade635115b23f3e13289a2c6f10a4417e6f4a5224f36"
 
 
 def verify_image(data: bytes, description: str) -> tuple[int, int]:
@@ -30,7 +32,13 @@ def verify_image(data: bytes, description: str) -> tuple[int, int]:
 def verify_source(source: Path) -> bytes:
     data = source.read_bytes()
     size = verify_image(data, str(source))
-    print(f"Source icon decoded: JPEG {size[0]}x{size[1]}, sha256={hashlib.sha256(data).hexdigest()}")
+    digest = hashlib.sha256(data).hexdigest()
+    if digest != APPROVED_ICON_SHA256:
+        raise ValueError(
+            f"Launcher icon regression: expected approved 怀民 icon sha256 {APPROVED_ICON_SHA256}, "
+            f"received {digest}; do not silently restore the old icon."
+        )
+    print(f"Approved source icon decoded: JPEG {size[0]}x{size[1]}, sha256={digest}")
     return data
 
 
