@@ -133,7 +133,7 @@ class UpdateController(private val app: Context) {
                     ?: throw IllegalStateException("手机存储暂不可用")
                 if (!dir.exists() && !dir.mkdirs()) throw IllegalStateException("无法创建下载目录")
                 val final = File(dir, "huaimin-${release.versionCode}.apk")
-                val part = File(dir, "huaimin-${release.versionCode}.part")
+                val part = File(dir, "huaimin-${release.versionCode}.pending.apk")
                 try {
                     if (final.exists()) {
                         if (verifyApk(final, release)) return@withContext final
