@@ -160,6 +160,13 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
                                 Text("邀请 TA",color=p.content)
                             }
                         }
+                        if(post.aiLikes.isNotEmpty()) {
+                            val who=post.aiLikes.mapNotNull{id->
+                                people.firstOrNull{it.id==id}?.name
+                            }.joinToString("、")
+                            if(who.isNotBlank()) Text("♥ "+who+" 赞了这条动态",
+                                color=p.contentSecondary,fontSize=12.sp)
+                        }
                         if(post.comments.isNotEmpty()) {
                             HorizontalDivider()
                             post.comments.forEach { comment ->
