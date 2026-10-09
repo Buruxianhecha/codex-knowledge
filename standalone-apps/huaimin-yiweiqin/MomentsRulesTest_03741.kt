@@ -35,4 +35,28 @@ class MomentsRulesTest {
         assertFalse(post.liked)
         assertTrue(post.comments.isEmpty())
     }
+    @Test fun privateAndPublicVisibilityProtectRealAiReaders() {
+        val old=MomentPost(text="旧动态")
+        assertTrue(MomentAccess.canSee(old,17L))
+        val secret=old.copy(visibility=MomentVisibility.PRIVATE)
+        assertTrue(MomentAccess.canSee(secret,0L))
+        assertFalse(MomentAccess.canSee(secret,17L))
+        assertEquals(MomentVisibility.PUBLIC,old.visibility)
+    }
+    @Test fun audienceWhitelistAndExclusionAreDisjoint() {
+        val base=MomentPost(text="限定人群",audienceIds=listOf(11L,13L))
+        val selected=base.copy(visibility=MomentVisibility.SELECTED)
+        val excluded=base.copy(visibility=MomentVisibility.EXCLUDED)
+        assertTrue(MomentAccess.canSee(selected,11L))
+        assertFalse(MomentAccess.canSee(selected,12L))
+        assertFalse(MomentAccess.canSee(excluded,11L))
+        assertTrue(MomentAccess.canSee(excluded,12L))
+        assertTrue(MomentAccess.canSee(selected,0L))
+    }
+    @Test fun aiCanAlwaysSeeOwnPostButNotOthersPrivatePost() {
+        val mine=MomentPost(authorId=42L,text="AI 自己的动态",visibility=MomentVisibility.PRIVATE)
+        assertTrue(MomentAccess.canSee(mine,42L))
+        assertFalse(MomentAccess.canSee(mine,43L))
+        assertEquals("部分可见",MomentAccess.label(MomentVisibility.SELECTED))
+    }
 }
