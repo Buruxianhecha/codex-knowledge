@@ -71,7 +71,7 @@ class ApiKeyPool(private val secrets: SecretStore) {
             val all = all(url)
             // Never silently rotate a key passed for some other endpoint/account.
             if (all.none { it.value == preferred }) return@withLock emptyList()
-            KeySelection.compatible(all, model, System.currentTimeMillis())
+            KeySelection.compatible(all.distinctBy { it.value }, model, System.currentTimeMillis())
                 .sortedWith(compareBy<KeyCandidate> { it.value != preferred }.thenBy { it.priority })
         }
     suspend fun display(url: String): List<KeyDisplay> = lock.withLock {
@@ -82,6 +82,7 @@ class ApiKeyPool(private val secrets: SecretStore) {
         lock.withLock {
             val pool=read(url)
             require(pool.backups.size < 12) { "备用密钥最多 12 把" }
+            require(secrets.key(url)?.trim() != secret.trim()) { "不能重复添加当前主密钥" }
             require(pool.backups.none { it.secret == secret.trim() }) { "密钥已经存在" }
             val next=StoredBackup(UUID.randomUUID().toString(),alias.trim().ifBlank {"备用密钥"}.take(32),
                 secret.trim(),priority=pool.backups.size+1,modelScope=model.trim())
@@ -92,6 +93,18 @@ class ApiKeyPool(private val secrets: SecretStore) {
         val pool=read(url)
         write(url,if(id=="primary") pool.copy(primaryEnabled=on) else
             pool.copy(backups=pool.backups.map { if(it.id==id) it.copy(enabled=on) else it }))
+    }
+    suspend fun move(url: String,id: String, direction: Int) = lock.withLock {
+        if (id == "primary") return@withLock
+        val pool=read(url)
+        val sorted=pool.backups.sortedWith(compareBy<StoredBackup> { it.priority }.thenBy { it.id }).toMutableList()
+        val index=sorted.indexOfFirst { it.id==id }
+        val next=index+direction
+        if(index<0 || next !in sorted.indices) return@withLock
+        val moved=sorted[index]
+        sorted[index]=sorted[next]
+        sorted[next]=moved
+        write(url,pool.copy(backups=sorted.mapIndexed { i,item -> item.copy(priority=i+1) }))
     }
     suspend fun remove(url: String,id: String) = lock.withLock {
         require(id!="primary")
