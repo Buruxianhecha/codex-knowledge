@@ -21,14 +21,12 @@ chat="app/src/main/java/com/cleo/cleos/ai/ChatRepository.kt"
 patch(client, "import kotlinx.coroutines.Dispatchers\n",
     "import kotlinx.coroutines.Dispatchers\nimport kotlinx.coroutines.flow.flow\nimport kotlinx.coroutines.flow.emitAll\nimport kotlinx.coroutines.flow.collect\n",
     "flow imports")
-patch(client,
-'''    val rejectedFeature: RequestFeature? = null,
-) : Exception(message), EndpointFailure''',
-'''    val rejectedFeature: RequestFeature? = null,
-    /** Never logged; only the structured classifier reads the raw provider body. */
-    val errorBody: String? = null,
-) : Exception(message), EndpointFailure''',
-"raw provider failure")
+p=root/client
+t=p.read_text(encoding="utf-8")
+start=t.index("class ChatException(")
+end=t.index(") : Exception(message)",start)
+t=t[:end]+"    val errorBody: String? = null,\n"+t[end:]
+p.write_text(t,encoding="utf-8")
 patch(client,
 '''class ChatClient(
     private val http: OkHttpClient,
