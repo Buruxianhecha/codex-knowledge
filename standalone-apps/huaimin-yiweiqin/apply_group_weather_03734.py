@@ -96,7 +96,7 @@ once(tools,
             val report = geo.reportAt(place.lat, place.lon, place.area ?: place.address ?: "手机定位附近", days)
             val age = if (place.ageMs >= 2 * 60_000L) "；使用的是¤{place.ageMs / 60_000} 分钟前的手机定位" else ""
             val accuracy = place.accuracy?.let { "；定位误差约 ¤{it.toInt()} 米" }.orEmpty()
-            return ToolOutcome("按用户请求使用手机实际定位坐标查询附近的天气¤accuracy¤age：\n¤{report.text}",
+            return ToolOutcome("按用户请求使用手机实际定位坐标查询附近的天气¤accuracy¤age：\\n¤{report.text}",
                 "查了手机定位处的天气")
         }
         val city = ToolArgs.text(a, "city")?.trim().orEmpty().ifEmpty { settings.weatherCity.trim() }
