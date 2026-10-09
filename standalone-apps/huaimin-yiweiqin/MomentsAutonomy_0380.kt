@@ -28,10 +28,12 @@ class MomentsAutonomy(private val c:AppContainer) {
                 if(newer.posting) {
                     c.moments.markPostAttempt(ta.id)
                     val request="你是"+ta.name+"，性格："+ta.persona.take(2500)+
-                        "。请以自己的口吻发表一条自然短小的朋友圈动态，最多200字。"+
-                        "不要声称真实经历不存在的事，也不要透露 API 或软件内部信息。只输出正文。"
-                    val result=ask(ta.apiBaseUrl,ta.apiModel,secret,request,"写一条日常动态。").trim()
-                    if(result.isNotBlank()) c.moments.publishAi(ta.id,result)
+                        "。请自行决定现在是否有值得分享的话。没有想说的事，只输出 SKIP；"+
+                        "否则以自己的口吻写一条自然的朋友圈，不必为了定时任务强行发帖。"+
+                        "不要编造未发生的真实经历，也不要透露 API 或软件内部信息。只输出正文或者 SKIP。"
+                    val result=ask(ta.apiBaseUrl,ta.apiModel,secret,request,"想发就发，不想发就跳过。").trim()
+                    if(result.isNotBlank() && !result.equals("SKIP",ignoreCase=true))
+                        c.moments.publishAi(ta.id,result)
                 }
             } catch(e:CancellationException) { throw e }
               catch(e:Exception) {android.util.Log.w("MomentsAutonomy","Skipped request",e)}
