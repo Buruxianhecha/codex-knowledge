@@ -55,10 +55,8 @@ once(screen,
 '''import com.cleo.cleos.ui.common.GlassPage''',
 '''import com.cleo.cleos.ui.common.GlassPage
 import com.cleo.cleos.update.UpdateSettingsSection''')
-once(screen,
-'''                    SettingsPage.About -> AboutPage()''',
-'''                    SettingsPage.Updates -> UpdateSettingsSection()
-                    SettingsPage.About -> AboutPage()''')
+once(screen, 'SettingsPage.Data -> DataPage(vm)',
+    'SettingsPage.Data -> DataPage(vm)\n                    SettingsPage.Updates -> UpdateSettingsSection()')
 
 # Installer goes through FileProvider and Android's explicit user confirmation.
 manifest = root/"app/src/main/AndroidManifest.xml"
