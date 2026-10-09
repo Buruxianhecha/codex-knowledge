@@ -31,7 +31,9 @@ t=(root/client).read_text(encoding="utf-8")
 start=t.index("class ChatClient(")
 end=t.index(") {",start)
 if "keyPool:" in t[start:end]: raise RuntimeError("Duplicate key pool declaration")
-t=t[:end]+"    private val keyPool: ApiKeyPool? = null,\n"+t[end:]
+prefix=t[:end].rstrip()
+if not prefix.endswith(","): prefix += ","
+t=prefix+"\n    private val keyPool: ApiKeyPool? = null,\n"+t[end:]
 (root/client).write_text(t,encoding="utf-8")
 patch(client,
 '''    fun stream(
@@ -133,7 +135,7 @@ patch(app,
 '''    val companions = Companions(db, settings, secrets, images)
     val chatClient = ChatClient(http)''',
 '''    val companions = Companions(db, settings, secrets, images)
-    val apiKeyPool = ApiKeyPool(secrets)
+    val apiKeyPool = com.cleo.cleos.ai.ApiKeyPool(secrets)
     val chatClient = ChatClient(http, keyPool=apiKeyPool)''',
 "app-wide key pool")
 patch(chat,
