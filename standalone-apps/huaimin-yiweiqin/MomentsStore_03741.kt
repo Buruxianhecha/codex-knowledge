@@ -257,7 +257,7 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             old.copy(lastBrowseAt=System.currentTimeMillis(),lastSeenPostId=postId)))
     }
     suspend fun publishAi(id:Long,body:String)=lock.withLock {
-        val text=body.trim().take(500)
+        val text=body.trim().take(MomentsRules.MAX_TEXT)
         MomentsRules.validatePost(text,0)
         val now=System.currentTimeMillis()
         val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
