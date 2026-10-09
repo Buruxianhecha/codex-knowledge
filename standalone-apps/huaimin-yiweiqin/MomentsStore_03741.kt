@@ -67,8 +67,8 @@ data class MomentProfile(val name:String="",val bio:String="",val cover:String?=
 @Serializable
 data class MomentAiSettings(
     val companionId:Long,
-    val browsing:Boolean=false,
-    val posting:Boolean=false,
+    val browsing:Boolean=true,
+    val posting:Boolean=true,
     val allowLikes:Boolean=true,
     val allowComments:Boolean=true,
     val lastBrowseAt:Long=0L,
