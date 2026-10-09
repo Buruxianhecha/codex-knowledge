@@ -78,6 +78,7 @@ change(chat,
     val mine = message.role == "user"''',
 '''    val palette = LocalGlassPalette.current
     val favoritesContainer = appContainer()
+    val favoritesUiContext = androidx.compose.ui.platform.LocalContext.current
     val mine = message.role == "user"''',
 "capture Compose app container before asynchronous favorites action")
 change(chat,
@@ -91,7 +92,11 @@ change(chat,
                                 try {
                                     favoritesContainer.moments.favorite(
                                         message, if (mine) "我" else aiLabel ?: "TA")
+                                    android.widget.Toast.makeText(favoritesUiContext,
+                                        "已添加到收藏", android.widget.Toast.LENGTH_SHORT).show()
                                 } catch (e: Exception) {
+                                    android.widget.Toast.makeText(favoritesUiContext,
+                                        e.message ?: "收藏失败", android.widget.Toast.LENGTH_SHORT).show()
                                     android.util.Log.w("Favorites","保存消息失败",e)
                                 }
                             }
