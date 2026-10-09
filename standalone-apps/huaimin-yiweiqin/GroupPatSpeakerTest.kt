@@ -8,6 +8,6 @@ class GroupPatSpeakerTest {
         val pat = PatRecord(Pats.FROM_AI, 1, "拍", "肩膀", targetCompanionId = 19L)
         val got = Pats.decode(Pats.encode(pat))!!
         assertEquals(19L, got.targetCompanionId)
-        assertEquals(Pats.AI, got.who)
+        assertEquals(Pats.FROM_AI, got.who)
     }
 }
