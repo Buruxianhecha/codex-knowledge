@@ -24,7 +24,8 @@ class MomentsAutonomy(private val c:AppContainer) {
             try {
                 val state=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id} ?:continue
                 if(state.browsing && System.currentTimeMillis()-state.lastBrowseAt>TimeUnit.HOURS.toMillis(6)) {
-                    browse(ta.id,ta.name,ta.persona,ta.apiBaseUrl,ta.apiModel,secret,state.lastSeenPostId)
+                    browse(ta.id,ta.name,ta.persona,ta.apiBaseUrl,ta.apiModel,secret,state.lastSeenPostId,
+                        state.allowLikes,state.allowComments)
                 }
                 val newer=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id} ?:continue
                 if(newer.posting && !today(newer.lastPostAt) && !today(newer.lastPostAttemptAt)) {
@@ -39,24 +40,51 @@ class MomentsAutonomy(private val c:AppContainer) {
               catch(e:Exception) {android.util.Log.w("MomentsAutonomy","Skipped request",e)}
         }
     }
-    private suspend fun browse(id:Long,name:String,persona:String,url:String,model:String,key:String,lastId:String?) {
-        val posts=c.moments.posts.value.posts
-        val entry=posts.firstOrNull{it.authorId!=id && it.id!=lastId &&
-            it.comments.none{x->x.authorId==id} && it.text.isNotBlank()}
-            ?: return
-        c.moments.markAiBrowse(id,entry.id) // Reserve quota before any billable request.
-        val instruction="你是"+name+"，性格："+persona.take(2500)+
-            "。浏览朋友动态后选择不互动、点赞或自然评论。"+
-            "只回答一行：SKIP 或 LIKE 或 COMMENT:评论正文。评论最多150字。"+
-            "不要对自己发的内容评论，不要臆测图片细节。"
-        val result=ask(url,model,key,instruction,"朋友发表：\n"+entry.text.take(1200)).trim()
-        when {
-            result.equals("LIKE",true) -> c.moments.aiLike(entry.id,id)
-            result.startsWith("COMMENT:",true) -> {
-                val reply=result.substringAfter(':').trim().take(150)
-                if(reply.isNotBlank())c.moments.reply(entry.id,id,reply)
-            }
+    /** One bounded user-approved periodic interaction; the AI decides LIKE, COMMENT, BOTH or SKIP.
+     * Never feed an excluded/private post to the model. Revalidate on writes to handle
+     * privacy edits racing a network response.
+     */
+    private suspend fun browse(id:Long,name:String,persona:String,url:String,model:String,
+        key:String,lastId:String?,allowLikes:Boolean,allowComments:Boolean) {
+        if(!allowLikes && !allowComments) return
+        val entries=c.moments.posts.value.posts
+        val entry=entries.firstOrNull { post ->
+            post.authorId!=id && post.id!=lastId &&
+            com.cleo.cleos.data.MomentAccess.canSee(post,id) &&
+            (post.text.isNotBlank() || post.photos.isNotEmpty()) &&
+            ((allowLikes && id !in post.aiLikes) ||
+              (allowComments && post.comments.none{it.authorId==id}))
+        } ?: return
+        c.moments.markAiBrowse(id,entry.id) // Reserve budget BEFORE any billable model call.
+        val choices=buildList {
+            add("SKIP")
+            if(allowLikes && id !in entry.aiLikes) add("LIKE")
+            if(allowComments && entry.comments.none{it.authorId==id}) add("COMMENT:评论文字")
+            if(allowLikes && allowComments && id !in entry.aiLikes &&
+                entry.comments.none{it.authorId==id}) add("BOTH:评论文字")
         }
+        val system="你是"+name+"，你的人格设定："+persona.take(2500)+
+            "。你正在自主浏览朋友的动态，请根据你的性格、你与此人的关系和动态内容，自然决定是否点赞或留言。"+
+            "只能返回一种格式："+choices.joinToString(" / ")+"。不需要互动就回答 SKIP。"+
+            "评论应口语化、真实，不能复述机器人说明，不得编造照片中的细节，最多120字。"+
+            "除这条允许查看的动态外你不具备查看其他朋友圈内容的权限。"
+        val imageNote=if(entry.photos.isEmpty()) "" else
+            "\n附有"+entry.photos.size+"张照片，但你没有收到图片内容，不得推测画面。"
+        val raw=ask(url,model,key,system,"朋友发表的文字：\n"+entry.text.take(1000)+imageNote)
+            .trim().take(240)
+        // Exact parser, not substring guessing. Invalid output is treated as skip.
+        val upper=raw.uppercase(java.util.Locale.ROOT)
+        val hasLiked=id in entry.aiLikes
+        val hasCommented=entry.comments.any{it.authorId==id}
+        val like=upper=="LIKE" || upper.startsWith("BOTH:")
+        val comment=when {
+            upper.startsWith("COMMENT:") -> raw.substringAfter(":").trim().take(120)
+            upper.startsWith("BOTH:") -> raw.substringAfter(":").trim().take(120)
+            else -> ""
+        }
+        if(like && allowLikes && !hasLiked) c.moments.aiLike(entry.id,id)
+        if(comment.isNotBlank() && allowComments && !hasCommented)
+            c.moments.reply(entry.id,id,comment)
     }
     private suspend fun ask(url:String,model:String,key:String,system:String,prompt:String):String {
         val response=StringBuilder()
