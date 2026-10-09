@@ -1,0 +1,171 @@
+package com.cleo.cleos.data
+
+import android.content.Context
+import android.net.Uri
+import com.cleo.cleos.ai.ApiEndpoint
+import com.cleo.cleos.ai.ApiMessage
+import com.cleo.cleos.ai.ChatClient
+import com.cleo.cleos.ai.ChatEvent
+import com.cleo.cleos.data.db.CompanionEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
+import java.util.UUID
+
+@Serializable
+data class MomentReply(
+    val id: String = UUID.randomUUID().toString(),
+    val authorId: Long = 0,
+    val text: String,
+    val createdAt: Long = System.currentTimeMillis(),
+)
+
+@Serializable
+data class MomentPost(
+    val id: String = UUID.randomUUID().toString(),
+    val authorId: Long = 0,
+    val text: String,
+    val photos: List<String> = emptyList(),
+    val createdAt: Long = System.currentTimeMillis(),
+    val liked: Boolean = false,
+    val comments: List<MomentReply> = emptyList(),
+)
+
+@Serializable
+data class MomentsSnapshot(
+    val version: Int = 1,
+    val posts: List<MomentPost> = emptyList(),
+)
+
+object MomentsRules {
+    const val MAX_TEXT = 2000
+    const val MAX_IMAGES = 9
+    const val MAX_COMMENT = 500
+    fun validatePost(text: String, photos: Int) {
+        require(text.length <= MAX_TEXT) { "正文最多 2000 字" }
+        require(photos <= MAX_IMAGES) { "每条动态最多 9 张图片" }
+        require(text.isNotBlank() || photos > 0) { "写点什么，或者添加照片" }
+    }
+    fun validateReply(text: String) {
+        require(text.isNotBlank() && text.length <= MAX_COMMENT) { "评论需要 1–500 字" }
+    }
+    fun validImageName(name: String): Boolean =
+        name.isNotBlank() && name.length < 160 &&
+            !name.contains('/') && !name.contains('\\') && !name.startsWith(".") &&
+            (name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg"))
+}
+
+class MomentsStore(context: Context, private val images: ImageStore) {
+    private val target = File(context.filesDir, "moments-v1.json")
+    private val lock = Mutex()
+    private val json = Json { ignoreUnknownKeys=true; encodeDefaults=true }
+    private var broken: Throwable? = null
+    private fun initial(): MomentsSnapshot {
+        if (!target.exists()) return MomentsSnapshot()
+        return try {
+            json.decodeFromString<MomentsSnapshot>(target.readText()).also(::validate)
+        } catch (e: Exception) {
+            broken = e
+            MomentsSnapshot()
+        }
+    }
+    private val current = MutableStateFlow(initial())
+    val posts: StateFlow<MomentsSnapshot> = current
+    private fun validate(data: MomentsSnapshot) {
+        require(data.version == 1) { "未知朋友圈文件版本" }
+        require(data.posts.size <= 50_000) { "动态数量异常" }
+        require(data.posts.map { it.id }.distinct().size == data.posts.size) { "动态 ID 重复" }
+        data.posts.forEach {
+            MomentsRules.validatePost(it.text,it.photos.size)
+            require(it.photos.all(MomentsRules::validImageName)) { "动态照片文件名无效" }
+            require(it.comments.size <= 10000) { "评论数量异常" }
+        }
+    }
+    private fun save(data: MomentsSnapshot) {
+        broken?.let { throw IllegalStateException("本机朋友圈数据读取失败，停止写入以保护旧数据",it) }
+        validate(data)
+        val tmp = File(target.path+".tmp")
+        try {
+            tmp.outputStream().buffered().use { stream ->
+                stream.write(json.encodeToString(data).toByteArray(Charsets.UTF_8))
+            }
+            if (!tmp.renameTo(target)) throw IllegalStateException("朋友圈数据写入失败")
+            current.value = data
+        } finally { tmp.delete() }
+    }
+    suspend fun publish(raw: String, pending: List<Uri>) = withContext(Dispatchers.IO) {
+        val text=raw.trim()
+        MomentsRules.validatePost(text,pending.size)
+        val copied=mutableListOf<String>()
+        try {
+            pending.forEach { uri ->
+                copied.add(images.import(uri,maxEdge=1920,prefix="moments-").file)
+            }
+            lock.withLock {
+                val data=current.value
+                save(data.copy(posts=listOf(MomentPost(text=text,photos=copied.toList()))+data.posts))
+            }
+        } catch(e: Exception) {
+            images.delete(copied)
+            throw e
+        }
+    }
+    suspend fun toggleLike(id:String) = lock.withLock {
+        save(current.value.copy(posts=current.value.posts.map {
+            if(it.id == id) it.copy(liked=!it.liked) else it
+        }))
+    }
+    suspend fun reply(id:String, authorId:Long, raw:String) = lock.withLock {
+        val text=raw.trim()
+        MomentsRules.validateReply(text)
+        val data=current.value
+        require(data.posts.any {it.id==id}) { "动态已不存在" }
+        save(data.copy(posts=data.posts.map {
+            if(it.id==id) it.copy(comments=it.comments+MomentReply(authorId=authorId,text=text)) else it
+        }))
+    }
+    suspend fun delete(id:String) = lock.withLock {
+        val data=current.value
+        val original=data.posts.firstOrNull {it.id==id && it.authorId==0L} ?: return@withLock
+        save(data.copy(posts=data.posts.filterNot {it.id==id}))
+        images.delete(original.photos)
+    }
+    suspend fun reload()=withContext(Dispatchers.IO) {
+        lock.withLock {
+            broken=null
+            current.value=initial()
+        }
+    }
+    /** AI replies exist only after explicit user invitation; no fabricated or scripted comments. */
+    suspend fun inviteAi(postId:String, ta:CompanionEntity, secrets:SecretStore, client:ChatClient) {
+        val post=lock.withLock { current.value.posts.firstOrNull {it.id==postId} }
+            ?: throw IllegalArgumentException("这条动态已删除")
+        val key=secrets.key(ta.apiBaseUrl)?.trim().orEmpty()
+        require(key.isNotBlank() && ta.apiModel.isNotBlank()) { "请先为这位 AI 配置可用的模型和 API Key" }
+        val author=if(post.authorId==0L) "用户" else "另一位 AI"
+        val system="你是"+ta.name+"。角色设定："+ta.persona.take(4000)+"。你正在浏览朋友圈。请自然、简短、真诚地评论一条"+author+"发表的动态，只输出评论本身，不要包含引号、身份前缀或动作描写，最多 150 字。不要假装你亲眼见过照片中未描述的细节。"
+        val imageContext=if(post.photos.isEmpty()) "" else "\n（这条动态附有 "+post.photos.size+" 张图片，当前只向模型发送文字内容，不要臆测图片画面。）"
+        val result=StringBuilder()
+        client.stream(
+            endpoint=ApiEndpoint(ta.apiBaseUrl,key,ta.apiModel),
+            messages=listOf(ApiMessage("system",system),ApiMessage("user","动态内容：\n"+post.text+imageContext)),
+            tools=emptyList(),thinking=false,notice={}
+        ).collect { event ->
+            if(event is ChatEvent.Delta) {
+                result.append(event.text)
+                if(result.length>1500) throw IllegalArgumentException("AI 评论超过长度限制")
+            }
+        }
+        val answer=result.toString().trim().trim('"','“','”').take(150)
+        MomentsRules.validateReply(answer)
+        reply(postId,ta.id,answer)
+    }
+}
