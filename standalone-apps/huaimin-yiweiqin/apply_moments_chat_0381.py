@@ -72,6 +72,15 @@ once(ai, needle,
         }
 '''+needle, 'dispatch real feed calls')
 
+# Group-chat speakers also receive local feed tools, including when another AI is
+# the designated executor for unrelated phone/MCP operations. Background group turns
+# remain tool-free, so mere auto-continuation does not perform unintended actions.
+chat = str(base / "ai/ChatRepository.kt")
+once(chat,
+     '            val groupSpecs = if (background) emptyList() else toolPool.distinctBy { it.name }',
+     '            val groupSpecs = if (background) emptyList() else (toolPool + ToolSpecs.feedTools).distinctBy { it.name }',
+     'expose feed actions to normal group chat')
+
 once(app,
      '''    val moments = com.cleo.cleos.data.MomentsStore(context, images)''',
      '''    val moments = com.cleo.cleos.data.MomentsStore(context, images).also {
