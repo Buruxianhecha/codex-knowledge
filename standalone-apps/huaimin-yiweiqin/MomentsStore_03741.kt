@@ -67,14 +67,16 @@ data class MomentProfile(val name:String="",val bio:String="",val cover:String?=
 @Serializable
 data class MomentAiSettings(
     val companionId:Long,
-    val browsing:Boolean=false,
-    val posting:Boolean=false,
+    val browsing:Boolean=true,
+    val posting:Boolean=true,
     val allowLikes:Boolean=true,
     val allowComments:Boolean=true,
     val lastBrowseAt:Long=0L,
     val lastPostAt:Long=0L,
     val lastSeenPostId:String?=null,
-    val lastPostAttemptAt:Long=0L
+    val lastPostAttemptAt:Long=0L,
+    // Persist one-time review decisions, including SKIP, so repeated workers do not bill for old posts.
+    val seenPostIds:List<String> = emptyList()
 )
 @Serializable
 data class SavedMessage(
@@ -150,6 +152,7 @@ class MomentsStore(context: Context, private val images: ImageStore) {
         require(data.profile.name.length<=32 && data.profile.bio.length<=200)
         require(listOfNotNull(data.profile.cover,data.profile.avatar).all(MomentsRules::validImageName))
         require(data.ai.size<=200 && data.ai.map{it.companionId}.distinct().size==data.ai.size)
+        require(data.ai.all { it.seenPostIds.size<=50000 && it.seenPostIds.distinct().size==it.seenPostIds.size })
         require(data.savedMessages.size<=20000)
         data.savedMessages.forEach {
             require(it.text.length<=50000 && it.author.length<=100)
@@ -254,10 +257,11 @@ class MomentsStore(context: Context, private val images: ImageStore) {
     suspend fun markAiBrowse(id:Long,postId:String)=lock.withLock {
         val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)
         save(current.value.copy(ai=current.value.ai.filterNot{it.companionId==id}+
-            old.copy(lastBrowseAt=System.currentTimeMillis(),lastSeenPostId=postId)))
+            old.copy(lastBrowseAt=System.currentTimeMillis(),lastSeenPostId=postId,
+                seenPostIds=(old.seenPostIds+postId).distinct().takeLast(50000))))
     }
     suspend fun publishAi(id:Long,body:String)=lock.withLock {
-        val text=body.trim().take(500)
+        val text=body.trim().take(MomentsRules.MAX_TEXT)
         MomentsRules.validatePost(text,0)
         val now=System.currentTimeMillis()
         val old=current.value.ai.firstOrNull{it.companionId==id} ?: MomentAiSettings(id)

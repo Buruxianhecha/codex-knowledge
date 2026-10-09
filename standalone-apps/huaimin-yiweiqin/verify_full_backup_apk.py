@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.0"
-assert apk.get_androidversion_code() == "62066"
+assert apk.get_androidversion_name() == "0.38.1"
+assert apk.get_androidversion_code() == "62067"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -55,6 +55,14 @@ for cls in ("Lcom/cleo/cleos/data/ConfigurationBackup;", "Lcom/cleo/cleos/data/B
 assert any("Lcom/cleo/cleos/data/BackupService;->restoreFrom" in call for call in calls)
 assert any("Lcom/cleo/cleos/data/BackupService;->write" in call for call in calls)
 assert any("Lcom/cleo/cleos/ai/PhoneAppActions;->" in call for call in calls), "phone-App tools disappeared"
+# Verify actual Moments function calls reach the shared store in the compiled APK.
+for method in ("execute",):
+    assert any("Lcom/cleo/cleos/ai/MomentsChatBridge;->" + method in call for call in calls), (
+        method, "compiled chat-to-Moments tool bridge is missing")
+for method in ("aiLike", "reply", "publishAi"):
+    assert any("Lcom/cleo/cleos/data/MomentsStore;->" + method in call for call in calls), (
+        method, "real Moments write path is missing")
+
 assert any("Lcom/cleo/cleos/data/Recalls;->" in call for call in calls), "recall disappeared"
 assert any("Lcom/cleo/cleos/data/ReactionEvents;->" in call for call in calls), "reaction awareness disappeared"
 speech_init = next(
@@ -273,6 +281,6 @@ for cls, name in (
 print("Compiled group controls checked: authorized history, request budget, group modes and voice settings.")
 
 print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
-print(f"Verified APK: version=0.38.0 code=62066 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version=0.38.1 code=62067 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 

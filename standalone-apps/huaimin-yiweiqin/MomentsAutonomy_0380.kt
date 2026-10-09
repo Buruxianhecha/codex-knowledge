@@ -6,56 +6,57 @@ import com.cleo.cleos.AppContainer
 import com.cleo.cleos.CleosApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
+import kotlinx.coroutines.flow.first
 import java.util.concurrent.TimeUnit
 
-/** Opt-in, six-hour background check. Never exceeds one AI post per day. */
+/** Unlimited by-app-policy AI Moments work. Android may defer periodic background work. */
 class MomentsAutonomy(private val c:AppContainer) {
     suspend fun tick() {
-        val hour=LocalTime.now().hour
-        if(hour>=23 || hour<8)return
-        for(p in c.moments.posts.value.ai.filter{it.browsing||it.posting}.take(24)) {
-            val ta=c.companions.get(p.companionId) ?: continue
+        // Every real companion participates, including existing installs without an AI settings row.
+        // Explicitly switched-off roles still remain off; no implicit daily/quiet-hour quota.
+        for(ta in c.companions.all.first()) {
             val secret=c.secrets.key(ta.apiBaseUrl).orEmpty()
             if(secret.isBlank()||ta.apiModel.isBlank())continue
             try {
-                val state=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id} ?:continue
-                if(state.browsing && System.currentTimeMillis()-state.lastBrowseAt>TimeUnit.HOURS.toMillis(6)) {
+                val state=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id}
+                    ?: com.cleo.cleos.data.MomentAiSettings(ta.id)
+                if(state.browsing) {
                     browse(ta.id,ta.name,ta.persona,ta.apiBaseUrl,ta.apiModel,secret,state.lastSeenPostId,
                         state.allowLikes,state.allowComments)
                 }
-                val newer=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id} ?:continue
-                if(newer.posting && !today(newer.lastPostAt) && !today(newer.lastPostAttemptAt)) {
+                val newer=c.moments.posts.value.ai.firstOrNull{it.companionId==ta.id}
+                    ?: com.cleo.cleos.data.MomentAiSettings(ta.id)
+                if(newer.posting) {
                     c.moments.markPostAttempt(ta.id)
                     val request="你是"+ta.name+"，性格："+ta.persona.take(2500)+
-                        "。请以自己的口吻发表一条自然短小的朋友圈动态，最多200字。"+
-                        "不要声称真实经历不存在的事，也不要透露 API 或软件内部信息。只输出正文。"
-                    val result=ask(ta.apiBaseUrl,ta.apiModel,secret,request,"写一条日常动态。").trim()
-                    if(result.isNotBlank()) c.moments.publishAi(ta.id,result)
+                        "。请自行决定现在是否有值得分享的话。没有想说的事，只输出 SKIP；"+
+                        "否则以自己的口吻写一条自然的朋友圈，不必为了定时任务强行发帖。"+
+                        "不要编造未发生的真实经历，也不要透露 API 或软件内部信息。只输出正文或者 SKIP。"
+                    val result=ask(ta.apiBaseUrl,ta.apiModel,secret,request,"想发就发，不想发就跳过。").trim()
+                    if(result.isNotBlank() && !result.equals("SKIP",ignoreCase=true))
+                        c.moments.publishAi(ta.id,result)
                 }
             } catch(e:CancellationException) { throw e }
               catch(e:Exception) {android.util.Log.w("MomentsAutonomy","Skipped request",e)}
         }
     }
-    /** One bounded user-approved periodic interaction; the AI decides LIKE, COMMENT, BOTH or SKIP.
+    /** Periodic interaction without a six-hour gate; the AI decides LIKE, COMMENT, BOTH or SKIP.
      * Never feed an excluded/private post to the model. Revalidate on writes to handle
      * privacy edits racing a network response.
      */
     private suspend fun browse(id:Long,name:String,persona:String,url:String,model:String,
         key:String,lastId:String?,allowLikes:Boolean,allowComments:Boolean) {
         if(!allowLikes && !allowComments) return
-        val entries=c.moments.posts.value.posts
-        val entry=entries.firstOrNull { post ->
-            post.authorId!=id && post.id!=lastId &&
+        val saved=c.moments.posts.value.ai.firstOrNull{it.companionId==id}
+        val seen=(saved?.seenPostIds.orEmpty()+listOfNotNull(lastId)).toSet()
+        // Process all new, visible posts; no arbitrary one-per-worker or per-day limit.
+        // SKIP is persisted as a review too, so periodic work does not re-bill old posts.
+        val entries=c.moments.posts.value.posts.filter { post ->
+            post.authorId!=id && post.id !in seen &&
             com.cleo.cleos.data.MomentAccess.canSee(post,id) &&
-            (post.text.isNotBlank() || post.photos.isNotEmpty()) &&
-            ((allowLikes && id !in post.aiLikes) ||
-              (allowComments && post.comments.none{it.authorId==id}))
-        } ?: return
-        c.moments.markAiBrowse(id,entry.id) // Reserve budget BEFORE any billable model call.
+            (post.text.isNotBlank() || post.photos.isNotEmpty())
+        }
+        for (entry in entries) {
         val choices=buildList {
             add("SKIP")
             if(allowLikes && id !in entry.aiLikes) add("LIKE")
@@ -72,6 +73,8 @@ class MomentsAutonomy(private val c:AppContainer) {
             "\n附有"+entry.photos.size+"张照片，但你没有收到图片内容，不得推测画面。"
         val raw=ask(url,model,key,system,"朋友发表的文字：\n"+entry.text.take(1000)+imageNote)
             .trim().take(240)
+        if(raw.isBlank()) continue // Retry if the provider gave no usable result.
+        c.moments.markAiBrowse(id,entry.id) // Mark visited only after an actual model answer.
         // Exact parser, not substring guessing. Invalid output is treated as skip.
         val upper=raw.uppercase(java.util.Locale.ROOT)
         val hasLiked=id in entry.aiLikes
@@ -85,6 +88,7 @@ class MomentsAutonomy(private val c:AppContainer) {
         if(like && allowLikes && !hasLiked) c.moments.aiLike(entry.id,id)
         if(comment.isNotBlank() && allowComments && !hasCommented)
             c.moments.reply(entry.id,id,comment)
+        }
     }
     private suspend fun ask(url:String,model:String,key:String,system:String,prompt:String):String {
         val response=StringBuilder()
@@ -99,17 +103,12 @@ class MomentsAutonomy(private val c:AppContainer) {
         }
         return response.toString()
     }
-    private fun today(at:Long):Boolean {
-        if(at<=0)return false
-        val zone=ZoneId.systemDefault()
-        return LocalDate.ofInstant(Instant.ofEpochMilli(at),zone)==LocalDate.now(zone)
-    }
     companion object {
         fun schedule(context:Context) {
-            val task=PeriodicWorkRequestBuilder<MomentsAutonomyWorker>(6,TimeUnit.HOURS)
+            val task=PeriodicWorkRequestBuilder<MomentsAutonomyWorker>(15,TimeUnit.MINUTES)
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork("huaimin-moments",
-                ExistingPeriodicWorkPolicy.KEEP,task)
+                ExistingPeriodicWorkPolicy.UPDATE,task)
         }
     }
 }
