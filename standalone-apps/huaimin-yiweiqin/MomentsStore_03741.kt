@@ -28,6 +28,26 @@ data class MomentReply(
     val createdAt: Long = System.currentTimeMillis(),
 )
 
+/** Per-post permissions: each AI is a separate local viewer. The user always sees all. */
+@Serializable
+enum class MomentVisibility { PUBLIC, PRIVATE, SELECTED, EXCLUDED }
+object MomentAccess {
+    fun canSee(post:MomentPost,viewer:Long):Boolean {
+        if(viewer==0L || viewer==post.authorId) return true
+        return when(post.visibility) {
+            MomentVisibility.PUBLIC -> true
+            MomentVisibility.PRIVATE -> false
+            MomentVisibility.SELECTED -> viewer in post.audienceIds
+            MomentVisibility.EXCLUDED -> viewer !in post.audienceIds
+        }
+    }
+    fun label(v:MomentVisibility):String=when(v) {
+        MomentVisibility.PUBLIC -> "公开 · 所有 AI 可见"
+        MomentVisibility.PRIVATE -> "私密 · 仅自己可见"
+        MomentVisibility.SELECTED -> "部分可见"
+        MomentVisibility.EXCLUDED -> "不给谁看"
+    }
+}
 @Serializable
 data class MomentPost(
     val id: String = UUID.randomUUID().toString(),
@@ -38,6 +58,8 @@ data class MomentPost(
     val liked: Boolean = false,
     val comments: List<MomentReply> = emptyList(),
     val aiLikes: List<Long> = emptyList(),
+    val visibility: MomentVisibility = MomentVisibility.PUBLIC,
+    val audienceIds: List<Long> = emptyList(),
 )
 
 @Serializable
@@ -118,6 +140,8 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             MomentsRules.validatePost(it.text,it.photos.size)
             require(it.photos.all(MomentsRules::validImageName)) { "动态照片文件名无效" }
             require(it.comments.size <= 10000) { "评论数量异常" }
+            require(it.audienceIds.size<=200 && it.audienceIds.all{id->id>0L})
+            require(it.audienceIds.distinct().size==it.audienceIds.size)
         }
         require(data.profile.name.length<=32 && data.profile.bio.length<=200)
         require(listOfNotNull(data.profile.cover,data.profile.avatar).all(MomentsRules::validImageName))
@@ -140,7 +164,13 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             current.value = data
         } finally { tmp.delete() }
     }
-    suspend fun publish(raw: String, pending: List<Uri>) = withContext(Dispatchers.IO) {
+    suspend fun publish(raw:String,pending:List<Uri>,
+                        visibility:MomentVisibility=MomentVisibility.PUBLIC,
+                        audienceIds:List<Long> = emptyList()) = withContext(Dispatchers.IO) {
+        require(audienceIds.size<=200 && audienceIds.all{it>0L} &&
+            audienceIds.distinct().size==audienceIds.size)
+        require(visibility !in setOf(MomentVisibility.SELECTED,MomentVisibility.EXCLUDED) ||
+            audienceIds.isNotEmpty()) { "请选择至少一位 AI 朋友" }
         val text=raw.trim()
         MomentsRules.validatePost(text,pending.size)
         val copied=mutableListOf<String>()
@@ -150,12 +180,22 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             }
             lock.withLock {
                 val data=current.value
-                save(data.copy(posts=listOf(MomentPost(text=text,photos=copied.toList()))+data.posts))
+                save(data.copy(posts=listOf(MomentPost(text=text,photos=copied.toList(),visibility=visibility,audienceIds=audienceIds))+data.posts))
             }
         } catch(e: Exception) {
             images.delete(copied)
             throw e
         }
+    }
+    suspend fun updateVisibility(id:String,mode:MomentVisibility,ids:List<Long>)=lock.withLock {
+        require(ids.size<=200 && ids.all{it>0L} && ids.distinct().size==ids.size)
+        require(mode !in setOf(MomentVisibility.SELECTED,MomentVisibility.EXCLUDED) ||
+            ids.isNotEmpty()) { "至少选择一个 AI 联系人" }
+        val existing=current.value.posts.firstOrNull{it.id==id && it.authorId==0L}
+            ?: throw IllegalArgumentException("只能调整自己发表的朋友圈")
+        save(current.value.copy(posts=current.value.posts.map {
+            if(it.id==existing.id) it.copy(visibility=mode,audienceIds=ids) else it
+        }))
     }
     suspend fun toggleLike(id:String) = lock.withLock {
         save(current.value.copy(posts=current.value.posts.map {
@@ -166,7 +206,9 @@ class MomentsStore(context: Context, private val images: ImageStore) {
         val text=raw.trim()
         MomentsRules.validateReply(text)
         val data=current.value
-        require(data.posts.any {it.id==id}) { "动态已不存在" }
+        require(data.posts.any {it.id==id && MomentAccess.canSee(it,authorId)}) {
+            "动态已删除或此角色无权查看"
+        }
         save(data.copy(posts=data.posts.map {
             if(it.id==id) it.copy(comments=it.comments+MomentReply(authorId=authorId,text=text)) else it
         }))
@@ -215,7 +257,8 @@ class MomentsStore(context: Context, private val images: ImageStore) {
     }
     suspend fun aiLike(postId:String,taId:Long)=lock.withLock {
         val source=current.value.posts.firstOrNull{it.id==postId} ?: return@withLock
-        if(source.authorId==taId || taId in source.aiLikes) return@withLock
+        if(source.authorId==taId || taId in source.aiLikes ||
+            !MomentAccess.canSee(source,taId)) return@withLock
         save(current.value.copy(posts=current.value.posts.map {
             if(it.id==postId) it.copy(aiLikes=it.aiLikes+taId) else it
         }))
@@ -258,7 +301,7 @@ class MomentsStore(context: Context, private val images: ImageStore) {
     }
     /** AI replies exist only after explicit user invitation; no fabricated or scripted comments. */
     suspend fun inviteAi(postId:String, ta:CompanionEntity, secrets:SecretStore, client:ChatClient) {
-        val post=lock.withLock { current.value.posts.firstOrNull {it.id==postId} }
+        val post=lock.withLock { current.value.posts.firstOrNull {it.id==postId && MomentAccess.canSee(it,ta.id)} }
             ?: throw IllegalArgumentException("这条动态已删除")
         val key=secrets.key(ta.apiBaseUrl)?.trim().orEmpty()
         require(key.isNotBlank() && ta.apiModel.isNotBlank()) { "请先为这位 AI 配置可用的模型和 API Key" }
