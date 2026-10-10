@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.6"
-assert apk.get_androidversion_code() == "62072"
+assert apk.get_androidversion_name() == "0.38.7"
+assert apk.get_androidversion_code() == "62073"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -78,6 +78,12 @@ assert any("claim_virtual_red_packet" in ins.get_output() for m in methods if m.
 assert any("Lcom/cleo/cleos/ai/ChatRepository;->walletTransaction" in call for call in calls), "chat wallet send does not trigger model"
 assert any("Lcom/cleo/cleos/ai/WalletReactiveEvents;->isEvent" in call for call in calls), "invisible verified transaction event is not used"
 assert any("Lcom/cleo/cleos/ai/WalletReactiveEvents;->messageText" in call for call in calls), "event missing actual model-visible text"
+for method in ("sendPacket", "sendTransfer", "decideTransfer", "claimPacket"):
+    assert any("Lcom/cleo/cleos/data/VirtualWalletStore;->" + method in call for call in calls), (method, "wallet operation unreachable")
+for method in ("sendPacket", "sendTransfer", "acceptTransfer"):
+    assert any("Lcom/cleo/cleos/ai/WalletChatBridge;->" + method in call for call in calls), (method, "AI outgoing or incoming wallet operation not connected")
+for name in ("send_virtual_red_packet", "send_virtual_transfer", "accept_virtual_transfer"):
+    assert any(name in ins.get_output() for m in methods if m.get_class_name() == "Lcom/cleo/cleos/ai/ToolSpecs;" and m.get_code() is not None for ins in m.get_instructions()), (name, "tool missing")
 
 
 assert any("Lcom/cleo/cleos/data/Recalls;->" in call for call in calls), "recall disappeared"
