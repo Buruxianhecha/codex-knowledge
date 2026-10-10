@@ -7,7 +7,7 @@ import org.junit.Test
 class WalletReactiveEventsTest {
     @Test fun transactionNotificationHasExplicitSystemOrigin() {
         val text = WalletReactiveEvents.messageText(true, "receipt-123")
-        assertTrue(text.contains("发送虚拟红包"))
+        assertTrue(text.contains("发送星币红包"))
         assertTrue(text.contains("真实扣账成功"))
         assertTrue(text.contains("立即"))
         assertFalse(text.contains("自动领取成功"))
@@ -15,7 +15,7 @@ class WalletReactiveEventsTest {
 
     @Test fun transferNotificationDoesNotExposePrivatePayeeOrMoney() {
         val text = WalletReactiveEvents.messageText(false, "receipt-234")
-        assertTrue(text.contains("虚拟转账"))
+        assertTrue(text.contains("星币转账"))
         assertFalse(text.contains("100.00"))
         assertFalse(text.contains("目标角色"))
     }
