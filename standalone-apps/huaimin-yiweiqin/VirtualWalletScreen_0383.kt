@@ -224,7 +224,7 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
                     "starter" -> "初始星币"
                     "balance_raise" -> "手动增加星币"
                     "balance_lower" -> "手动减少星币"
-                    "transfer" -> "虚拟转账"
+                    "transfer" -> "星币转账"
                     "packet" -> "发送红包"
                     "claim" -> "领取红包"
                     "refund" -> "过期退款"
