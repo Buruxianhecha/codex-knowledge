@@ -212,13 +212,15 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_ai_secret_diaries_03811.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_main_thread_navigation_03812.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_contact_management_03813.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_contact_management_03813.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_music_previous_03814.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_music_previous_03814.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_main_thread_navigation_03812.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_ai_secrets_moments_03811.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_unlimited_group_calls_03810.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_discover_contacts_03740.py /tmp/huaimin-cleos
-          python3 standalone-apps/huaimin-yiweiqin/verify_contact_management_03813.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.13"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62079' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionName = "0.38.14"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62080' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -358,8 +360,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.13", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62079", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.14", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62080", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
