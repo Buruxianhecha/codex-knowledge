@@ -33,8 +33,9 @@ assert composer.count("MicButton(") == 1, "hold-to-talk mic must appear exactly 
 assert composer.index("MicButton(") < composer.index("BasicTextField("), "mic should precede text field"
 assert composer.index("BasicTextField(") < composer.index("Icons.Rounded.EmojiEmotions")
 assert composer.index("Icons.Rounded.EmojiEmotions") < composer.index("Icons.Rounded.Add,")
-assert "if (busy && !canSend && !editing)" in composer, "stop control must remain"
-assert "else if (canSend || editing)" in composer, "send control must remain"
+assert "if (busy || canSend)" in composer, "no empty trailing slot after +"
+assert "if (busy && !canSend)" in composer, "stop control must remain"
+assert 'Icon(Icons.Rounded.ArrowUpward, contentDescription = "发送"' in composer, "send control must remain"
 
 for item in ('Action("相册"', 'Action("拍摄"', 'Action("语音通话"',
              'Action("红包"', 'Action("转账"'):
