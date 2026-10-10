@@ -22,6 +22,7 @@ once(chat,
 '''    val focusManager = LocalFocusManager.current''',
 '''    var cameraOutput by rememberSaveable { mutableStateOf<String?>(null) }
     var cameraFilePath by rememberSaveable { mutableStateOf<String?>(null) }
+    var cameraBusy by remember { mutableStateOf(false) }
     val cameraCapture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
         val uri = cameraOutput?.let(android.net.Uri::parse)
         if (taken && uri != null) {
@@ -31,7 +32,7 @@ once(chat,
         }
         cameraOutput = null
         cameraFilePath = null
-        pickingAttachment = false
+        cameraBusy = false
     }
     val focusManager = LocalFocusManager.current''',
 "register real camera launcher after attachment picker")
@@ -52,20 +53,24 @@ once(chat,
                                     context, context.packageName + ".huaimin.camera", file)
                                 cameraFilePath = file.absolutePath
                                 cameraOutput = uri.toString()
-                                pickingAttachment = true
-                                vm.typing(true, processingMedia = true)
+                                cameraBusy = true
                                 cameraCapture.launch(uri)
                             } catch (e: Exception) {
                                 cameraFilePath?.let { java.io.File(it).delete() }
                                 cameraFilePath = null
                                 cameraOutput = null
-                                pickingAttachment = false
-                                vm.typing(false)
+                                cameraBusy = false
                                 voiceHint = "无法打开手机相机：" + (e.message ?: "相机不可用")
                             }
                         },
                         onCall = { plusOpen = false; startCall() },''',
 "wire real camera + tool to secure content URI")
+once(chat,
+'''    LaunchedEffect(input.isNotBlank(), pageShown) { vm.typing(pageShown && input.isNotBlank()) }''',
+'''    LaunchedEffect(input.isNotBlank(), pageShown, cameraBusy) {
+        vm.typing(pageShown && (input.isNotBlank() || cameraBusy))
+    }''',
+"camera suppresses premature AI reply while system camera is active")
 manifest=root/"app/src/main/AndroidManifest.xml"
 m=manifest.read_text(encoding="utf-8")
 if "android.support.FILE_PROVIDER_PATHS" in m and "huaimin.camera" in m:
