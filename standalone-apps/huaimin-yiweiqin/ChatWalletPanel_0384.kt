@@ -179,7 +179,7 @@ internal fun ChatWalletActionDialog(
         (kind != ChatMoneyKind.PACKET || parsed >= participants.size)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (kind == ChatMoneyKind.PACKET) "发送虚拟红包" else "向 AI 转账") },
+        title = { Text(if (kind == ChatMoneyKind.PACKET) "发送星币红包" else "向 AI 转账") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("我的余额：" + coins(balance) + " 星币", fontSize = 13.sp)
