@@ -19,16 +19,8 @@ once(chat,
 '''if (!state.isGroup) GlassIconButton(Icons.Rounded.AddComment, "新对话", vm::newConversation, page)''',
 "keep one-to-one new chat, delete group header shortcut")
 once(chat,
-'''    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_ATTACHMENTS)) {
-        pickingAttachment = false
-        vm.attach(it)
-    }
-    // Stickers:''',
-'''    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_ATTACHMENTS)) {
-        pickingAttachment = false
-        vm.attach(it)
-    }
-    var cameraOutput by rememberSaveable { mutableStateOf<String?>(null) }
+'''    val focusManager = LocalFocusManager.current''',
+'''    var cameraOutput by rememberSaveable { mutableStateOf<String?>(null) }
     var cameraFilePath by rememberSaveable { mutableStateOf<String?>(null) }
     val cameraCapture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
         val uri = cameraOutput?.let(android.net.Uri::parse)
@@ -41,8 +33,8 @@ once(chat,
         cameraFilePath = null
         pickingAttachment = false
     }
-    // Stickers:''',
-"register TakePicture and use existing attachment importer")
+    val focusManager = LocalFocusManager.current''',
+"register real camera launcher after attachment picker")
 once(chat,
 '''                        onCall = { plusOpen = false; startCall() },''',
 '''                        onCamera = {
