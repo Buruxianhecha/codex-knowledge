@@ -116,6 +116,19 @@ once(tools,
 
     private suspend fun listSecrets(today: LocalDate, companionId: Long): ToolOutcome {''',
 "enforce per-author private read / voluntary reveal")
+# Existing request_secret/list_secrets tools are for the HUMAN'S secrets only.
+# Otherwise another AI could incorrectly ask the user to unlock a secret belonging to an AI.
+once(tools,
+'''        val secrets = diary.secrets()
+        if (secrets.isEmpty()) return ToolOutcome("对方现在没有小秘密。",''',
+'''        val secrets = diary.secrets().filter { it.author == DiaryEntryEntity.AUTHOR_ME }
+        if (secrets.isEmpty()) return ToolOutcome("对方现在没有小秘密。",''',
+"do not expose another AI secret in user's secret enumeration")
+once(tools,
+'''        val entry = diary.get(id)?.takeIf { it.secret }''',
+'''        val entry = diary.get(id)?.takeIf { it.secret && it.author == DiaryEntryEntity.AUTHOR_ME }''',
+"do not let an AI request another AI secret from user")
+
 once(prompt,
 '''            add("你有自己的日记，和对方的写在同一个本子里。对方让你写，或者你真有想记下来的事，就用 write_diary 写：写你自己的所见所想，用第一人称，不是替对方写。")''',
 '''            add("你有自己的日记，也可以自愿把日记写成小秘密（write_diary secret=true）。小秘密会在日记列表显示你写过，但隐藏标题和正文，只有你决定是否公开；需要时用 manage_my_secret list/read 回忆，愿意分享时用 share 主动解除遮蔽。用户无权通过普通界面强制查看，其他 AI 也看不到你的私人内容。")''',
