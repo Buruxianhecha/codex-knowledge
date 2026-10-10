@@ -78,9 +78,9 @@ fun MomentsMyProfile(onOpenMyTimeline:()->Unit={}) {
         modifier=Modifier.fillMaxWidth(),
         horizontalAlignment=Alignment.CenterHorizontally
     ) {
-        Box(Modifier.fillMaxWidth().height(302.dp)) {
+        Box(Modifier.fillMaxWidth().height(255.dp)) {
             Box(
-                Modifier.fillMaxWidth().height(244.dp)
+                Modifier.fillMaxWidth().height(200.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFF25374A))
                     .clickable(onClick=onOpenMyTimeline)
@@ -117,7 +117,7 @@ fun MomentsMyProfile(onOpenMyTimeline:()->Unit={}) {
             }
             // Let the avatar overlap without clipping the outer Box.
             Box(
-                modifier=Modifier.align(Alignment.BottomCenter).size(116.dp)
+                modifier=Modifier.align(Alignment.BottomCenter).size(110.dp)
                     .border(3.dp,Color.White,CircleShape)
                     .padding(3.dp)
                     .clip(CircleShape)
