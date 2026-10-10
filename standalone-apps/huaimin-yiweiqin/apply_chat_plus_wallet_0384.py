@@ -46,6 +46,9 @@ once(screen,
     var walletAction by remember { mutableStateOf<ChatMoneyKind?>(null) }
     var walletBusy by remember { mutableStateOf(false) }
     val walletBook by remember { c.wallet.state }.collectAsStateWithLifecycle()
+    LaunchedEffect(state.conversationId) {
+        if (state.conversationId != null) runCatching { c.wallet.settleExpired() }
+    }
     var deletingSticker by remember { mutableStateOf<StickerEntity?>(null) }""",
      "plus and wallet dialog state")
 
@@ -132,6 +135,21 @@ once(screen,
             ),
             isGroup = state.isGroup,
             balance = walletBook.balances[0L] ?: 0L,
+            initialized = walletBook.initialized,
+            onStarter = {
+                if (!walletBusy && !walletBook.initialized) {
+                    walletBusy = true
+                    scope.launch {
+                        try {
+                            c.wallet.starter()
+                        } catch (error: Exception) {
+                            voiceHint = error.message ?: "体验币领取失败"
+                        } finally {
+                            walletBusy = false
+                        }
+                    }
+                }
+            },
             onDismiss = { if (!walletBusy) walletAction = null },
             onConfirm = { ids, cents, random ->
                 val conversation = state.conversationId
