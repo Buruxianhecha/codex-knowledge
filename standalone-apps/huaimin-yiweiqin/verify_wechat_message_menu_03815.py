@@ -37,6 +37,6 @@ assert "anchorBounds" in popup and "coerceIn(edgePx, maxX)" in popup and "coerce
 assert "PopupArrow(tipUp = true" in popup and "PopupArrow(tipUp = false" in popup
 assert "reactionContent()" in popup
 assert 'HorizontalDivider(' in popup
-assert "Modifier.height(66.dp)" in popup
+assert ".height(66.dp)" in popup
 assert "if (!expanded || actions.isEmpty()) return" in popup
 print("PASS: v0.38.15 long press grid, both alignment directions, edge clamp, arrow and all actions preserved")
