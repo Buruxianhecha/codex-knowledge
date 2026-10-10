@@ -21,6 +21,7 @@ data class WalletMovement(
     val to: Long,
     val amount: Long,
     val packetId: String? = null,
+    val conversationId: Long = 0L,
     val at: Long = System.currentTimeMillis()
 )
 @Serializable
@@ -134,14 +135,15 @@ class VirtualWalletStore(context: Context) {
             movements = listOf(WalletMovement(kind = "starter", from = 0, to = 0, amount = STARTER_CENTS))))
     }
 
-    suspend fun transfer(from: Long, to: Long, cents: Long): Unit = mutex.withLock {
+    suspend fun transfer(from: Long, to: Long, cents: Long, conversationId: Long = 0L): Unit = mutex.withLock {
         ensureWritable()
         amount(cents)
         require(from != to && from >= 0 && to >= 0) { "请选择另一位收款人" }
         val old = current.value
         val next = credit(debit(old.balances, from, cents), to, cents)
         save(old.copy(balances = next, movements =
-            (old.movements + WalletMovement(kind = "transfer", from = from, to = to, amount = cents))
+            (old.movements + WalletMovement(kind = "transfer", from = from, to = to, amount = cents,
+                conversationId = conversationId))
                 .takeLast(200000)))
     }
 
@@ -160,7 +162,7 @@ class VirtualWalletStore(context: Context) {
         val old = current.value
         save(old.copy(balances = debit(old.balances, from, cents), packets = old.packets + packet,
             movements = (old.movements + WalletMovement(kind = "packet", from = from, to = -1,
-                amount = cents, packetId = packet.id)).takeLast(200000)))
+                amount = cents, packetId = packet.id, conversationId = conversationId)).takeLast(200000)))
         packet.id
     }
 

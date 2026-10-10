@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.3"
-assert apk.get_androidversion_code() == "62069"
+assert apk.get_androidversion_name() == "0.38.4"
+assert apk.get_androidversion_code() == "62070"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -68,6 +68,8 @@ for method in ("starter", "transfer", "sendPacket", "claimPacket", "settleExpire
     assert any("Lcom/cleo/cleos/data/VirtualWalletStore;->" + method in call for call in calls), (
         method, "wallet interaction has no compiled caller")
 assert any("Lcom/cleo/cleos/ui/VirtualWalletScreenKt;->VirtualWalletScreen" in call for call in calls), "wallet UI is not reachable"
+assert any("Lcom/cleo/cleos/ui/chat/ChatWalletPanelKt;->ChatPlusPanel" in call for call in calls), "chat plus panel missing"
+assert any("Lcom/cleo/cleos/ui/chat/ChatWalletPanelKt;->ChatWalletCard" in call for call in calls), "chat wallet card missing"
 
 assert any("Lcom/cleo/cleos/data/Recalls;->" in call for call in calls), "recall disappeared"
 assert any("Lcom/cleo/cleos/data/ReactionEvents;->" in call for call in calls), "reaction awareness disappeared"
