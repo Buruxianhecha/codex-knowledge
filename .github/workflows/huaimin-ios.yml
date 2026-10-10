@@ -7,11 +7,11 @@ on:
     paths:
       - "standalone-apps/huaimin-yiweiqin-ios/**"
       - ".github/workflows/huaimin-ios.yml"
-  pull_request:
-    paths:
-      - "standalone-apps/huaimin-yiweiqin-ios/**"
-      - ".github/workflows/huaimin-ios.yml"
   workflow_dispatch:
+
+concurrency:
+  group: huaimin-ios-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -72,6 +72,7 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_ID" -b
           xcrun simctl install "$DEVICE_ID" "$RUNNER_TEMP/huaimin-derived/Build/Products/Debug-iphonesimulator/HuaiminIOS.app"
           xcrun simctl launch "$DEVICE_ID" com.lin.huaimin.ios
+          sleep 2
           xcrun simctl io "$DEVICE_ID" screenshot "$RUNNER_TEMP/huaimin-ios-first-launch.png"
           xcrun simctl shutdown "$DEVICE_ID"
       - name: Store simulator build and build report (not an installable IPA)
