@@ -130,7 +130,8 @@ fun MomentsScreen(onBack:()->Unit,onOpenImage:(String)->Unit) {
                                 Text(authorName,color=p.content,fontSize=17.sp,fontWeight=FontWeight.SemiBold)
                                 Text(momentTime(post.createdAt)+" · "+MomentAccess.label(post.visibility),color=p.contentSecondary,fontSize=12.sp)
                             }
-                            if(post.authorId==0L) {
+                            // Owner can manage every post, including those published by AI.
+                            run {
                                 Box {
                                     var showActions by remember(post.id){mutableStateOf(false)}
                                     IconButton(onClick={showActions=true},enabled=!busy) {
