@@ -20,6 +20,9 @@ def once(path, old, new, why):
 target = root / base / "ui/chat/ChatWalletPanel.kt"
 target.parent.mkdir(parents=True, exist_ok=True)
 copyfile(here / "ChatWalletPanel_0384.kt", target)
+wallet_test = root / "app/src/test/java/com/cleo/cleos/ui/chat/ChatWalletPanelTest.kt"
+wallet_test.parent.mkdir(parents=True, exist_ok=True)
+copyfile(here / "ChatWalletPanelTest_0384.kt", wallet_test)
 
 once(screen,
      "import androidx.compose.material.icons.rounded.AddComment\n",
