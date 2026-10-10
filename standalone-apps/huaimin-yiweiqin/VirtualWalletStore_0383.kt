@@ -124,7 +124,7 @@ class VirtualWalletStore(context: Context) {
         val liquid = book.balances.values.sum()
         val escrow = book.packets.sumOf { it.remaining } +
             book.transfers.filter { it.state == "pending" }.sumOf { it.amount }
-        require(book.totalIssuedCents >= 0L && (!book.initialized || book.totalIssuedCents >= 0L))
+        require(book.totalIssuedCents in 0L..Long.MAX_VALUE && (book.initialized || book.totalIssuedCents == 0L))
         require(liquid + escrow == book.totalIssuedCents) {
             "钱包总账不平，拒绝读取"
         }
@@ -324,7 +324,7 @@ class VirtualWalletStore(context: Context) {
 
         fun parseBalanceInput(input: String): Long? {
             val text = input.trim()
-            if (!Regex("""(0|[1-9][0-9]{0,6})(\\.[0-9]{1,2})?""").matches(text)) return null
+            if (!Regex("""(0|[1-9][0-9]{0,6})(\.[0-9]{1,2})?""").matches(text)) return null
             val pieces = text.split('.')
             val whole = pieces[0].toLongOrNull() ?: return null
             val part = pieces.getOrNull(1)?.padEnd(2, '0')?.toLongOrNull() ?: 0L
