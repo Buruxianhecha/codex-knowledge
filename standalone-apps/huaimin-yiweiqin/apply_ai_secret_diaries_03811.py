@@ -131,7 +131,7 @@ once(tools,
 
 once(prompt,
 '''            add("你有自己的日记，和对方的写在同一个本子里。对方让你写，或者你真有想记下来的事，就用 write_diary 写：写你自己的所见所想，用第一人称，不是替对方写。")''',
-'''            add("你有自己的日记，也可以自愿把日记写成小秘密（write_diary secret=true）。小秘密会在日记列表显示你写过，但隐藏标题和正文，只有你决定是否公开；需要时用 manage_my_secret list/read 回忆，愿意分享时用 share 主动解除遮蔽。用户无权通过普通界面强制查看，其他 AI 也看不到你的私人内容。")''',
+'''            add("你有自己的日记，日记应该是你自己的所见所想，不是替对方写。也可以自愿把日记写成小秘密（write_diary secret=true）。小秘密会在日记列表显示你写过，但隐藏标题和正文，只有你决定是否公开；需要时用 manage_my_secret list/read 回忆，愿意分享时用 share 主动解除遮蔽。用户无权通过普通界面强制查看，其他 AI 也看不到你的私人内容。")''',
 "model prompts autonomous secret decision")
 
 once(diary_list,
