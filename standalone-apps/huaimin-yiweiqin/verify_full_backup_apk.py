@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.5"
-assert apk.get_androidversion_code() == "62071"
+assert apk.get_androidversion_name() == "0.38.6"
+assert apk.get_androidversion_code() == "62072"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -75,6 +75,9 @@ for fn in ("context", "claim", "contextFor"):
 for fn in ("context", "claim"):
     assert any("Lcom/cleo/cleos/ai/WalletChatBridge;->" + fn in call for call in calls), (fn, "wallet bridge not connected")
 assert any("claim_virtual_red_packet" in ins.get_output() for m in methods if m.get_class_name() == "Lcom/cleo/cleos/ai/ToolSpecs;" and m.get_code() is not None for ins in m.get_instructions()), "wallet claim tool unregistered"
+assert any("Lcom/cleo/cleos/ai/ChatRepository;->walletTransaction" in call for call in calls), "chat wallet send does not trigger model"
+assert any("Lcom/cleo/cleos/ai/WalletReactiveEvents;->isEvent" in call for call in calls), "invisible verified transaction event is not used"
+assert any("Lcom/cleo/cleos/ai/WalletReactiveEvents;->messageText" in call for call in calls), "event missing actual model-visible text"
 
 
 assert any("Lcom/cleo/cleos/data/Recalls;->" in call for call in calls), "recall disappeared"
