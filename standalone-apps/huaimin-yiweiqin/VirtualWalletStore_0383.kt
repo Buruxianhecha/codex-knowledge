@@ -63,7 +63,9 @@ data class WalletBook(
     val balances: Map<Long, Long> = emptyMap(),
     val movements: List<WalletMovement> = emptyList(),
     val packets: List<WalletPacket> = emptyList(),
-    val transfers: List<WalletPendingTransfer> = emptyList()
+    val transfers: List<WalletPendingTransfer> = emptyList(),
+    // Legacy books omit this field; their original total was exactly 1000.00 star coins.
+    val totalIssuedCents: Long = if (initialized) 100_000L else 0L
 )
 
 /**
@@ -111,7 +113,7 @@ class VirtualWalletStore(context: Context) {
             require(p.claims.all { it.recipient in p.recipients })
             p.claims.forEachIndexed { index, claim -> require(claim.amount == p.shares[index]) }
         }
-        // No generated coins except one deliberately claimed starter allowance.
+        // All balance edits are explicitly accounted for by totalIssuedCents.
         require(book.transfers.map { it.id }.distinct().size == book.transfers.size)
         book.transfers.forEach { t ->
             require(t.from >= 0 && t.to >= 0 && t.from != t.to &&
@@ -122,7 +124,8 @@ class VirtualWalletStore(context: Context) {
         val liquid = book.balances.values.sum()
         val escrow = book.packets.sumOf { it.remaining } +
             book.transfers.filter { it.state == "pending" }.sumOf { it.amount }
-        require(liquid + escrow == if (book.initialized) STARTER_CENTS else 0L) {
+        require(book.totalIssuedCents in 0L..Long.MAX_VALUE && (book.initialized || book.totalIssuedCents == 0L))
+        require(liquid + escrow == book.totalIssuedCents) {
             "钱包总账不平，拒绝读取"
         }
     }
@@ -147,10 +150,10 @@ class VirtualWalletStore(context: Context) {
         unreadable?.let { throw IllegalStateException("本机钱包数据无法读取，请先备份，不能重置余额", it) }
     }
     private fun amount(cents: Long) {
-        require(cents in 1L..MAX_TRANSACTION_CENTS) { "每次金额须在 0.01～1000.00 虚拟币之间" }
+        require(cents in 1L..MAX_TRANSACTION_CENTS) { "每次金额须在 0.01～1000.00 星币之间" }
     }
     private fun debit(b: Map<Long, Long>, id: Long, cents: Long): Map<Long, Long> {
-        require(id >= 0 && b.getOrDefault(id, 0L) >= cents) { "虚拟余额不足" }
+        require(id >= 0 && b.getOrDefault(id, 0L) >= cents) { "星币余额不足" }
         return b + (id to (b.getOrDefault(id, 0L) - cents))
     }
     private fun credit(b: Map<Long, Long>, id: Long, cents: Long): Map<Long, Long> =
@@ -159,13 +162,23 @@ class VirtualWalletStore(context: Context) {
     /** Anti-loop guard: an AI may send up to three voluntary gifts per local day, max 10.00 each. */
     private fun guardAiSpend(book: WalletBook, from: Long, cents: Long, now: Long) {
         if (from == 0L) return
-        require(cents <= 1000L) { "AI 单次主动赠送上限为 10.00 虚拟币" }
+        require(cents <= 1000L) { "AI 单次主动赠送上限为 10.00 星币" }
         val day = java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
         val daily = book.movements.count { m ->
             m.from == from && m.kind in setOf("packet","transfer_pending") &&
                 java.time.Instant.ofEpochMilli(m.at).atZone(java.time.ZoneId.systemDefault()).toLocalDate() == day
         }
         require(daily < 3) { "这位 AI 今天主动赠送已达 3 次" }
+    }
+
+    /**
+     * Only account 0 can be adjusted manually. The exact delta changes the minted
+     * supply; other AI balances and pending/red-packet escrow are unchanged.
+     * Runs under the same atomic file + mutex as all other wallet operations.
+     */
+    suspend fun setMyBalance(cents: Long): Unit = mutex.withLock {
+        ensureWritable()
+        save(adjustedBook(current.value, cents))
     }
 
     suspend fun starter(): Unit = mutex.withLock {
@@ -200,7 +213,7 @@ class VirtualWalletStore(context: Context) {
             "仅拼手气群红包支持自己领取"
         }
         require(!allowSenderClaim || (from in recipients && random && conversationId > 0L))
-        require(cents >= recipients.size) { "每人至少 0.01 虚拟币" }
+        require(cents >= recipients.size) { "每人至少 0.01 星币" }
         val shares = split(cents, recipients.size, random)
         val packet = WalletPacket(sender = from, recipients = recipients,
             shares = shares, random = random, conversationId = conversationId,
@@ -307,6 +320,32 @@ class VirtualWalletStore(context: Context) {
     companion object {
         const val STARTER_CENTS = 100_000L
         const val MAX_TRANSACTION_CENTS = 100_000L
+        const val MAX_BALANCE_CENTS = 999_999_999L // 9,999,999.99 stars
+
+        fun parseBalanceInput(input: String): Long? {
+            val text = input.trim()
+            if (!Regex("""(0|[1-9][0-9]{0,6})(\.[0-9]{1,2})?""").matches(text)) return null
+            val pieces = text.split('.')
+            val whole = pieces[0].toLongOrNull() ?: return null
+            val part = pieces.getOrNull(1)?.padEnd(2, '0')?.toLongOrNull() ?: 0L
+            return (whole * 100L + part).takeIf { it in 0L..MAX_BALANCE_CENTS }
+        }
+
+        internal fun adjustedBook(old: WalletBook, newCents: Long): WalletBook {
+            require(newCents in 0L..MAX_BALANCE_CENTS) { "余额范围为 0～9999999.99 星币" }
+            val oldCents = old.balances[0L] ?: 0L
+            val delta = newCents - oldCents
+            if (delta == 0L && old.initialized) return old
+            return old.copy(
+                initialized = true,
+                balances = old.balances + (0L to newCents),
+                totalIssuedCents = old.totalIssuedCents + delta,
+                movements = (old.movements + WalletMovement(
+                    kind = if (delta >= 0L) "balance_raise" else "balance_lower",
+                    from = 0L, to = 0L, amount = kotlin.math.abs(delta)
+                )).takeLast(200000)
+            )
+        }
         private val rng = SecureRandom()
         fun split(total: Long, count: Int, random: Boolean): List<Long> {
             require(count in 1..50 && total >= count)

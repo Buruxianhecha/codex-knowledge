@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.7"
-assert apk.get_androidversion_code() == "62073"
+assert apk.get_androidversion_name() == "0.38.8"
+assert apk.get_androidversion_code() == "62074"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -70,6 +70,10 @@ for method in ("starter", "transfer", "sendPacket", "claimPacket", "settleExpire
 assert any("Lcom/cleo/cleos/ui/VirtualWalletScreenKt;->VirtualWalletScreen" in call for call in calls), "wallet UI is not reachable"
 assert any("Lcom/cleo/cleos/ui/chat/ChatWalletPanelKt;->ChatPlusPanel" in call for call in calls), "chat plus panel missing"
 assert any("Lcom/cleo/cleos/ui/chat/ChatWalletPanelKt;->ChatWalletCard" in call for call in calls), "chat wallet card missing"
+assert any("Lcom/cleo/cleos/data/VirtualWalletStore;->setMyBalance" in call for call in calls), "user balance editor not connected to wallet"
+assert any("Landroidx/core/content/FileProvider;->getUriForFile" in call for call in calls), "camera uses no secure FileProvider"
+assert any("Landroidx/activity/result/contract/ActivityResultContracts$TakePicture;-><init>" in call for call in calls), "real camera launcher not wired"
+assert any("huaimin_camera_paths.xml" in name for name in apk.get_files()), "camera content URI paths missing"
 for fn in ("context", "claim", "contextFor"):
     assert any("Lcom/cleo/cleos/ai/WalletChatBridge;->" + fn in item for item in definitions), (fn, "wallet bridge not compiled")
 for fn in ("context", "claim"):

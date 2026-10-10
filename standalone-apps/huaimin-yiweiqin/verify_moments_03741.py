@@ -13,8 +13,10 @@ paths={
 text={name:path.read_text(encoding="utf-8") for name,path in paths.items()}
 h=text["hub"]
 first=h.index('DirectoryRow("朋友圈"')
-for old in ['DirectoryRow("日记"','DirectoryRow("待办"','DirectoryRow("信箱"','DirectoryRow("回忆"']:
+for old in ['DirectoryRow("日记"','DirectoryRow("待办"','DirectoryRow("回忆"']:
     if h.index(old)<=first:raise RuntimeError("Moments must come before "+old)
+if 'DirectoryRow("信箱"' in h:
+    raise RuntimeError("Discover mailbox duplicates the existing Home letter page")
 checks={
  "real navigation":("main",['"moments" -> MomentsScreen(', 'onMoments = { secondPage = "moments" }']),
  "local persistence":("store",['moments-v1.json','suspend fun publish','suspend fun toggleLike','suspend fun reply','suspend fun inviteAi','suspend fun delete']),

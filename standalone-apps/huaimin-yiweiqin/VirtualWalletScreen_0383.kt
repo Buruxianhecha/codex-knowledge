@@ -48,6 +48,8 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
     var message by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var lucky by remember { mutableStateOf(false) }
+    var editingBalance by remember { mutableStateOf(false) }
+    var editedBalance by remember { mutableStateOf("") }
 
     fun runWallet(block: suspend () -> Unit) {
         if (busy) return
@@ -67,9 +69,40 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
         runCatching { app.wallet.settleExpired() }
             .onFailure { message = it.message ?: "无法结算过期红包" }
     }
+    if (editingBalance) {
+        val newBalance = VirtualWalletStore.parseBalanceInput(editedBalance)
+        AlertDialog(
+            onDismissRequest = { if (!busy) editingBalance = false },
+            title = { Text("设置星币余额") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("仅调整我的星币余额，不改变 AI 已有余额、红包和待收款转账。")
+                    OutlinedTextField(
+                        value = editedBalance, onValueChange = { editedBalance = it },
+                        label = { Text("目标余额（0～9999999.99）") },
+                        singleLine = true
+                    )
+                    if (newBalance == null) Text("请输入有效的星币金额，最多两位小数。")
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = !busy && newBalance != null, onClick = {
+                    val cents = newBalance ?: return@TextButton
+                    runWallet {
+                        app.wallet.setMyBalance(cents)
+                        editingBalance = false
+                        message = "我的余额已调整为 " + coin(cents) + " 星币"
+                    }
+                }) { Text("保存余额") }
+            },
+            dismissButton = {
+                TextButton(enabled = !busy, onClick = { editingBalance = false }) { Text("取消") }
+            }
+        )
+    }
     GlassPage(overlay = { page ->
         GlassTopBar(
-            title = "钱包", subtitle = "本机虚拟币 · 不是真实支付",
+            title = "星币钱包", subtitle = "余额 · 红包 · 转账",
             backdrop = page,
             leading = { GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack,
                 "返回发现", onBack, page) }
@@ -81,18 +114,12 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text("我的余额", fontSize = 15.sp, color = palette.contentSecondary)
-            Text(coin(book.balances[0L] ?: 0L) + " 虚拟币", fontSize = 32.sp,
+            Text(coin(book.balances[0L] ?: 0L) + " 星币", fontSize = 32.sp,
                 color = palette.content)
-            Text("虚拟币不能充值、提现、兑换人民币或购买真实商品；只在本机角色间流转。",
-                fontSize = 12.sp, color = palette.contentSecondary)
-            if (!book.initialized) {
-                Button(enabled = !busy, onClick = {
-                    runWallet {
-                        app.wallet.starter()
-                        message = "已领取一次性 1000.00 体验币"
-                    }
-                }) { Text("领取一次性体验币") }
-            }
+            Button(enabled = !busy, onClick = {
+                editedBalance = coin(book.balances[0L] ?: 0L)
+                editingBalance = true
+            }) { Text("编辑我的星币余额") }
 
             HorizontalDivider()
             Text("角色钱包", color = palette.content, fontSize = 18.sp)
@@ -115,7 +142,7 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
                 }
             }
             OutlinedTextField(value = amount, onValueChange = { amount = it },
-                label = { Text("金额（虚拟币，例如 8.88）") }, singleLine = true,
+                label = { Text("金额（星币，例如 8.88）") }, singleLine = true,
                 modifier = Modifier.fillMaxWidth())
             Button(enabled = !busy && recipient != null && parseCoin(amount) != null,
                 onClick = {
@@ -124,7 +151,7 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
                     runWallet {
                         app.wallet.transfer(0, to, cents)
                         message = "成功向 " + (companions.firstOrNull { it.id == to }?.name ?: "AI") +
-                            " 转账 " + coin(cents) + " 虚拟币"
+                            " 转账 " + coin(cents) + " 星币"
                         amount = ""
                     }
                 }) { Text("确认转账") }
@@ -184,7 +211,7 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
                     TextButton(enabled = !busy, onClick = {
                         runWallet {
                             val got = app.wallet.claimPacket(packet.id, 0L)
-                            message = "领取成功：" + coin(got) + " 虚拟币"
+                            message = "领取成功：" + coin(got) + " 星币"
                         }
                     }) { Text("领取红包") }
                 }
@@ -194,8 +221,10 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
             Text("收支明细", fontSize = 18.sp, color = palette.content)
             book.movements.asReversed().take(30).forEach { entry ->
                 val title = when (entry.kind) {
-                    "starter" -> "一次性体验币"
-                    "transfer" -> "虚拟转账"
+                    "starter" -> "初始星币"
+                    "balance_raise" -> "手动增加星币"
+                    "balance_lower" -> "手动减少星币"
+                    "transfer" -> "星币转账"
                     "packet" -> "发送红包"
                     "claim" -> "领取红包"
                     "refund" -> "过期退款"
