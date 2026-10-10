@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -187,7 +186,7 @@ internal fun WechatMessagePopup(
                 // Blur is confined to the internal light diffusion layer; buttons stay sharp.
                 Box(
                     Modifier
-                        .fillMaxSize()
+                        .matchParentSize()
                         .blur(21.dp)
                         .background(
                             Brush.linearGradient(
