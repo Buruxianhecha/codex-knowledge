@@ -65,6 +65,35 @@ once(chat_path, '''
                 } else if (canSend || editing) {
 ''', "remove old right-side microphone; retain send/stop behavior")
 
+# Do not reserve an empty 50dp slot after "+" when no message can be sent:
+# when idle the plus button must be the actual rightmost control.
+once(chat_path, '''
+            Box(Modifier.size(BarHeight), contentAlignment = Alignment.Center) {
+                // Plain fills inside the glass, like the chips on a card: glass in glass reads as a hole.
+''', '''
+            if (busy || canSend || editing) {
+                Box(Modifier.size(BarHeight), contentAlignment = Alignment.Center) {
+                    // Plain fills inside the glass, like the chips on a card: glass in glass reads as a hole.
+''', "hide empty right-side send placeholder")
+once(chat_path, '''
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AttachmentThumb''', '''
+                }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AttachmentThumb''', "close conditional trailing send/stop button")
+
 # The photo picker is still used in the + attachment panel; remove only the
 # obsolete InputBar argument so there is no disconnected unused shortcut.
 once(chat_path, '''
