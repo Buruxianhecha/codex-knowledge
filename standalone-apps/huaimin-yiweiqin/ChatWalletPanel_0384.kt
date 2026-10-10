@@ -163,7 +163,7 @@ internal fun ChatWalletActionDialog(
     initialized: Boolean,
     onStarter: () -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (List<Long>, Long, Boolean) -> Unit,
+    onConfirm: (List<Long>, Long, Boolean, Boolean) -> Unit,
 ) {
     val valid = members.filter { it.id > 0L }.distinctBy { it.id }
     var chosen by remember(kind, valid.map { it.id }) {
@@ -171,11 +171,13 @@ internal fun ChatWalletActionDialog(
     }
     var amount by remember(kind) { mutableStateOf("") }
     var lucky by remember { mutableStateOf(false) }
+    var selfJoin by remember { mutableStateOf(false) }
     val parsed = parseMoneyCoins(amount)
     val selected = valid.filter { it.id in chosen }.map { it.id }
-    val allowed = parsed != null && parsed <= balance && selected.isNotEmpty() &&
+    val participants = selected + if (kind == ChatMoneyKind.PACKET && isGroup && lucky && selfJoin) listOf(0L) else emptyList()
+    val allowed = parsed != null && parsed <= balance && participants.isNotEmpty() &&
         (kind == ChatMoneyKind.PACKET || selected.size == 1) &&
-        (kind != ChatMoneyKind.PACKET || parsed >= selected.size)
+        (kind != ChatMoneyKind.PACKET || parsed >= participants.size)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (kind == ChatMoneyKind.PACKET) "发送虚拟红包" else "向 AI 转账") },
@@ -217,11 +219,15 @@ internal fun ChatWalletActionDialog(
                         RadioButton(selected = lucky, onClick = { lucky = true })
                         Text("拼手气")
                     }
+                    if (lucky) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = selfJoin, onCheckedChange = { selfJoin = it })
+                        Text("我也参与抢红包（仅拼手气）", fontSize = 12.sp)
+                    }
                 }
                 Text(
                     if (kind == ChatMoneyKind.PACKET)
-                        "发送即扣款；24小时未领取金额退回。AI 自动抢红包待后续接入。"
-                    else "确认后立即转入 AI 本机虚拟账户；不可撤销。",
+                        "发出后等待真实领取，24小时未领取金额退回。拼手气群红包可勾选自己参与。"
+                    else "发送后等待对方确认收款；24小时未收自动退回。",
                     fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (parsed != null && parsed > balance) {
@@ -231,7 +237,7 @@ internal fun ChatWalletActionDialog(
         },
         confirmButton = {
             TextButton(enabled = allowed, onClick = {
-                onConfirm(selected, parsed ?: return@TextButton, lucky)
+                onConfirm(participants, parsed ?: return@TextButton, lucky, selfJoin && isGroup && lucky)
             }) { Text(if (kind == ChatMoneyKind.PACKET) "发红包" else "确认转账") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
