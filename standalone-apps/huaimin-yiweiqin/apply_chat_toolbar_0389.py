@@ -18,7 +18,7 @@ def once(path: Path | str, old: str, new: str, reason: str):
 # Remove the TWO top-right shortcuts in both single and group chats.
 # Do not affect the phone entry under the chat's + panel.
 once(chat_path,
-    '                    if (!selecting) GlassIconButton(Icons.Rounded.Call, "打电话", { startCall() }, page)\n',
+    '                    GlassIconButton(Icons.Rounded.Call, if (state.isGroup) "多人语音群电话" else "打电话", { startCall() }, page)\n',
     '',
     "remove top-right call icon")
 once(chat_path,
@@ -34,7 +34,7 @@ once(chat_path, '''
                     Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .clickable(enabled = !editing && attachments.size < MAX_ATTACHMENTS, onClick = onPick),
+                        .clickable(enabled = attachments.size < MAX_ATTACHMENTS, onClick = onPick),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(Icons.Rounded.AddPhotoAlternate, contentDescription = "发图片", tint = palette.contentSecondary, modifier = Modifier.size(24.dp))
@@ -47,7 +47,7 @@ once(chat_path, '''
                 MicButton(
                     Modifier.size(38.dp).clip(CircleShape),
                     recording,
-                    { if (editing) false else onVoiceStart() },
+                    onVoiceStart,
                     onVoiceMove,
                     onVoiceEnd,
                 )
@@ -57,12 +57,12 @@ once(chat_path, '''
 # The right side is now for the + menu and, while composing, the send/stop
 # control. In an empty idle composer, + is the rightmost button.
 once(chat_path, '''
-                } else if (!canSend && !editing) {
+                } else if (!canSend) {
                     // Nothing typed: the button is for talking instead.
                     MicButton(button, recording, onVoiceStart, onVoiceMove, onVoiceEnd)
                 } else {
 ''', '''
-                } else if (canSend || editing) {
+                } else {
 ''', "remove old right-side microphone; retain send/stop behavior")
 
 # Do not reserve an empty 50dp slot after "+" when no message can be sent:
@@ -71,7 +71,7 @@ once(chat_path, '''
             Box(Modifier.size(BarHeight), contentAlignment = Alignment.Center) {
                 // Plain fills inside the glass, like the chips on a card: glass in glass reads as a hole.
 ''', '''
-            if (busy || canSend || editing) {
+            if (busy || canSend) {
                 Box(Modifier.size(BarHeight), contentAlignment = Alignment.Center) {
                     // Plain fills inside the glass, like the chips on a card: glass in glass reads as a hole.
 ''', "hide empty right-side send placeholder")
