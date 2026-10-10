@@ -17,7 +17,7 @@ object WalletReactiveEvents {
     fun messageText(packet: Boolean, transactionId: String): String {
         require(transactionId.isNotBlank() && transactionId.length <= 100)
         return PREFIX + " 编号=" + transactionId + "。" +
-            (if (packet) "刚刚发送虚拟红包。" else "刚刚完成虚拟转账。") +
+            (if (packet) "刚刚发送星币红包。" else "刚刚完成星币转账。") +
             "这是应用在真实扣账成功后生成的系统交易通知，并非用户手动输入。" +
             "请立即自然、简短地回应；只根据你在本机钱包上下文实际有权限看到的金额、领取资格和余额回答。" +
             "不可假装领红包，也不可声称未收到已经到账的转账。" +
