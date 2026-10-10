@@ -30,6 +30,6 @@ class ContactDirectoryOrderTest {
 
     @Test fun malformedPrefDataAndDuplicateIdsAreIgnored() {
         assertEquals(listOf(3L,4L),ContactDirectoryOrder.decode("xxx,3,3,-6,4,,0"))
-        assertEquals(listOf(3L,4L,5L),ContactDirectoryOrder.apply(listOf(3,4,5), listOf(4,3,4,44)))
+        assertEquals(listOf(4L,3L,5L),ContactDirectoryOrder.apply(listOf(3,4,5), listOf(4,3,4,44)))
     }
 }
