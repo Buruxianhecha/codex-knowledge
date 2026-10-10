@@ -148,9 +148,7 @@ internal fun ChatPlusPanel(
                 }
             }
         }
-        Text("红包与转账仅使用应用内虚拟币，不能提现或购买真实商品。",
-            fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 8.dp))
+        // All items retain their original features; no repetitive payment disclaimer.
     }
 }
 
@@ -183,10 +181,8 @@ internal fun ChatWalletActionDialog(
         title = { Text(if (kind == ChatMoneyKind.PACKET) "发送虚拟红包" else "向 AI 转账") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("我的余额：" + coins(balance) + " 虚拟币", fontSize = 13.sp)
-                if (!initialized) TextButton(onClick = onStarter) {
-                    Text("首次领取 1000.00 体验币")
-                }
+                Text("我的余额：" + coins(balance) + " 星币", fontSize = 13.sp)
+                if (!initialized) Text("余额可以在发现页的钱包中自行设置。", fontSize = 12.sp)
                 if (isGroup) {
                     Text(if (kind == ChatMoneyKind.PACKET) "选择群内领取人（可多选）"
                         else "选择收款 AI（单选）", fontSize = 13.sp)
@@ -271,7 +267,7 @@ internal fun ChatWalletCard(
                     Spacer(Modifier.width(10.dp))
                     Column {
                         Text(event.title, color = Color.White, fontWeight = FontWeight.SemiBold)
-                        Text(coins(event.amount) + " 虚拟币", color = Color.White, fontSize = 18.sp)
+                        Text(coins(event.amount) + " 星币", color = Color.White, fontSize = 18.sp)
                     }
                 }
                 Text(event.status, color = Color.White.copy(alpha = 0.9f), fontSize = 12.sp)
@@ -284,8 +280,7 @@ internal fun ChatWalletCard(
         title = { Text(event.title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                Text(coins(event.amount) + " 虚拟币\n" + event.status +
-                    "\n这是本机虚拟交易，与人民币无关。")
+                Text(coins(event.amount) + " 星币\n" + event.status)
                 if (packet && event.canClaim) {
                     Button(onClick = {
                         details = false
