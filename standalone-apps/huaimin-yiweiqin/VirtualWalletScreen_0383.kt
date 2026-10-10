@@ -221,7 +221,7 @@ fun VirtualWalletScreen(onBack: () -> Unit) {
             Text("收支明细", fontSize = 18.sp, color = palette.content)
             book.movements.asReversed().take(30).forEach { entry ->
                 val title = when (entry.kind) {
-                    "starter" -> "星币"
+                    "starter" -> "初始星币"\n                    "balance_raise" -> "手动增加星币"\n                    "balance_lower" -> "手动减少星币"
                     "transfer" -> "虚拟转账"
                     "packet" -> "发送红包"
                     "claim" -> "领取红包"
