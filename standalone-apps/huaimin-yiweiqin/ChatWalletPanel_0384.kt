@@ -104,6 +104,7 @@ internal fun parseMoneyCoins(input: String): Long? {
 @Composable
 internal fun ChatPlusPanel(
     onAlbum: () -> Unit,
+    onCamera: () -> Unit,
     onCall: () -> Unit,
     onRedPacket: () -> Unit,
     onTransfer: () -> Unit,
@@ -111,7 +112,7 @@ internal fun ChatPlusPanel(
     data class Action(val label: String, val icon: ImageVector, val enabled: Boolean, val action: () -> Unit)
     val actions = listOf(
         Action("相册", Icons.Rounded.PhotoLibrary, true, onAlbum),
-        Action("拍摄", Icons.Rounded.CameraAlt, false, {}),
+        Action("拍摄", Icons.Rounded.CameraAlt, true, onCamera),
         Action("语音通话", Icons.Rounded.Call, true, onCall),
         Action("位置", Icons.Rounded.Place, false, {}),
         Action("红包", Icons.Rounded.CardGiftcard, true, onRedPacket),
