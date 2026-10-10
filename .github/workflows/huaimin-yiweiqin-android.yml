@@ -209,10 +209,12 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_chat_toolbar_0389.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_chat_toolbar_0389.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_unlimited_group_calls_03810.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_ai_secret_diaries_03811.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_ai_secrets_moments_03811.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_unlimited_group_calls_03810.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_discover_contacts_03740.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.10"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62076' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionName = "0.38.11"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62077' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -352,8 +354,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.10", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62076", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.11", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62077", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"

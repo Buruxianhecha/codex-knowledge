@@ -43,7 +43,7 @@ object MomentAccess {
     }
     fun label(v:MomentVisibility):String=when(v) {
         MomentVisibility.PUBLIC -> "公开 · 所有 AI 可见"
-        MomentVisibility.PRIVATE -> "私密 · 仅自己可见"
+        MomentVisibility.PRIVATE -> "私密 · 仅作者和我可见"
         MomentVisibility.SELECTED -> "部分可见"
         MomentVisibility.EXCLUDED -> "不给谁看"
     }
@@ -194,12 +194,13 @@ class MomentsStore(context: Context, private val images: ImageStore) {
             throw e
         }
     }
+    /** Local account owner may moderate the posts of every AI it created. AI tools never call this path. */
     suspend fun updateVisibility(id:String,mode:MomentVisibility,ids:List<Long>)=lock.withLock {
         require(ids.size<=200 && ids.all{it>0L} && ids.distinct().size==ids.size)
         require(mode !in setOf(MomentVisibility.SELECTED,MomentVisibility.EXCLUDED) ||
             ids.isNotEmpty()) { "至少选择一个 AI 联系人" }
-        val existing=current.value.posts.firstOrNull{it.id==id && it.authorId==0L}
-            ?: throw IllegalArgumentException("只能调整自己发表的朋友圈")
+        val existing=current.value.posts.firstOrNull{it.id==id}
+            ?: throw IllegalArgumentException("动态不存在或已被删除")
         save(current.value.copy(posts=current.value.posts.map {
             if(it.id==existing.id) it.copy(visibility=mode,audienceIds=ids) else it
         }))
@@ -222,7 +223,7 @@ class MomentsStore(context: Context, private val images: ImageStore) {
     }
     suspend fun delete(id:String) = lock.withLock {
         val data=current.value
-        val original=data.posts.firstOrNull {it.id==id && it.authorId==0L} ?: return@withLock
+        val original=data.posts.firstOrNull {it.id==id} ?: return@withLock
         save(data.copy(posts=data.posts.filterNot {it.id==id}))
         images.delete(original.photos)
     }
