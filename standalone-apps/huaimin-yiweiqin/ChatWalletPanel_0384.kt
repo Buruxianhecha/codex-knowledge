@@ -128,6 +128,8 @@ internal fun ChatWalletActionDialog(
     members: List<GroupMemberUi>,
     isGroup: Boolean,
     balance: Long,
+    initialized: Boolean,
+    onStarter: () -> Unit,
     onDismiss: () -> Unit,
     onConfirm: (List<Long>, Long, Boolean) -> Unit,
 ) {
@@ -148,6 +150,9 @@ internal fun ChatWalletActionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("我的余额：" + coins(balance) + " 虚拟币", fontSize = 13.sp)
+                if (!initialized) TextButton(onClick = onStarter) {
+                    Text("首次领取 1000.00 体验币")
+                }
                 if (isGroup) {
                     Text(if (kind == ChatMoneyKind.PACKET) "选择群内领取人（可多选）"
                         else "选择收款 AI（单选）", fontSize = 13.sp)
