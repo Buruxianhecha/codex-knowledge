@@ -15,13 +15,14 @@ struct HuaiminApp: App {
 
 private struct OceanBackground: View {
     var body: some View {
-        LinearGradient(
-            colors: [Color(red: 0.035, green: 0.11, blue: 0.23),
-                     Color(red: 0.03, green: 0.23, blue: 0.34),
-                     Color(red: 0.02, green: 0.07, blue: 0.18)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        GeometryReader { frame in
+            Image("wallpaper_5")
+                .resizable()
+                .scaledToFill()
+                .frame(width: frame.size.width, height: frame.size.height)
+                .clipped()
+                .overlay(Color.black.opacity(0.22))
+        }
         .ignoresSafeArea()
     }
 }
@@ -104,6 +105,8 @@ struct ConversationListView: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .background(OceanBackground())
+            .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("怀民亦未寝")
             .toolbar {
                 Button {
@@ -146,6 +149,8 @@ struct ContactsView: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .background(OceanBackground())
+            .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("通讯录")
             .toolbar {
                 Button {
@@ -227,13 +232,7 @@ struct ChatDetailView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
         }
-        .background(
-            LinearGradient(
-                colors: [.init(red: 0.02, green: 0.08, blue: 0.17),
-                         .init(red: 0.04, green: 0.20, blue: 0.27)],
-                startPoint: .top, endPoint: .bottom
-            ).ignoresSafeArea()
-        )
+        .background(OceanBackground())
         .navigationTitle(companion?.name ?? "聊天")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -288,6 +287,8 @@ struct DiscoverView: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .background(OceanBackground())
+            .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("发现")
         }
     }
@@ -311,6 +312,8 @@ struct ProfileView: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .background(OceanBackground())
+            .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("主页")
         }
     }
