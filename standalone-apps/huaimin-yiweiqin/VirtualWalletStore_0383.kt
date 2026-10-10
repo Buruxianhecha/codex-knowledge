@@ -64,7 +64,9 @@ class VirtualWalletStore(context: Context) {
     val state: StateFlow<WalletBook> = current
 
     private fun load(): WalletBook {
-        if (!file.baseFile.exists()) return WalletBook()
+        if (!file.baseFile.exists() &&
+            !java.io.File(file.baseFile.path + ".bak").exists() &&
+            !java.io.File(file.baseFile.path + ".new").exists()) return WalletBook()
         return try {
             json.decodeFromString<WalletBook>(file.openRead().bufferedReader().use { it.readText() })
                 .also(::audit)
@@ -82,7 +84,7 @@ class VirtualWalletStore(context: Context) {
             require(p.sender >= 0L && p.recipients.isNotEmpty() && p.recipients.size <= 50)
             require(p.recipients.distinct().size == p.recipients.size)
             require(p.recipients.none { it == p.sender || it < 0L })
-            require(p.shares.size == p.recipients.size && p.shares.all { it > 0L })
+            require(p.shares.size == p.recipients.size && p.shares.all { it > 0L } && p.shares.sum() <= STARTER_CENTS)
             require(p.claims.size <= p.shares.size)
             require(p.claims.map { it.recipient }.distinct().size == p.claims.size)
             require(p.claims.all { it.recipient in p.recipients })
@@ -218,7 +220,7 @@ class VirtualWalletStore(context: Context) {
                 val share = when {
                     left == 1 -> remain
                     !random -> total / count + if (index < total % count) 1L else 0L
-                    else -> 1L + rng.nextLong(remain - left + 1L)
+                    else -> 1L + rng.nextInt((remain - left + 1L).toInt()).toLong()
                 }
                 result += share
                 remain -= share
