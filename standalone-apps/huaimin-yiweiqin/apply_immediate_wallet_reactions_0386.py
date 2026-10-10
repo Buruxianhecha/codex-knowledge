@@ -124,8 +124,8 @@ once(chat,
 "avoid extra autonomous group chain after wallet event")
 
 once(ui,
-'''import com.cleo.cleos.ai.WalletChatBridge''',
-'''import com.cleo.cleos.ai.WalletChatBridge
+'''import com.cleo.cleos.ai.ChatRepository''',
+'''import com.cleo.cleos.ai.ChatRepository
 import com.cleo.cleos.ai.WalletReactiveEvents''',
 "UI helper import")
 
