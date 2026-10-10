@@ -206,9 +206,11 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_immediate_wallet_reactions_0386.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_bidirectional_wallet_0387.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_starcoin_camera_0388.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_chat_toolbar_0389.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_chat_toolbar_0389.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_discover_contacts_03740.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.8"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62074' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionName = "0.38.9"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62075' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
