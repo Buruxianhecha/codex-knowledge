@@ -46,6 +46,34 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build | tee "$RUNNER_TEMP/huaimin-ios-build.log"
           test -d "$RUNNER_TEMP/huaimin-derived/Build/Products/Debug-iphonesimulator/HuaiminIOS.app"
+      - name: Compile physical iPhone target without signing (validation only)
+        working-directory: standalone-apps/huaimin-yiweiqin-ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project HuaiminIOS.xcodeproj \
+            -scheme HuaiminIOS \
+            -configuration Debug \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/huaimin-device-derived" \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tee "$RUNNER_TEMP/huaimin-ios-device-build.log"
+          test -d "$RUNNER_TEMP/huaimin-device-derived/Build/Products/Debug-iphoneos/HuaiminIOS.app"
+      - name: Launch application in simulator and capture evidence
+        run: |
+          set -euo pipefail
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import sys,json
+          devices=json.load(sys.stdin)["devices"]
+          ids=[d["udid"] for group in devices.values() for d in group if d["name"].startswith("iPhone") and d["state"]=="Shutdown"]
+          print(ids[0] if ids else "")')
+          test -n "$DEVICE_ID" || { echo "No available iPhone simulator"; exit 1; }
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcrun simctl install "$DEVICE_ID" "$RUNNER_TEMP/huaimin-derived/Build/Products/Debug-iphonesimulator/HuaiminIOS.app"
+          xcrun simctl launch "$DEVICE_ID" com.lin.huaimin.ios
+          xcrun simctl io "$DEVICE_ID" screenshot "$RUNNER_TEMP/huaimin-ios-first-launch.png"
+          xcrun simctl shutdown "$DEVICE_ID"
       - name: Store simulator build and build report (not an installable IPA)
         uses: actions/upload-artifact@v4
         with:
@@ -53,4 +81,6 @@ jobs:
           path: |
             ${{ runner.temp }}/huaimin-derived/Build/Products/Debug-iphonesimulator/HuaiminIOS.app
             ${{ runner.temp }}/huaimin-ios-build.log
+            ${{ runner.temp }}/huaimin-ios-device-build.log
+            ${{ runner.temp }}/huaimin-ios-first-launch.png
           retention-days: 7
