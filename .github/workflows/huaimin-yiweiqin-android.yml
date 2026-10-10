@@ -202,9 +202,10 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_moments_centered_0382.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_virtual_wallet_0383.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_chat_plus_wallet_0384.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_wallet_ai_awareness_0385.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_discover_contacts_03740.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.4"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62070' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionName = "0.38.5"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62071' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -303,6 +304,7 @@ jobs:
               "data.BackupArchiveGuardTest": 8,
               "data.VirtualWalletRulesTest": 4,
               "ui.chat.ChatWalletPanelTest": 3,
+              "ai.WalletChatBridgeTest": 4,
               "data.GroupDeletionPolicyTest": 3,
           }
           for name, count in expected.items():
@@ -340,8 +342,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.4", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62070", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.5", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62071", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
