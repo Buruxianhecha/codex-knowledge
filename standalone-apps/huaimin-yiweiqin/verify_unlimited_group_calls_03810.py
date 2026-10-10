@@ -13,8 +13,8 @@ opts=(base/"ui/chat/GroupOptionsDialog.kt").read_text(encoding="utf-8")
 group=(base/"ai/GroupAutonomy.kt").read_text(encoding="utf-8")
 ver=(root/"app/build.gradle.kts").read_text(encoding="utf-8")
 
-assert 'versionName = "0.38.12"' in ver
-assert 'versionCode = 62078' in ver
+assert 'versionName = "0.38.13"' in ver
+assert 'versionCode = 62079' in ver
 assert "groupCallsToday < groupDailyLimit" not in dao
 assert "groupCallsToday >= latestConversation.groupDailyLimit" not in chat
 assert "群聊今天已达到模型调用上限" not in chat
