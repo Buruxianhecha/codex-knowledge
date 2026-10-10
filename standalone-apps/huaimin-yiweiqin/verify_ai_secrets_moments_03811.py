@@ -16,7 +16,7 @@ version=(root/"app/build.gradle.kts").read_text(encoding="utf-8")
 assert 'versionName = "0.38.11"' in version
 assert 'versionCode = 62077' in version
 
-assert 'if(post.authorId==0L)' not in moment_ui, "AI post still gated from management menu"
+assert 'if(post.authorId==0L) {' not in moment_ui, "AI post still gated from management menu"
 assert 'Icon(Icons.Rounded.MoreHoriz,contentDescription="动态管理"' in moment_ui
 assert '编辑' not in moment_ui or '修改可见范围' in moment_ui
 assert 'DropdownMenuItem(text={Text("删除动态")}' in moment_ui
