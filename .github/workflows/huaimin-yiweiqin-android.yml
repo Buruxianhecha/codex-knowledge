@@ -350,8 +350,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.8", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62074", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.9", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62075", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
