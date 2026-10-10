@@ -5,6 +5,9 @@ import sys
 root=Path(sys.argv[1]).resolve()
 base=Path("app/src/main/java/com/cleo/cleos")
 chat=base/"ui/chat/ChatScreen.kt"
+test=root/"app/src/test/java/com/cleo/cleos/data/StarcoinBalanceEditTest.kt"
+test.parent.mkdir(parents=True,exist_ok=True)
+test.write_bytes((Path(__file__).resolve().parent/"StarcoinBalanceEditTest_0388.kt").read_bytes())
 def once(path,before,after,label):
     p=root/path
     data=p.read_text(encoding="utf-8")
@@ -107,7 +110,7 @@ for path in (base/"ai/WalletChatBridge.kt",base/"ai/Tools.kt",
              base/"ai/WalletReactiveEvents.kt",base/"ui/chat/ChatScreen.kt",
              base/"ui/chat/ChatWalletPanel.kt",base/"ui/VirtualWalletScreen.kt"):
     p=root/path
-    p.write_text(p.read_text(encoding="utf-8").replace("虚拟币","星币"),encoding="utf-8")
+    p.write_text(p.read_text(encoding="utf-8").replace("虚拟币","星币").replace("虚拟红包","星币红包").replace("虚拟转账","星币转账"),encoding="utf-8")
 once("app/build.gradle.kts",'versionName = "0.38.7"','versionName = "0.38.8"',"version")
 once("app/build.gradle.kts",'versionCode = 62073','versionCode = 62074',"code")
 print("0.38.8/62074 real camera, starcoin naming, only chat composer plus in group")
