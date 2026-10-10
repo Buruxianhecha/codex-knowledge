@@ -11,6 +11,8 @@ targets:
     platform: iOS
     sources:
       - path: HuaiminIOS
+      - path: ../huaimin-yiweiqin/assets/wallpaper_5.jpg
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lin.huaimin.ios
