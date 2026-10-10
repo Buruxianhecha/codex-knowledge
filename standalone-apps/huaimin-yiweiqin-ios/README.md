@@ -3,7 +3,7 @@
 **移植基线：Android v0.38.2 / 62068，Git commit `41d3801c3f9faa4424fa3c5767181cffbceaf296`。**
 
 此目录与原 Android 构建隔离：不会覆盖 Android 源码、签名、数据库或群友现有 APK。
-这是 **iOS 第一阶段的可运行功能切片，不是 Android 全功能已移植，也不是可给 iPhone 直接安装的 IPA**。
+这是 **iOS 第一阶段的可运行功能切片，不是 Android 全功能已移植。CI 会生成可供个人签名工具使用的未签名 IPA，但此文件不能直接在 iPhone 安装**。
 
 ## 技术策略
 
@@ -45,16 +45,23 @@ xcodebuild -project HuaiminIOS.xcodeproj -scheme HuaiminIOS \
   -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
 ```
 
-对应 GitHub Actions：`.github/workflows/huaimin-ios.yml`，使用 macOS runner 自动生成工程并编译 **iOS 模拟器用 unsigned .app**。
+对应 GitHub Actions：`.github/workflows/huaimin-ios.yml`，使用 macOS runner 生成工程并分别编译 **iOS 模拟器 unsigned .app** 和 **iPhoneOS unsigned Release .ipa**。
 模拟器构建无法安装到真正的 iPhone，也不能直接分发给 QQ 群。
 
-## QQ 群 iPhone 测试分发
+## QQ 群 iPhone 测试分发（已选择免费 7 天签名路线）
 
-目标是 **Apple Developer Program + App Store Connect + TestFlight 外部测试**。
-Apple 账号所有权应由用户保留。需要会员资格、Bundle ID、iOS 发行签名配置、上传有效的设备 Release 构建、
-完成 TestFlight 外部测试审核后，才可分享邀请链接到 QQ 群。
-如果以指定设备 Ad Hoc 分发，则要收集并注册相应 iPhone 的 UDID，仍需合规签名且不适合开放群分发。
-本工程绝不含开发者证书、账号密码、API 密钥或供应商密钥。
+**首选免费 Apple Account + Sideloadly（Windows/macOS），备选 AltStore Classic + AltServer。**
+
+- GitHub Actions 生成 **iPhoneOS Release 架构的未签名 IPA**，文件名为 `Huaimin-iOS-0.1.0-UNSIGNED-7day-sideload.ipa`。
+- 每位 QQ 群测试者使用 **自己的 Apple Account** 在 **自己的电脑** 上签名并安装。作者不需要苹果设备、也不收集 Apple 密码/验证码。
+- 普通免费个人签名一般有效 7 天，需在到期前依赖自己的电脑重签或刷新；无法实现下载直接点开安装。
+- Apple Developer Program 与 TestFlight 是以后可选的付费分发路径，并非当前首选。
+- **详细图文步骤与风险说明见 [FREE_SIDELOAD_HANDOFF.md](FREE_SIDELOAD_HANDOFF.md)**；未来付费方案仍可见 [TESTFLIGHT_HANDOFF.md](TESTFLIGHT_HANDOFF.md)。
+
+## iOS 项目资源
+
+- 已接入 Android 同源的「海底峡谷」壁纸，且通过 CI iOS 模拟器截图验收。
+- 模拟器 .app 与设备目标 IPA 分开打包，避免群友误将模拟器构建当真机文件。
 
 ## 开发/许可与边界
 
