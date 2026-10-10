@@ -341,7 +341,8 @@ class VirtualWalletStore(context: Context) {
                 balances = old.balances + (0L to newCents),
                 totalIssuedCents = old.totalIssuedCents + delta,
                 movements = (old.movements + WalletMovement(
-                    kind = "balance_adjust", from = 0L, to = 0L, amount = kotlin.math.abs(delta)
+                    kind = if (delta >= 0L) "balance_raise" else "balance_lower",
+                    from = 0L, to = 0L, amount = kotlin.math.abs(delta)
                 )).takeLast(200000)
             )
         }
