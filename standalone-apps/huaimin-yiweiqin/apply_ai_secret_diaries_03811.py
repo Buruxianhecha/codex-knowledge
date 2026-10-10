@@ -149,12 +149,13 @@ once(diary_list,
         val images = DiaryBlocks.images(blocks)''',
 "prevent private content in excerpts or photo previews")
 once(diary_list,
-'''                title = e.title,
-                excerpt = DiaryBlocks.plainText(blocks).replace(Regex("\\s+"), " ").take(160),''',
-'''                title = if (locked) "TA 的小秘密" else e.title,
-                excerpt = if (locked) "🔒 内容由 TA 保管，尚未决定向你公开" else
-                    DiaryBlocks.plainText(blocks).replace(Regex("\\s+"), " ").take(160),''',
-"render masked card")
+'''                title = e.title,''',
+'''                title = if (locked) "TA 的小秘密" else e.title,''',
+"mask AI-owned secret titles")
+once(diary_list,
+'''                excerpt = DiaryBlocks.plainText(blocks)''',
+'''                excerpt = if (locked) "🔒 内容由 TA 保管，尚未决定向你公开" else DiaryBlocks.plainText(blocks)''',
+"mask AI secret excerpts")
 once(diary_list,
 '''                secret = e.secret,
             ),''',
