@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.4"
-assert apk.get_androidversion_code() == "62070"
+assert apk.get_androidversion_name() == "0.38.5"
+assert apk.get_androidversion_code() == "62071"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -70,6 +70,12 @@ for method in ("starter", "transfer", "sendPacket", "claimPacket", "settleExpire
 assert any("Lcom/cleo/cleos/ui/VirtualWalletScreenKt;->VirtualWalletScreen" in call for call in calls), "wallet UI is not reachable"
 assert any("Lcom/cleo/cleos/ui/chat/ChatWalletPanelKt;->ChatPlusPanel" in call for call in calls), "chat plus panel missing"
 assert any("Lcom/cleo/cleos/ui/chat/ChatWalletPanelKt;->ChatWalletCard" in call for call in calls), "chat wallet card missing"
+for fn in ("context", "claim", "contextFor"):
+    assert any("Lcom/cleo/cleos/ai/WalletChatBridge;->" + fn in item for item in definitions), (fn, "wallet bridge not compiled")
+for fn in ("context", "claim"):
+    assert any("Lcom/cleo/cleos/ai/WalletChatBridge;->" + fn in call for call in calls), (fn, "wallet bridge not connected")
+assert any("claim_virtual_red_packet" in ins.get_output() for m in methods if m.get_class_name() == "Lcom/cleo/cleos/ai/ToolSpecs;" and m.get_code() is not None for ins in m.get_instructions()), "wallet claim tool unregistered"
+
 
 assert any("Lcom/cleo/cleos/data/Recalls;->" in call for call in calls), "recall disappeared"
 assert any("Lcom/cleo/cleos/data/ReactionEvents;->" in call for call in calls), "reaction awareness disappeared"
