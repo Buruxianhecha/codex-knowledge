@@ -1,0 +1,56 @@
+name: Huaimin iOS / Simulator build
+
+on:
+  push:
+    branches:
+      - feature/huaimin-ios-*
+    paths:
+      - "standalone-apps/huaimin-yiweiqin-ios/**"
+      - ".github/workflows/huaimin-ios.yml"
+  pull_request:
+    paths:
+      - "standalone-apps/huaimin-yiweiqin-ios/**"
+      - ".github/workflows/huaimin-ios.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios-simulator-build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode and install project generator
+        run: |
+          xcodebuild -version
+          brew install xcodegen
+          xcodegen --version
+      - name: Generate isolated iOS project
+        working-directory: standalone-apps/huaimin-yiweiqin-ios
+        run: |
+          xcodegen generate --spec project.yml
+          xcodebuild -list -project HuaiminIOS.xcodeproj
+      - name: Compile iOS simulator binary without Apple signing
+        working-directory: standalone-apps/huaimin-yiweiqin-ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project HuaiminIOS.xcodeproj \
+            -scheme HuaiminIOS \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/huaimin-derived" \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tee "$RUNNER_TEMP/huaimin-ios-build.log"
+          test -d "$RUNNER_TEMP/huaimin-derived/Build/Products/Debug-iphonesimulator/HuaiminIOS.app"
+      - name: Store simulator build and build report (not an installable IPA)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Huaimin-iOS-Simulator-UNSIGNED
+          path: |
+            ${{ runner.temp }}/huaimin-derived/Build/Products/Debug-iphonesimulator/HuaiminIOS.app
+            ${{ runner.temp }}/huaimin-ios-build.log
+          retention-days: 7
