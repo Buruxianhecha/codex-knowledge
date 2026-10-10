@@ -6,6 +6,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
@@ -65,49 +66,100 @@ fun MomentsMyProfile(onOpenMyTimeline:()->Unit={}) {
             finally {working=false}
         }
     }
-    Column {
-        Box(Modifier.fillMaxWidth().height(265.dp).clip(RoundedCornerShape(20.dp))
-            .clickable(onClick=onOpenMyTimeline)
-            .background(Color(0xFF25374A))) {
-            val cover=data.profile.cover ?: settings?.wallpaper
-            if(cover!=null) AsyncImage(model=c.images.file(cover),contentDescription="我的朋友圈封面",
-                modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
-            else Text("那些值得记住的时刻",color=Color.White,modifier=Modifier.align(Alignment.Center),
-                fontSize=19.sp)
-            TextButton(
-                onClick={coverPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))},
-                modifier=Modifier.align(Alignment.TopEnd).padding(8.dp),enabled=!working
-            ) {Icon(Icons.Rounded.AddPhotoAlternate,null,tint=Color.White);Text("换封面",color=Color.White)}
-            Text(data.profile.name.ifBlank {settings?.userName?.ifBlank{"我"} ?: "我"},
-                modifier=Modifier.align(Alignment.BottomEnd).padding(end=87.dp,bottom=18.dp),
-                color=Color.White,fontSize=22.sp,fontWeight=FontWeight.SemiBold)
-        }
-        Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),
-            horizontalArrangement=Arrangement.spacedBy(12.dp),
-            verticalAlignment=Alignment.CenterVertically) {
-            Box(Modifier.size(70.dp).clip(RoundedCornerShape(15.dp))
-                .background(Color(0xFF34475A)).clickable {
-                    avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }) {
+    // Centered cover/profile header: round avatar overlaps the lower edge of cover.
+    // Keep cover editor, avatar picker, AI settings, and personal timeline reachable.
+    val displayName=data.profile.name.ifBlank {settings?.userName?.ifBlank{"我"} ?: "我"}
+    fun editProfile() {
+        name=data.profile.name.ifBlank{settings?.userName.orEmpty()}
+        bio=data.profile.bio
+        editor=true
+    }
+    Column(
+        modifier=Modifier.fillMaxWidth(),
+        horizontalAlignment=Alignment.CenterHorizontally
+    ) {
+        Box(Modifier.fillMaxWidth().height(302.dp)) {
+            Box(
+                Modifier.fillMaxWidth().height(244.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFF25374A))
+                    .clickable(onClick=onOpenMyTimeline)
+            ) {
+                val cover=data.profile.cover ?: settings?.wallpaper
+                if(cover!=null) AsyncImage(
+                    model=c.images.file(cover),contentDescription="我的朋友圈封面",
+                    modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop
+                ) else Text(
+                    "那些值得记住的时刻",color=Color.White,
+                    modifier=Modifier.align(Alignment.Center),fontSize=19.sp
+                )
+            }
+            // Small overlay controls replace the old large "换封面" label.
+            Row(
+                modifier=Modifier.align(Alignment.TopEnd).padding(7.dp),
+                horizontalArrangement=Arrangement.spacedBy(4.dp)
+            ) {
+                IconButton(
+                    onClick={
+                        coverPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                    enabled=!working,
+                    modifier=Modifier.background(Color.Black.copy(alpha=0.32f),CircleShape)
+                ) {
+                    Icon(Icons.Rounded.AddPhotoAlternate,contentDescription="更换朋友圈封面",tint=Color.White)
+                }
+                IconButton(
+                    onClick={aiControls=true},
+                    modifier=Modifier.background(Color.Black.copy(alpha=0.32f),CircleShape)
+                ) {
+                    Icon(Icons.Rounded.Settings,contentDescription="AI 朋友圈权限",tint=Color.White)
+                }
+            }
+            // Let the avatar overlap without clipping the outer Box.
+            Box(
+                modifier=Modifier.align(Alignment.BottomCenter).size(116.dp)
+                    .border(3.dp,Color.White,CircleShape)
+                    .padding(3.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF34475A))
+                    .clickable {
+                        avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                contentAlignment=Alignment.Center
+            ) {
                 val avatar=data.profile.avatar ?: settings?.userAvatar
-                if(avatar!=null) AsyncImage(model=c.images.file(avatar),contentDescription="个人头像",
-                    modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
-                else Text("我",color=Color.White,modifier=Modifier.align(Alignment.Center),fontSize=26.sp)
+                if(avatar!=null) AsyncImage(
+                    model=c.images.file(avatar),contentDescription="更换个人头像",
+                    modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop
+                ) else Text("我",color=Color.White,fontSize=29.sp)
             }
-            Column(Modifier.weight(1f)) {
-                Text(data.profile.name.ifBlank{settings?.userName?.ifBlank{"我"} ?: "我"},
-                    fontSize=18.sp,color=palette.content,fontWeight=FontWeight.SemiBold)
-                Text(data.profile.bio.ifBlank{"点击编辑你的个人简介"},
-                    fontSize=13.sp,color=palette.contentSecondary,maxLines=3)
-            }
-            IconButton(onClick={
-                name=data.profile.name.ifBlank{settings?.userName.orEmpty()}
-                bio=data.profile.bio
-                editor=true
-            }) {Icon(Icons.Rounded.Edit,contentDescription="编辑个人主页",tint=palette.content)}
-            IconButton(onClick={aiControls=true}) {
-                Icon(Icons.Rounded.Settings,contentDescription="AI 朋友圈权限",tint=palette.content)
-            }
+        }
+        Text(
+            displayName,
+            modifier=Modifier.padding(top=8.dp),
+            fontSize=27.sp,
+            color=palette.content,
+            fontWeight=FontWeight.Bold
+        )
+        Row(
+            modifier=Modifier.fillMaxWidth()
+                .clickable(onClick=::editProfile)
+                .padding(start=12.dp,end=12.dp,top=3.dp,bottom=7.dp),
+            horizontalArrangement=Arrangement.Center,
+            verticalAlignment=Alignment.CenterVertically
+        ) {
+            Text(
+                data.profile.bio.ifBlank{"点击编辑你的个人简介"},
+                color=palette.contentSecondary,
+                fontSize=14.sp,maxLines=3,
+                lineHeight=20.sp,
+                modifier=Modifier.weight(1f,fill=false)
+            )
+            Icon(
+                Icons.Rounded.Edit,contentDescription="编辑个人主页",
+                tint=palette.contentSecondary,
+                modifier=Modifier.padding(start=7.dp).size(17.dp)
+            )
         }
     }
     if(editor) AlertDialog(
