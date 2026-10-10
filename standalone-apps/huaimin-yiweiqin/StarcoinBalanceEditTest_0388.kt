@@ -21,7 +21,7 @@ class StarcoinBalanceEditTest {
         assertEquals(10L, second.totalIssuedCents)
         assertEquals(0L, third.totalIssuedCents)
         assertEquals(0L, third.balances[0L])
-        assertEquals("balance_adjust", third.movements.last().kind)
+        assertEquals("balance_lower", third.movements.last().kind)
     }
 
     @Test fun editingMyBalanceDoesNotTouchAiOrPendingEscrow() {
