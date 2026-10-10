@@ -302,6 +302,7 @@ jobs:
               "ai.GroupWeatherRulesTest": 9,
               "data.BackupArchiveGuardTest": 8,
               "data.VirtualWalletRulesTest": 4,
+              "ui.chat.ChatWalletPanelTest": 3,
               "data.GroupDeletionPolicyTest": 3,
           }
           for name, count in expected.items():
