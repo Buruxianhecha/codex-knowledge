@@ -89,12 +89,6 @@ once(base/"ai/ChatRepository.kt",
             )''',
 "include verified wallet evidence in private model prompt")
 
-once(base/"ai/ChatRepository.kt",
-'''val groupSpecs = if (background) emptyList() else (toolPool + ToolSpecs.feedTools).distinctBy { it.name }''',
-'''val groupSpecs = if (background) emptyList() else toolPool
-                .distinctBy { it.name }''',
-"group tools remain bounded by user request and original permission checks")
-
 once("app/build.gradle.kts",'versionName = "0.38.4"','versionName = "0.38.5"',"version name")
 once("app/build.gradle.kts",'versionCode = 62070','versionCode = 62071',"version code")
 print("v0.38.5/62071: same-chat verified wallet evidence and authentic AI claim tool for direct and group chats")
