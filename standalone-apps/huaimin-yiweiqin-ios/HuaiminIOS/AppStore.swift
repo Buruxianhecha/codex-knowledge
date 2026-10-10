@@ -39,16 +39,24 @@ private enum APISecret {
         ]
         let oldValue = read(id)
         if oldValue == value { return }
-        let delete = SecItemDelete(identity as CFDictionary)
-        guard delete == errSecSuccess || delete == errSecItemNotFound else {
-            throw StorageFailure.keychain(delete)
+        if value.isEmpty {
+            let status = SecItemDelete(identity as CFDictionary)
+            guard status == errSecSuccess || status == errSecItemNotFound else {
+                throw StorageFailure.keychain(status)
+            }
+            return
         }
-        guard !value.isEmpty else { return }
-        var entry = identity
-        entry[kSecValueData as String] = Data(value.utf8)
-        entry[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        let status = SecItemAdd(entry as CFDictionary, nil)
-        guard status == errSecSuccess else { throw StorageFailure.keychain(status) }
+        if oldValue != nil {
+            let attributes: [String: Any] = [kSecValueData as String: Data(value.utf8)]
+            let status = SecItemUpdate(identity as CFDictionary, attributes as CFDictionary)
+            guard status == errSecSuccess else { throw StorageFailure.keychain(status) }
+        } else {
+            var entry = identity
+            entry[kSecValueData as String] = Data(value.utf8)
+            entry[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            let status = SecItemAdd(entry as CFDictionary, nil)
+            guard status == errSecSuccess else { throw StorageFailure.keychain(status) }
+        }
     }
 
     static func delete(_ id: UUID) {
