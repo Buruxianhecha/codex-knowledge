@@ -63,7 +63,7 @@ object WalletChatBridge {
                     .append("。pending 表示尚未到账，必须用 accept_virtual_transfer 实际确认。\\n")
             }
             legacy.forEach { t ->
-                append("旧版即时转账 ").append(coins(t.amount))
+                append("旧版即时转账 id=").append(t.id).append("，金额=").append(coins(t.amount))
                     .append(if (t.to == companionId) " 已到账" else " 已发出").append("。\\n")
             }
             append("你当前可支配余额=").append(coins(book.balances[companionId] ?: 0L))
