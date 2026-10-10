@@ -156,6 +156,18 @@ class VirtualWalletStore(context: Context) {
     private fun credit(b: Map<Long, Long>, id: Long, cents: Long): Map<Long, Long> =
         b + (id to (b.getOrDefault(id, 0L) + cents))
 
+    /** Anti-loop guard: an AI may send up to three voluntary gifts per local day, max 10.00 each. */
+    private fun guardAiSpend(book: WalletBook, from: Long, cents: Long, now: Long) {
+        if (from == 0L) return
+        require(cents <= 1000L) { "AI 单次主动赠送上限为 10.00 虚拟币" }
+        val day = java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+        val daily = book.movements.count { m ->
+            m.from == from && m.kind in setOf("packet","transfer_pending") &&
+                java.time.Instant.ofEpochMilli(m.at).atZone(java.time.ZoneId.systemDefault()).toLocalDate() == day
+        }
+        require(daily < 3) { "这位 AI 今天主动赠送已达 3 次" }
+    }
+
     suspend fun starter(): Unit = mutex.withLock {
         ensureWritable()
         require(!current.value.initialized) { "体验币已领取过，每台设备仅一次" }
@@ -194,6 +206,7 @@ class VirtualWalletStore(context: Context) {
             shares = shares, random = random, conversationId = conversationId,
             allowSenderClaim = allowSenderClaim)
         val old = current.value
+        guardAiSpend(old, from, cents, System.currentTimeMillis())
         save(old.copy(balances = debit(old.balances, from, cents), packets = old.packets + packet,
             movements = (old.movements + WalletMovement(kind = "packet", from = from, to = -1,
                 amount = cents, packetId = packet.id, conversationId = conversationId)).takeLast(200000)))
@@ -231,6 +244,7 @@ class VirtualWalletStore(context: Context) {
         amount(cents)
         require(from >= 0 && to >= 0 && from != to && conversationId > 0)
         val old = current.value
+        guardAiSpend(old, from, cents, System.currentTimeMillis())
         val transfer = WalletPendingTransfer(from = from, to = to, amount = cents,
             conversationId = conversationId)
         save(old.copy(balances = debit(old.balances, from, cents),
