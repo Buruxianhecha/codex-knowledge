@@ -7,9 +7,9 @@ root=Path(sys.argv[1]).resolve()
 p=root/"app/src/main/java/com/cleo/cleos/ui/MomentsMyProfile.kt"
 text=p.read_text(encoding="utf-8")
 checks=[
-    'Modifier.fillMaxWidth().height(302.dp)',
-    'Modifier.fillMaxWidth().height(244.dp)',
-    'Modifier.align(Alignment.BottomCenter).size(116.dp)',
+    'Modifier.fillMaxWidth().height(255.dp)',
+    'Modifier.fillMaxWidth().height(200.dp)',
+    'Modifier.align(Alignment.BottomCenter).size(110.dp)',
     '.border(3.dp,Color.White,CircleShape)',
     'horizontalAlignment=Alignment.CenterHorizontally',
     'clickable(onClick=onOpenMyTimeline)',
