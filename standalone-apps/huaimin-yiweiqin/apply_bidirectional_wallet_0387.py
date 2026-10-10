@@ -4,6 +4,9 @@ from pathlib import Path
 import sys
 root=Path(sys.argv[1]).resolve()
 base=Path("app/src/main/java/com/cleo/cleos")
+tests=root/"app/src/test/java/com/cleo/cleos/ui/chat/WalletBidirectionalRulesTest.kt"
+tests.parent.mkdir(parents=True,exist_ok=True)
+tests.write_bytes((Path(__file__).resolve().parent/"WalletBidirectionalRulesTest_0387.kt").read_bytes())
 def once(path,old,new,label):
     file=root/path
     text=file.read_text(encoding="utf-8")
