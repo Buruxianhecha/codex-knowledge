@@ -42,7 +42,12 @@ class WalletChatBridgeTest {
     }
 
     @Test fun noTransactionDoesNotInventWalletMessage() {
-        assertEquals("", WalletChatBridge.contextFor(book,999L,11L))
+        val result = WalletChatBridge.contextFor(book,999L,11L)
+        // AI retains its own wallet balance across chats, but not transactions from elsewhere.
+        assertTrue(result.contains("2.00"))
+        assertFalse(result.contains("red-a"))
+        assertFalse(result.contains("current"))
+        assertFalse(result.contains("otherchat"))
     }
 
     @Test fun packetNotAddressedToAiIsNotClaimableInContext() {
@@ -50,6 +55,8 @@ class WalletChatBridgeTest {
             id="excluded",sender=0L,recipients=listOf(12L),shares=listOf(500L),
             random=false,conversationId=77L)))
         val visible = WalletChatBridge.contextFor(other,77L,11L)
-        assertTrue(visible.contains("无资格领取"))
+        // Never disclose a private packet to a companion who is not a recipient.
+        assertFalse(visible.contains("excluded"))
+        assertTrue(visible.isEmpty())
     }
 }

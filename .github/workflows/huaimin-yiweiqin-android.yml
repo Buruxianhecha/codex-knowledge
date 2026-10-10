@@ -204,9 +204,10 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_chat_plus_wallet_0384.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_wallet_ai_awareness_0385.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_immediate_wallet_reactions_0386.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_bidirectional_wallet_0387.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_discover_contacts_03740.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.6"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62072' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionName = "0.38.7"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62073' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -307,6 +308,7 @@ jobs:
               "ui.chat.ChatWalletPanelTest": 3,
               "ai.WalletChatBridgeTest": 4,
               "ai.WalletReactiveEventsTest": 4,
+              "ui.chat.WalletBidirectionalRulesTest": 5,
               "data.GroupDeletionPolicyTest": 3,
           }
           for name, count in expected.items():
@@ -344,8 +346,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.6", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62072", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.7", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62073", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"

@@ -30,30 +30,62 @@ internal data class ChatWalletItem(
     val amount: Long,
     val title: String,
     val status: String,
+    val sender: Long = 0L,
+    val muted: Boolean = false,
+    val packetId: String? = null,
+    val transferId: String? = null,
+    val canClaim: Boolean = false,
+    val canReceiveTransfer: Boolean = false,
 )
 
-/** Render only actual ledger transactions for this conversation, never invented messages. */
+/** Each card reflects real wallet state, including AI outgoing and legacy transfers. */
 internal fun chatWalletItems(book: WalletBook, conversationId: Long?): List<ChatWalletItem> {
     val convo = conversationId ?: return emptyList()
-    val packets = book.packets.filter { it.conversationId == convo && it.sender == 0L }.map { p ->
+    val now = System.currentTimeMillis()
+    val packets = book.packets.filter { it.conversationId == convo }.map { p ->
+        val claimedByMe = p.claims.any { it.recipient == 0L }
+        val expired = p.returned || now >= p.expiresAt
+        val done = p.claims.size == p.recipients.size
         ChatWalletItem(
             id = "packet:" + p.id, at = p.createdAt, kind = ChatMoneyKind.PACKET,
             amount = p.shares.sum(),
             title = if (p.random) "拼手气红包" else "普通红包",
             status = when {
-                p.returned -> "已过期，剩余金额已退回"
-                p.claims.size == p.recipients.size -> "已领完"
+                expired -> "已过期／未领金额已退回"
+                done -> "已领完 " + p.claims.size + "/" + p.recipients.size
+                claimedByMe -> "已领取 · " + p.claims.size + "/" + p.recipients.size
                 else -> "已领取 " + p.claims.size + "/" + p.recipients.size
             },
+            sender = p.sender, muted = expired || done || claimedByMe,
+            packetId = p.id,
+            canClaim = !expired && !done && !claimedByMe && 0L in p.recipients &&
+                (p.sender != 0L || p.allowSenderClaim)
         )
     }
-    val transfers = book.movements.filter {
-        it.kind == "transfer" && it.from == 0L && it.conversationId == convo
+    val legacy = book.movements.filter {
+        it.kind == "transfer" && it.conversationId == convo
     }.map { m ->
-        ChatWalletItem("transfer:" + m.id, m.at, ChatMoneyKind.TRANSFER,
-            m.amount, "转账给 AI", "已到账 · 本机虚拟币")
+        ChatWalletItem("transfer:" + m.id, m.at, ChatMoneyKind.TRANSFER, m.amount,
+            if (m.from == 0L) "转账给 AI" else "AI 转账给我",
+            "已到账 · 旧版直接转账", sender = m.from, muted = true)
     }
-    return (packets + transfers).sortedWith(compareByDescending<ChatWalletItem> { it.at }.thenBy { it.id })
+    val current = book.transfers.filter { it.conversationId == convo }.map { t ->
+        val timedOut = t.state == "pending" && now >= t.expiresAt
+        val status = when {
+            timedOut || t.state == "expired" -> "已过期退还"
+            t.state == "accepted" -> "已收款"
+            t.state == "declined" -> "已退还"
+            else -> "待收款 · 24小时内确认"
+        }
+        ChatWalletItem(
+            id = "transfer:" + t.id, at = t.createdAt, kind = ChatMoneyKind.TRANSFER,
+            amount = t.amount, title = if (t.from == 0L) "转账给 AI" else "AI 转账给我",
+            status = status, sender = t.from, muted = status != "待收款 · 24小时内确认",
+            transferId = t.id, canReceiveTransfer = t.to == 0L && !timedOut && t.state == "pending"
+        )
+    }
+    return (packets + legacy + current).sortedWith(
+        compareByDescending<ChatWalletItem> { it.at }.thenBy { it.id })
 }
 
 private fun coins(value: Long): String =
@@ -131,7 +163,7 @@ internal fun ChatWalletActionDialog(
     initialized: Boolean,
     onStarter: () -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (List<Long>, Long, Boolean) -> Unit,
+    onConfirm: (List<Long>, Long, Boolean, Boolean) -> Unit,
 ) {
     val valid = members.filter { it.id > 0L }.distinctBy { it.id }
     var chosen by remember(kind, valid.map { it.id }) {
@@ -139,11 +171,13 @@ internal fun ChatWalletActionDialog(
     }
     var amount by remember(kind) { mutableStateOf("") }
     var lucky by remember { mutableStateOf(false) }
+    var selfJoin by remember { mutableStateOf(false) }
     val parsed = parseMoneyCoins(amount)
     val selected = valid.filter { it.id in chosen }.map { it.id }
-    val allowed = parsed != null && parsed <= balance && selected.isNotEmpty() &&
+    val participants = selected + if (kind == ChatMoneyKind.PACKET && isGroup && lucky && selfJoin) listOf(0L) else emptyList()
+    val allowed = parsed != null && parsed <= balance && participants.isNotEmpty() &&
         (kind == ChatMoneyKind.PACKET || selected.size == 1) &&
-        (kind != ChatMoneyKind.PACKET || parsed >= selected.size)
+        (kind != ChatMoneyKind.PACKET || parsed >= participants.size)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (kind == ChatMoneyKind.PACKET) "发送虚拟红包" else "向 AI 转账") },
@@ -185,11 +219,15 @@ internal fun ChatWalletActionDialog(
                         RadioButton(selected = lucky, onClick = { lucky = true })
                         Text("拼手气")
                     }
+                    if (lucky) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = selfJoin, onCheckedChange = { selfJoin = it })
+                        Text("我也参与抢红包（仅拼手气）", fontSize = 12.sp)
+                    }
                 }
                 Text(
                     if (kind == ChatMoneyKind.PACKET)
-                        "发送即扣款；24小时未领取金额退回。AI 自动抢红包待后续接入。"
-                    else "确认后立即转入 AI 本机虚拟账户；不可撤销。",
+                        "发出后等待真实领取，24小时未领取金额退回。拼手气群红包可勾选自己参与。"
+                    else "发送后等待对方确认收款；24小时未收自动退回。",
                     fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (parsed != null && parsed > balance) {
@@ -199,7 +237,7 @@ internal fun ChatWalletActionDialog(
         },
         confirmButton = {
             TextButton(enabled = allowed, onClick = {
-                onConfirm(selected, parsed ?: return@TextButton, lucky)
+                onConfirm(participants, parsed ?: return@TextButton, lucky, selfJoin && isGroup && lucky)
             }) { Text(if (kind == ChatMoneyKind.PACKET) "发红包" else "确认转账") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
@@ -207,14 +245,23 @@ internal fun ChatWalletActionDialog(
 }
 
 @Composable
-internal fun ChatWalletCard(event: ChatWalletItem) {
+internal fun ChatWalletCard(
+    event: ChatWalletItem,
+    onClaim: (String) -> Unit = {},
+    onReceiveTransfer: (String, Boolean) -> Unit = { _, _ -> },
+) {
     var details by remember(event.id) { mutableStateOf(false) }
     val packet = event.kind == ChatMoneyKind.PACKET
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+    val color = when {
+        event.muted -> Color(0xFF777F87)
+        packet -> Color(0xFFCF753A)
+        else -> Color(0xFFDB9843)
+    }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement =
+        if (event.sender == 0L) Arrangement.End else Arrangement.Start) {
         Surface(
             modifier = Modifier.fillMaxWidth(0.77f).clickable { details = true },
-            color = if (packet) Color(0xFFCF753A) else Color(0xFFDB9843),
-            shape = RoundedCornerShape(16.dp)
+            color = color, shape = RoundedCornerShape(16.dp),
         ) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 15.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -228,15 +275,35 @@ internal fun ChatWalletCard(event: ChatWalletItem) {
                     }
                 }
                 Text(event.status, color = Color.White.copy(alpha = 0.9f), fontSize = 12.sp)
-                Text("怀民亦未寝 · 虚拟钱包", color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+                Text("怀民亦未寝 · 虚拟钱包", color = Color.White.copy(alpha = 0.72f), fontSize = 11.sp)
             }
         }
     }
     if (details) AlertDialog(
         onDismissRequest = { details = false },
         title = { Text(event.title) },
-        text = { Text(coins(event.amount) + " 虚拟币\n" + event.status +
-            "\n本地虚拟交易，不是人民币支付。") },
-        confirmButton = { TextButton(onClick = { details = false }) { Text("我知道了") } }
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text(coins(event.amount) + " 虚拟币\n" + event.status +
+                    "\n这是本机虚拟交易，与人民币无关。")
+                if (packet && event.canClaim) {
+                    Button(onClick = {
+                        details = false
+                        event.packetId?.let(onClaim)
+                    }) { Text("领取红包") }
+                }
+                if (!packet && event.canReceiveTransfer) {
+                    Button(onClick = {
+                        details = false
+                        event.transferId?.let { onReceiveTransfer(it, true) }
+                    }) { Text("确认收款") }
+                    TextButton(onClick = {
+                        details = false
+                        event.transferId?.let { onReceiveTransfer(it, false) }
+                    }) { Text("退还转账") }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { details = false }) { Text("关闭") } },
     )
 }
