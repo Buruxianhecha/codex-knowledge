@@ -171,6 +171,15 @@ once(ui,
 '''                                c.wallet.sendTransfer(0L, ids.single(), cents, conversation)''',
 "new transfer pending escrow")
 
+once(ui,
+'''                                c.chat.walletTransaction(conversation, kind == ChatMoneyKind.PACKET,
+                                    receipt, ids)''',
+'''                                if (ids.any { it > 0L }) {
+                                    c.chat.walletTransaction(conversation, kind == ChatMoneyKind.PACKET,
+                                        receipt, ids)
+                                }''',
+"self-only lucky group红包 does not try to wake nonexistent AI")
+
 once("app/build.gradle.kts", 'versionName = "0.38.6"','versionName = "0.38.7"',"version")
 once("app/build.gradle.kts", 'versionCode = 62072','versionCode = 62073',"build")
 print("v0.38.7/62073: AI outgoing gifts and transfers, own lucky group claims, dim completed cards")
