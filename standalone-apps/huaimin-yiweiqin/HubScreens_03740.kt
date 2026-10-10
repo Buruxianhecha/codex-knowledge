@@ -41,7 +41,6 @@ fun DiscoverTab(bottomInset:Dp,onDiary:()->Unit,onTodo:()->Unit,
         ) {
             item { DirectoryRow("日记","所有日记、私密日记、TA 的日记、写日记",Icons.Rounded.AutoStories,onDiary) }
             item { DirectoryRow("待办","添加、编辑、完成与恢复待办事项",Icons.Rounded.TaskAlt,onTodo) }
-            item { DirectoryRow("信箱","查看和写给 TA 的信",Icons.Rounded.Forum,onLetters) }
             item { DirectoryRow("回忆","TA 保存的长期记忆",Icons.Rounded.AutoStories,onMemory) }
         }
     }
