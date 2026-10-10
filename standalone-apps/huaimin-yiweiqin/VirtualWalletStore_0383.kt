@@ -135,16 +135,17 @@ class VirtualWalletStore(context: Context) {
             movements = listOf(WalletMovement(kind = "starter", from = 0, to = 0, amount = STARTER_CENTS))))
     }
 
-    suspend fun transfer(from: Long, to: Long, cents: Long, conversationId: Long = 0L): Unit = mutex.withLock {
+    suspend fun transfer(from: Long, to: Long, cents: Long, conversationId: Long = 0L): String = mutex.withLock {
         ensureWritable()
         amount(cents)
         require(from != to && from >= 0 && to >= 0) { "请选择另一位收款人" }
         val old = current.value
         val next = credit(debit(old.balances, from, cents), to, cents)
+        val receipt = WalletMovement(kind = "transfer", from = from, to = to, amount = cents,
+            conversationId = conversationId)
         save(old.copy(balances = next, movements =
-            (old.movements + WalletMovement(kind = "transfer", from = from, to = to, amount = cents,
-                conversationId = conversationId))
-                .takeLast(200000)))
+            (old.movements + receipt).takeLast(200000)))
+        receipt.id
     }
 
     /** Split shares exactly once at creation, reserve all coins before exposing packet id. */
