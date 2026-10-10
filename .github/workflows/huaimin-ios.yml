@@ -46,20 +46,51 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build | tee "$RUNNER_TEMP/huaimin-ios-build.log"
           test -d "$RUNNER_TEMP/huaimin-derived/Build/Products/Debug-iphonesimulator/HuaiminIOS.app"
-      - name: Compile physical iPhone target without signing (validation only)
+      - name: Build unsigned iPhone Release app for personal signing
         working-directory: standalone-apps/huaimin-yiweiqin-ios
         run: |
-          set -o pipefail
+          set -euo pipefail
           xcodebuild \
             -project HuaiminIOS.xcodeproj \
             -scheme HuaiminIOS \
-            -configuration Debug \
+            -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/huaimin-device-derived" \
             CODE_SIGNING_ALLOWED=NO \
             build | tee "$RUNNER_TEMP/huaimin-ios-device-build.log"
-          test -d "$RUNNER_TEMP/huaimin-device-derived/Build/Products/Debug-iphoneos/HuaiminIOS.app"
+          test -f "$RUNNER_TEMP/huaimin-device-derived/Build/Products/Release-iphoneos/HuaiminIOS.app/HuaiminIOS"
+      - name: Package unsigned iPhone IPA for each tester to sign locally
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/huaimin-device-derived/Build/Products/Release-iphoneos/HuaiminIOS.app"
+          IPA="$RUNNER_TEMP/Huaimin-iOS-0.1.0-UNSIGNED-7day-sideload.ipa"
+          test -d "$APP"
+          /usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP/Info.plist" | grep -qx 'com.lin.huaimin.ios'
+          file "$APP/HuaiminIOS" | grep -q 'Mach-O'
+          file "$APP/HuaiminIOS" | grep -q 'arm64'
+          mkdir -p "$RUNNER_TEMP/sideload-staging/Payload"
+          ditto "$APP" "$RUNNER_TEMP/sideload-staging/Payload/HuaiminIOS.app"
+          (cd "$RUNNER_TEMP/sideload-staging" && zip -q -r -X "$IPA" Payload)
+          unzip -t "$IPA" | tail -n 2
+          unzip -Z -1 "$IPA" | grep -qx 'Payload/HuaiminIOS.app/Info.plist'
+          printf '%s\n' 'UNSIGNED iPhone IPA for testing ONLY. Not directly installable.' \
+            'Tester must sign with their own free Apple Account using a compatible' \
+            'sideloading tool on their OWN computer. Typical validity is 7 days.' \
+            'Do not share Apple passwords, API keys, or certificates with the app author.' \
+            'iOS 0.1.0 is an early feature slice, not feature parity with Android 0.38.2.' \
+            'See FREE_SIDELOAD_HANDOFF.md in the source repository.' \
+            > "$RUNNER_TEMP/READ-ME-BEFORE-SIGNING.txt"
+          (cd "$RUNNER_TEMP" && shasum -a 256 "$(basename "$IPA")" > "Huaimin-iOS-0.1.0-UNSIGNED-7day-sideload.sha256")
+      - name: Upload unsigned tester-signed IPA package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Huaimin-iOS-UNSIGNED-Sideload-IPA
+          path: |
+            ${{ runner.temp }}/Huaimin-iOS-0.1.0-UNSIGNED-7day-sideload.ipa
+            ${{ runner.temp }}/Huaimin-iOS-0.1.0-UNSIGNED-7day-sideload.sha256
+            ${{ runner.temp }}/READ-ME-BEFORE-SIGNING.txt
+          retention-days: 7
       - name: Launch application in simulator and capture evidence
         run: |
           set -euo pipefail
