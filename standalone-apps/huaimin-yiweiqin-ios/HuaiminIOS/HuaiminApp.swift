@@ -16,12 +16,24 @@ struct HuaiminApp: App {
 private struct OceanBackground: View {
     var body: some View {
         GeometryReader { frame in
-            Image("wallpaper_5")
-                .resizable()
-                .scaledToFill()
-                .frame(width: frame.size.width, height: frame.size.height)
-                .clipped()
-                .overlay(Color.black.opacity(0.22))
+            ZStack {
+                LinearGradient(
+                    colors: [Color(red: 0.01, green: 0.13, blue: 0.28),
+                             Color(red: 0.01, green: 0.30, blue: 0.46),
+                             Color(red: 0.01, green: 0.08, blue: 0.19)],
+                    startPoint: .top, endPoint: .bottom
+                )
+                if let path = Bundle.main.path(forResource: "wallpaper_5", ofType: "jpg"),
+                   let bitmap = UIImage(contentsOfFile: path) {
+                    Image(uiImage: bitmap)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: frame.size.width, height: frame.size.height)
+                        .clipped()
+                        .overlay(Color.black.opacity(0.16))
+                }
+            }
+            .frame(width: frame.size.width, height: frame.size.height)
         }
         .ignoresSafeArea()
     }
@@ -77,7 +89,9 @@ struct ConversationListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                OceanBackground()
+                List {
                 if store.companions.isEmpty {
                     ContentUnavailableView(
                         "还没有 AI 角色",
@@ -104,8 +118,9 @@ struct ConversationListView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(OceanBackground())
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
+            }
             .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("怀民亦未寝")
             .toolbar {
@@ -125,7 +140,9 @@ struct ContactsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                OceanBackground()
+                List {
                 Section("AI 联系人") {
                     ForEach(store.companions) { companion in
                         NavigationLink {
@@ -148,8 +165,9 @@ struct ContactsView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(OceanBackground())
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
+            }
             .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("通讯录")
             .toolbar {
@@ -271,7 +289,9 @@ struct ChatDetailView: View {
 struct DiscoverView: View {
     var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                OceanBackground()
+                List {
                 Section {
                     Label("朋友圈 · iOS 移植中", systemImage: "photo.on.rectangle.angled")
                     Label("收藏 · iOS 移植中", systemImage: "bookmark")
@@ -286,8 +306,9 @@ struct DiscoverView: View {
                     Label("语音与电话", systemImage: "waveform")
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(OceanBackground())
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
+            }
             .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("发现")
         }
@@ -299,7 +320,9 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                OceanBackground()
+                List {
                 Section("iOS 移植版") {
                     LabeledContent("构建版本", value: "0.1.0 · 基于安卓 0.38.2")
                     LabeledContent("AI 联系人", value: String(store.companions.count))
@@ -311,8 +334,9 @@ struct ProfileView: View {
                     Text("发送消息会直接请求你配置的模型服务商，请确认 Key 对应的费用和隐私条款。")
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(OceanBackground())
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
+            }
             .toolbarBackground(.hidden, for: .navigationBar)
             .navigationTitle("主页")
         }
