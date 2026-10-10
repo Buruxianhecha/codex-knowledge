@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.2"
-assert apk.get_androidversion_code() == "62068"
+assert apk.get_androidversion_name() == "0.38.3"
+assert apk.get_androidversion_code() == "62069"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -62,6 +62,12 @@ for method in ("execute",):
 for method in ("aiLike", "reply", "publishAi"):
     assert any("Lcom/cleo/cleos/data/MomentsStore;->" + method in call for call in calls), (
         method, "real Moments write path is missing")
+
+# Verify the real wallet store is called by screen callbacks, not just packaged as a stub.
+for method in ("starter", "transfer", "sendPacket", "claimPacket", "settleExpired"):
+    assert any("Lcom/cleo/cleos/data/VirtualWalletStore;->" + method in call for call in calls), (
+        method, "wallet interaction has no compiled caller")
+assert any("Lcom/cleo/cleos/ui/VirtualWalletScreenKt;->VirtualWalletScreen" in call for call in calls), "wallet UI is not reachable"
 
 assert any("Lcom/cleo/cleos/data/Recalls;->" in call for call in calls), "recall disappeared"
 assert any("Lcom/cleo/cleos/data/ReactionEvents;->" in call for call in calls), "reaction awareness disappeared"
