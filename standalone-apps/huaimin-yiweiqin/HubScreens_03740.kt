@@ -2,6 +2,11 @@ package com.cleo.cleos.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -64,16 +69,42 @@ private fun DirectoryRow(title:String,sub:String,icon:androidx.compose.ui.graphi
 }
 
 /** Existing AI characters are the contacts; groups are in a second-level directory. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ContactsTab(bottomInset:Dp,onOpenCompanion:(Long)->Unit,
                 onOpenGroups:()->Unit,onAddCompanion:()->Unit) {
     val c=appContainer()
+    val context=LocalContext.current
+    val prefs=remember(context) {
+        context.getSharedPreferences("huaimin_ai_directory",Context.MODE_PRIVATE)
+    }
+    val scope=rememberCoroutineScope()
     val people by remember {c.companions.all}.collectAsStateWithLifecycle(emptyList())
     val groups by remember {c.db.conversations().observeGroups()}.collectAsStateWithLifecycle(emptyList())
     val current by remember {c.companions.current}.collectAsStateWithLifecycle(null)
     var keyword by rememberSaveable { mutableStateOf("") }
-    val matches=people.filter {keyword.isBlank() || it.name.contains(keyword,ignoreCase=true)}
-        .sortedWith(compareBy<CompanionEntity>{it.name.lowercase()}.thenBy{it.id})
+    var savedOrder by remember(prefs) { mutableStateOf(prefs.getString("contact_ids", "").orEmpty()) }
+    var menuFor by remember { mutableStateOf<Long?>(null) }
+    var deletingId by remember { mutableStateOf<Long?>(null) }
+    var deleting by remember { mutableStateOf(false) }
+    var deleteError by remember { mutableStateOf<String?>(null) }
+    // No Room migration: we store only AI IDs, never credentials, model or persona.
+    val nameOrder=people.sortedWith(compareBy<CompanionEntity>{it.name.lowercase()}.thenBy{it.id})
+    val orderedIds=ContactDirectoryOrder.apply(nameOrder.map {it.id},
+        ContactDirectoryOrder.decode(savedOrder))
+    val byId=people.associateBy {it.id}
+    val ordered=orderedIds.mapNotNull {byId[it]}
+    val matches=ordered.filter {keyword.isBlank() || it.name.contains(keyword,ignoreCase=true) ||
+        (it.name.isBlank() && ("TA "+it.id).contains(keyword,ignoreCase=true))}
+    fun persistOrder(ids:List<Long>) {
+        val encoded=ContactDirectoryOrder.encode(ids)
+        prefs.edit().putString("contact_ids",encoded).apply()
+        savedOrder=encoded
+    }
+    fun moveContact(id:Long,offset:Int) {
+        persistOrder(ContactDirectoryOrder.move(orderedIds,id,offset))
+        menuFor=null
+    }
     val p=LocalGlassPalette.current
     val top=WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     GlassPage(overlay={page->
@@ -91,29 +122,90 @@ fun ContactsTab(bottomInset:Dp,onOpenCompanion:(Long)->Unit,
                     leadingIcon={Icon(Icons.Rounded.Search,contentDescription=null)})
             }
             item {DirectoryRow("群聊",groups.size.toString()+" 个群聊 · 点击查看全部",Icons.Rounded.Group,onOpenGroups)}
-            item {Text("我的 AI 联系人",fontSize=14.sp,color=p.contentSecondary,
+            item {Text("我的 AI 联系人 · 长按可排序或删除",fontSize=14.sp,color=p.contentSecondary,
                 modifier=Modifier.padding(start=8.dp,top=12.dp,bottom=4.dp))}
             if(matches.isEmpty()) item {
                 Text(if(keyword.isNotBlank()) "没有找到匹配角色" else "还没有创建 AI 角色",
                     color=p.contentSecondary,modifier=Modifier.padding(16.dp))
             }
-            items(matches,key={it.id}) { ta ->
-                GlassSurface(modifier=Modifier.fillMaxWidth().clickable {onOpenCompanion(ta.id)},
-                    shape=GlassShape.Rounded(18.dp),
-                    contentPadding=PaddingValues(horizontal=16.dp,vertical=13.dp)) {
-                    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(13.dp)) {
-                        ContactImage(ta)
-                        Column(Modifier.weight(1f)) {
-                            Text(ta.name.ifBlank{"TA "+ta.id},color=p.content,fontSize=16.sp,
-                                fontWeight=FontWeight.Medium,maxLines=1,overflow=TextOverflow.Ellipsis)
-                            Text(if(ta.id==current?.id) "正在聊天 · 点击进入" else "点击进入单聊",
-                                color=p.contentSecondary,fontSize=12.sp)
+            items(matches,key={it.id}) {ta->
+                val pos=orderedIds.indexOf(ta.id)
+                Box {
+                    GlassSurface(modifier=Modifier.fillMaxWidth().combinedClickable(
+                        onClickLabel="进入单聊",
+                        onLongClickLabel="管理 AI 人设",
+                        onClick={onOpenCompanion(ta.id)},
+                        onLongClick={menuFor=ta.id}),
+                        shape=GlassShape.Rounded(18.dp),
+                        contentPadding=PaddingValues(horizontal=16.dp,vertical=13.dp)) {
+                        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(13.dp)) {
+                            ContactImage(ta)
+                            Column(Modifier.weight(1f)) {
+                                Text(ta.name.ifBlank{"TA "+ta.id},color=p.content,fontSize=16.sp,
+                                    fontWeight=FontWeight.Medium,maxLines=1,overflow=TextOverflow.Ellipsis)
+                                Text(if(ta.id==current?.id) "正在聊天 · 点击进入" else "点击进入单聊",
+                                    color=p.contentSecondary,fontSize=12.sp)
+                            }
+                            Icon(Icons.Rounded.ChevronRight,contentDescription="进入单聊",tint=p.contentSecondary)
                         }
-                        Icon(Icons.Rounded.ChevronRight,contentDescription="进入单聊",tint=p.contentSecondary)
+                    }
+                    DropdownMenu(expanded=menuFor==ta.id,onDismissRequest={menuFor=null}) {
+                        DropdownMenuItem(text={Text("上移一位")},enabled=pos>0,
+                            leadingIcon={Icon(Icons.Rounded.KeyboardArrowUp,contentDescription=null)},
+                            onClick={moveContact(ta.id,-1)})
+                        DropdownMenuItem(text={Text("下移一位")},enabled=pos in 0 until orderedIds.lastIndex,
+                            leadingIcon={Icon(Icons.Rounded.KeyboardArrowDown,contentDescription=null)},
+                            onClick={moveContact(ta.id,1)})
+                        DropdownMenuItem(text={Text("置顶")},enabled=pos>0,
+                            leadingIcon={Icon(Icons.Rounded.VerticalAlignTop,contentDescription=null)},
+                            onClick={
+                                persistOrder(ContactDirectoryOrder.top(orderedIds,ta.id))
+                                menuFor=null
+                            })
+                        HorizontalDivider()
+                        DropdownMenuItem(text={Text("删除 AI 人设")},enabled=people.size>1,
+                            leadingIcon={Icon(Icons.Rounded.DeleteOutline,contentDescription=null,tint=p.error)},
+                            onClick={
+                                menuFor=null
+                                deletingId=ta.id
+                            })
                     }
                 }
             }
         }
+    }
+    deletingId?.let {id->
+        val name=people.firstOrNull{it.id==id}?.name?.ifBlank{"TA "+id} ?: "TA "+id
+        AlertDialog(
+            onDismissRequest={if(!deleting) deletingId=null},
+            title={Text("删除「"+name+"」？")},
+            text={Text("这会永久删除该 AI 人设及其专属聊天记录、日记、信件、记忆与头像等关联内容，无法撤销。不会删除其他 AI 的人设。建议先备份数据。")},
+            confirmButton={
+                TextButton(enabled=!deleting && people.size>1,onClick={
+                    if(deleting || people.size<=1) return@TextButton
+                    deleting=true
+                    scope.launch {
+                        try {
+                            // Mirror SettingsViewModel's safe delete sequence: stop replies first.
+                            c.chat.stopRepliesOf(id)
+                            c.companions.delete(id)
+                            persistOrder(ContactDirectoryOrder.afterDelete(orderedIds,id))
+                            deletingId=null
+                        } catch(t:Exception) {
+                            deleteError=t.message ?: "删除失败，请重试"
+                        } finally {
+                            deleting=false
+                        }
+                    }
+                }) {Text(if(deleting) "正在删除…" else "确认删除",color=p.error)}
+            },
+            dismissButton={TextButton(enabled=!deleting,onClick={deletingId=null}){Text("取消")}}
+        )
+    }
+    deleteError?.let {message->
+        AlertDialog(onDismissRequest={deleteError=null},title={Text("删除未完成")},
+            text={Text(message)},
+            confirmButton={TextButton(onClick={deleteError=null}){Text("知道了")}})
     }
 }
 

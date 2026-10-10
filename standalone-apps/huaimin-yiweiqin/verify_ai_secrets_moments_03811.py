@@ -13,8 +13,8 @@ diary_vm=(base/"ui/diary/DiaryEditorViewModel.kt").read_text(encoding="utf-8")
 prompt=(base/"ai/Prompt.kt").read_text(encoding="utf-8")
 version=(root/"app/build.gradle.kts").read_text(encoding="utf-8")
 
-assert 'versionName = "0.38.12"' in version
-assert 'versionCode = 62078' in version
+assert 'versionName = "0.38.13"' in version
+assert 'versionCode = 62079' in version
 
 assert 'if(post.authorId==0L) {' not in moment_ui, "AI post still gated from management menu"
 assert 'Icon(Icons.Rounded.MoreHoriz,contentDescription="动态管理"' in moment_ui

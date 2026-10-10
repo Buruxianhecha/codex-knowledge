@@ -10,8 +10,8 @@ hub=(root/"app/src/main/java/com/cleo/cleos/ui/HubScreens.kt").read_text(encodin
 app=(root/"app/src/main/java/com/cleo/cleos/CleosApp.kt").read_text(encoding="utf-8")
 build=(root/"app/build.gradle.kts").read_text(encoding="utf-8")
 
-assert 'versionName = "0.38.12"' in build
-assert 'versionCode = 62078' in build
+assert 'versionName = "0.38.13"' in build
+assert 'versionCode = 62079' in build
 assert 'SupervisorJob() + Dispatchers.Default' in app, "appScope remains for true background jobs"
 assert 'val uiScope = rememberCoroutineScope()' in src, "navigation must use main-thread UI scope"
 assert 'import androidx.compose.runtime.rememberCoroutineScope' in src
