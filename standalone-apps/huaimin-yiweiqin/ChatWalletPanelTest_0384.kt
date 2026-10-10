@@ -31,7 +31,7 @@ class ChatWalletPanelTest {
             ),
             packets = listOf(
                 WalletPacket(id = "red", sender = 0L, recipients = listOf(1L),
-                    shares = listOf(50L), createdAt = 2000L, conversationId = 3L),
+                    shares = listOf(50L), random = false, createdAt = 2000L, conversationId = 3L),
             ),
         )
         val items = chatWalletItems(book, 3L)
