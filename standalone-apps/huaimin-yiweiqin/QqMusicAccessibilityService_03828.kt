@@ -180,6 +180,8 @@ class QqMusicAccessibilityService : AccessibilityService() {
                 }
                 delay(450)
             }
+            @Suppress("UNREACHABLE_CODE")
+            "timeout"
         }
         when (result) {
             "selected" -> null
