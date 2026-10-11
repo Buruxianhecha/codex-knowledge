@@ -157,6 +157,7 @@ change(chat,
                                 createdAt = at,
                                 proactive = wake,
                                 call = inCall,
+                                senderCompanionId = companionId,
                             ),
                         )
                         db.conversations().touch(conversationId, at)
@@ -182,6 +183,11 @@ change(chat,
     "physically send photo bubbles and truthfully report failure")
 
 screen=src/"ui/chat/ChatScreen.kt"
+change(screen,
+    '''private fun MessageEntity.thoughtOnly() = role == "assistant" && content.isEmpty() && error == null''',
+    '''private fun MessageEntity.thoughtOnly() = role == "assistant" && content.isEmpty() &&
+    error == null && images == null && audio == null''',
+    "image-only AI messages are visible, not thought-only")
 change(screen,
     '''    var sentCount by remember { mutableIntStateOf(0) }''',
     '''    var sentCount by remember { mutableIntStateOf(0) }
