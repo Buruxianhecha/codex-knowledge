@@ -5,6 +5,8 @@ data class QqUiNode(
     val id: Int, val parent: Int? = null, val text: String = "", val description: String = "",
     val viewId: String = "", val editable: Boolean = false, val clickable: Boolean = false,
     val selected: Boolean = false, val heightDp: Int = 48, val hint: String = "",
+    /** Measured visible center; -1 in mocked tests or inaccessible bounds. */
+    val centerX: Int = -1, val centerY: Int = -1,
 ) {
     val words: List<String> get() = listOf(text, description, hint).filter { it.isNotBlank() }
 }
