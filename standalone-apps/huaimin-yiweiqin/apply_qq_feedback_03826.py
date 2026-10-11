@@ -25,8 +25,8 @@ def change(old, new, description):
     count = s.count(old)
     if count != 1: raise RuntimeError(f"{description}: expected 1, found {count}")
     s = s.replace(old, new, 1)
-change("    override fun screenControlAllowed(): Boolean = QqMusicAccessibilityService.connected()\n",
-    "    override fun screenControlAllowed(): Boolean = QqMusicAccessibilityService.connected()\n"
+change("    override fun screenControlAllowed() = QqMusicAccessibilityService.connected()\n",
+    "    override fun screenControlAllowed() = QqMusicAccessibilityService.connected()\n"
     "    override fun screenControlEnabled(): Boolean = QqMusicAccessibilityService.enabled(context)\n",
     "separate service enabled versus connected")
 change("        QqMusicAccessibilityService.select(app.packageName, song)\n",
