@@ -7,7 +7,7 @@ root=Path(sys.argv[1]).resolve()
 here=Path(__file__).resolve().parent
 plan=root/"app/src/main/java/com/cleo/cleos/ai/KugouSearchPlan.kt"
 old=plan.read_text(encoding="utf-8")
-if "class KugouSearchPlan" not in old or 'val tab = nodes.firstOrNull' not in old:
+if "class KugouSearchPlan" not in old or not ("val searchTabs =" in old or "val tab = nodes.firstOrNull" in old):
     raise RuntimeError("requires the original 0.38.21 Kugou result plan")
 copyfile(here/"src/KugouSearchPlan.kt",plan)
 test=root/"app/src/test/java/com/cleo/cleos/ai/KugouResultSafetyTest.kt"
