@@ -131,7 +131,7 @@ s=s.replace('ToolArgs.number(a,"limit")?.toInt()?.coerceIn(1,30)',
             'a["limit"]?.jsonPrimitive?.intOrNull?.coerceIn(1,30)')
 tools.write_text(s,encoding="utf-8")
 
-app=java.parent/"CleosApp.kt"
+app=java/"CleosApp.kt"
 edit(app,
 '''        music = music,''',
 '''        music = music,
