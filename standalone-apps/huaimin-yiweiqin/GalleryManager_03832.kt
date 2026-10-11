@@ -62,13 +62,16 @@ internal fun GalleryManagerDialog(onDismiss: () -> Unit) {
             notice = "已取消，没有移入回收站。"
         }
     }
-    LaunchedEffect(query,album,revision,permission) {
+    LaunchedEffect(query,album,revision,permission,suggestions) {
         delay(260)
         busy = true
         try {
-            rows = gallery.listPhotos(query,album,0,45)
+            val recent = gallery.listPhotos(query,album,0,45)
+            val proposed = if (query.isBlank() && album.isBlank())
+                gallery.photosByIds(suggestions) else emptyList()
+            rows = (proposed + recent).distinctBy { it.id }
             selected = selected.filterTo(mutableSetOf()) { id ->
-                rows.any { it.id == id } || id in suggestions
+                rows.any { it.id == id }
             }
         } catch (e: Exception) {
             notice = "相册读取失败：" + (e.message ?: "请检查系统授权")
