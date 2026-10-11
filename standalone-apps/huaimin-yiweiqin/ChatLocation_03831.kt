@@ -190,6 +190,7 @@ private fun StaticLocationMap(
             }))
         }
         if (point != null) {
+            if (view.zoomLevelDouble < 8.0) view.controller.setZoom(16.0)
             view.controller.setCenter(GeoPoint(point.latitude,point.longitude))
             view.overlays.add(Marker(view).apply {
                 position = GeoPoint(point.latitude,point.longitude)
@@ -223,6 +224,12 @@ internal fun ChatLocationPicker(onDismiss: () -> Unit, onSend: (ChatLocationPoin
             matches = listOf(current) + findPlaces(context,"",fix.latitude,fix.longitude)
             hint = "选中地图上的地点，或在下方搜索"
         }
+    }
+    LaunchedEffect(point?.latitude, point?.longitude) {
+        val current = point ?: return@LaunchedEffect
+        if (query.isNotBlank()) return@LaunchedEffect
+        val nearby = findPlaces(context,"",current.latitude,current.longitude)
+        matches = (listOf(current) + nearby).distinctBy { it.latitude to it.longitude }
     }
     LaunchedEffect(query) {
         if (query.isBlank()) return@LaunchedEffect
@@ -308,11 +315,16 @@ internal fun ChatLocationCard(
             }
         }
         Spacer(Modifier.height(8.dp))
-        Box(Modifier.fillMaxWidth().height(68.dp)
+        Box(Modifier.fillMaxWidth().height(104.dp)
             .background(Color(0xFFBDD6E9),RoundedCornerShape(10.dp))) {
-            Icon(Icons.Rounded.LocationOn,null,Modifier.align(Alignment.Center),
-                tint=Color(0xFF24865D))
-            Text("点击查看地图",Modifier.align(Alignment.BottomCenter).padding(bottom=4.dp),
+            StaticLocationMap(point, Modifier.fillMaxSize())
+            // Map preview itself is read-only. Tap still opens the full detail
+            // instead of accidentally moving the pin in chat.
+            Box(Modifier.matchParentSize()
+                .combinedClickable(onClick=onClick,onLongClick=onLongClick))
+            Text("查看地图",Modifier.align(Alignment.BottomCenter)
+                .background(Color.White.copy(alpha=0.78f),RoundedCornerShape(8.dp))
+                .padding(horizontal=7.dp,vertical=3.dp),
                 fontSize=11.sp,color=Color(0xFF263953))
         }
     }
