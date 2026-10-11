@@ -66,10 +66,6 @@ replace(screen,
     '    BackHandler(enabled = page == SettingsPage.Recall) { page = SettingsPage.Chat }\n    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()\n',
     "nested hardware back")
 replace(screen,
-    'GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "返回", { if (page != null) page = null else onBack() }, backdrop)',
-    'GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "返回", { if (page == SettingsPage.Recall) page = SettingsPage.Chat else if (page != null) page = null else onBack() }, backdrop)',
-    "nested top back")
-replace(screen,
     '                    SettingsPage.Chat -> ChatPage(vm)\n',
     '''                    SettingsPage.Chat -> ChatPage(vm, onOpenRecall = { page = SettingsPage.Recall })
                     SettingsPage.Recall -> RecallMessageSettingsPage(vm)
