@@ -42,7 +42,7 @@ new='''    /**
      * Send an explicitly chosen static point without accidentally consuming current draft,
      * image attachments, @ mentions or pending quotes.
      */
-    fun sendLocation(point: ChatLocationPoint): Boolean {
+    internal fun sendLocation(point: ChatLocationPoint): Boolean {
         val id=conversationId.value ?: return false
         return c.chat.send(id,ChatLocationPayload.encode(point),emptyList(),null,emptyMap())
     }
