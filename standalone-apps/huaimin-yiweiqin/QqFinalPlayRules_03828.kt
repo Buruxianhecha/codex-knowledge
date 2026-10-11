@@ -33,11 +33,10 @@ object QqFinalPlayRules {
         val buttons = nodes.filter { node -> node.clickable && node.centerX >= 0 && node.centerY >= 0 &&
             node.centerX in (boundsLeft + width/4)..(boundsLeft + width*3/4) &&
             node.centerY in (boundsTop + height*4/5)..(boundsTop + height*96/100) &&
-            node.words.any { word ->
-                val text = word.trim().lowercase()
-                text == "播放" || text == "继续播放" || text == "播放歌曲" ||
-                    (nodePlayId(node.viewId) && text.isBlank())
-            }
+            (nodePlayId(node.viewId) || node.words.any { word ->
+                val label = word.trim().lowercase()
+                label == "播放" || label == "继续播放" || label == "播放歌曲"
+            }) && !node.words.any { it.trim() == "暂停" }
         }
         if (buttons.size == 1) return Action.Click(buttons.single().id)
         // Only use the standardized control center when the actual full
