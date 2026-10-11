@@ -48,11 +48,13 @@ if "MusicRequest" in groups:
     raise RuntimeError("MusicRequest already integrated")
 groups = re.sub(r"\bMusic\b", "Music, MusicRequest", groups, count=1)
 tool_path.write_text(tool_source[:group_match.start(1)] + groups + tool_source[group_match.end(1):], encoding="utf-8")
-edit(tools,
-'''    val all = listOf(
-        sendMessage,
-''',
-'''    val requestSong = ToolSpec(
+tool_source = (root / tools).read_text(encoding="utf-8")
+if 'val requestSong = ToolSpec(' in tool_source:
+    raise RuntimeError("requestSong already inserted")
+marker = "object ToolSpecs {"
+if tool_source.count(marker) != 1:
+    raise RuntimeError("ToolSpecs declaration not found")
+tool_source = tool_source.replace(marker, marker + "\n" + """    val requestSong = ToolSpec(
         name = "request_song",
         groups = setOf(ToolGroup.MusicRequest),
         action = "点歌",
@@ -64,21 +66,17 @@ edit(tools,
             "title" to prop("string", "要听的歌曲名称，必须从对方的要求提取"),
             "artist" to prop("string", "歌手，可为空"),
         ),
-    )
+    )""", 1)
+# Register by scanning the full tool list instead of assuming fixed entries.
+all_marker = re.search(r"\bval\s+all\s*=\s*listOf\s*\(", tool_source)
+if all_marker is None:
+    raise RuntimeError("ToolSpecs all registry not found")
+list_end = tool_source.find("\n    )", all_marker.end())
+if list_end < 0:
+    raise RuntimeError("ToolSpecs all registry end not found")
+tool_source = tool_source[:list_end] + "\n        requestSong," + tool_source[list_end:]
+(root / tools).write_text(tool_source, encoding="utf-8")
 
-    val all = listOf(
-        sendMessage,
-''',
-"AI play song tool declaration")
-edit(tools,
-'''        deleteEvent,
-        musicControl,
-''',
-'''        deleteEvent,
-        musicControl,
-        requestSong,
-''',
-"register AI song tool")
 edit(tools,
 '''                ToolSpecs.musicControl.name -> musicControl(args)
                 else -> getWeather(args, settings)
