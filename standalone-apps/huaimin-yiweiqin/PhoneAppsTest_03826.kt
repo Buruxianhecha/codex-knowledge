@@ -224,6 +224,6 @@ class PhoneAppsTest {
         val error = playbackFailure { QqPlayback(phone) {}.play(song) }
         assertTrue(error.result.contains("不在前台"))
         assertTrue(error.note.contains("不代表权限未开启"))
-        assertFalse(error.note.contains("权限未开启"))
+        assertFalse(error.note == "QQ 音乐点歌权限未开启")
     }
 }
