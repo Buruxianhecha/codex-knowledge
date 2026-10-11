@@ -1,21 +1,7 @@
 package com.cleo.cleos.ai
 
 /** A bounded semantic plan; Android nodes stay on the device and are never sent to the model. */
-data class QqUiNode(
-    val id: Int, val parent: Int? = null, val text: String = "", val description: String = "",
-    val viewId: String = "", val editable: Boolean = false, val clickable: Boolean = false,
-    val selected: Boolean = false, val heightDp: Int = 48, val hint: String = "",
-) {
-    val words: List<String> get() = listOf(text, description, hint).filter { it.isNotBlank() }
-}
-
-sealed interface QqUiAction {
-    data class Click(val id: Int, val purpose: String) : QqUiAction
-    data class Fill(val id: Int, val query: String) : QqUiAction
-    data class Submit(val id: Int) : QqUiAction
-    data class Stop(val reason: String) : QqUiAction
-    data object Wait : QqUiAction
-}
+// Use QqUiNode and QqUiAction defined in QqSearchPlan.kt; avoid duplicate classes.
 
 class KugouSearchPlan(private val song: SongRequest, private val player: String) {
     private var opened = false
