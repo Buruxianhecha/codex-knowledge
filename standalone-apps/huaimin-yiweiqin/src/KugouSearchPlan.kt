@@ -45,8 +45,26 @@ class KugouSearchPlan(private val song: SongRequest, private val player: String)
             return button?.let { QqUiAction.Click(clickFor(it)!!, "submit") } ?: QqUiAction.Submit(field.id)
         }
         if (labels.any { it in setOf("暂无搜索结果", "没有找到相关歌曲", "没有搜索结果", "暂无结果") }) return QqUiAction.Stop("酷狗音乐没有找到《${song.title}》的搜索结果。")
-        val tab = nodes.firstOrNull { it.words.any { w -> w.trim().matches(Regex("(?:单曲|歌曲)(?:\\s*\\d+)?")) } && clickFor(it) != null }
-        if (!songsTab && tab != null && !tab.selected) return QqUiAction.Click(clickFor(tab)!!, "songs")
+        // Kugou's 综合 tab contains a large singer profile card ABOVE the song list.
+        // Clicking its singer name/photo opens the artist home instead of playing music.
+        // Require the real 单曲 search tab before any clickable song candidate.
+        val searchTabs = labels.contains("综合") && labels.contains("视频")
+        val artistHome = labels.any { it.contains("入驻艺人") || it.contains("粉丝") } &&
+            labels.any { it == "关注" || it == "播放全部" }
+        if (artistHome) return QqUiAction.Stop("误入歌手主页，已停止自动操作。请返回搜索，切到「单曲」再点歌。")
+        val tab = if (searchTabs) nodes.firstOrNull { it.words.any { w -> w.trim() == "单曲" } &&
+            clickFor(it) != null && it.heightDp <= 110 } else null
+        if (!songsTab) {
+            if (tab?.selected == true) songsTab = true
+            else return tab?.let { QqUiAction.Click(clickFor(it)!!, "songs") } ?: QqUiAction.Wait
+        }
+        // Clicking a tab does not mean the content switched yet; wait for the
+        // singer card to disappear, and never select a song in the 综合 page.
+        val artistCard = labels.contains("关注") &&
+            labels.any { it.contains("歌曲") && it.any(Char::isDigit) } &&
+            labels.any { it.contains("专辑") && it.any(Char::isDigit) }
+        val comprehensiveSelected = nodes.any { n -> n.selected && n.words.any { it == "综合" } }
+        if (artistCard || comprehensiveSelected) return QqUiAction.Wait
         // Only a title in a small result row, with the requested artist in that same row.
         // The search editor, a whole results list, MV cards and arbitrary "play" buttons don't qualify.
         for (title in nodes.filter { !it.editable && it.words.any { w -> AppNames.key(w.trim('《', '》')) == AppNames.key(song.title) } }) {
@@ -58,8 +76,17 @@ class KugouSearchPlan(private val song: SongRequest, private val player: String)
                 val words = parts.flatMap { it.words }
                 val artist = song.artist.isEmpty() || words.any { song.artistMatches(it) ||
                     it.split(Regex("\\s*[-|·]\\s*")).any(song::artistMatches) }
-                val nonSong = words.any { it.trim() in setOf("MV", "视频", "专辑", "歌单") }
-                if (group.id != title.id && parts.size in 2..36 && artist && !nonSong && clickFor(title) != null) return QqUiAction.Click(clickFor(title)!!, "song")
+                val nonSong = words.any { it.trim() in setOf("MV", "视频", "专辑", "歌单", "关注", "入驻艺人", "歌手主页") }
+                val target = clickFor(title)
+                val targetNode = nodes.firstOrNull { it.id == target }
+                // The singer's clickable label can be nested in the same result
+                // container. It is never a valid song playback target.
+                val singerLink = targetNode?.words?.any { w ->
+                    song.artist.isNotBlank() && song.artistMatches(w)
+                } == true
+                if (group.id != title.id && group.heightDp <= 150 &&
+                    parts.size in 2..28 && artist && !nonSong && !singerLink &&
+                    target != null) return QqUiAction.Click(target, "song")
                 row = nodes.firstOrNull { it.id == group.parent }
             }
         }
