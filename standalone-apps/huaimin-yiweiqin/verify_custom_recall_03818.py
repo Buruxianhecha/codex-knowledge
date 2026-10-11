@@ -27,7 +27,7 @@ assert 'it.copy(recallDisplayText = com.cleo.cleos.data.RecallDisplayText.clean(
 assert 'Recall("自定义撤回消息")' in pages
 assert 'SettingsPage.Chat -> ChatPage(vm, onOpenRecall' in screen
 assert 'SettingsPage.Recall -> RecallMessageSettingsPage(vm)' in screen
-assert 'page == SettingsPage.Recall) SettingsPage.Chat' in screen
+assert 'BackHandler(enabled = page == SettingsPage.Recall) { page = SettingsPage.Chat }' in screen
 assert 'internal fun ChatPage(vm: SettingsViewModel, onOpenRecall: () -> Unit)' in app
 assert '"自定义撤回消息"' in app
 for needle in ('"预览"', '"选择撤回消息"', 'RecallDisplayText.presets.forEach',
