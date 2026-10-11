@@ -37,10 +37,17 @@ edit(rel,
 "media session fallback on pending intent failure")
 
 tools = "app/src/main/java/com/cleo/cleos/ai/Tools.kt"
-edit(tools,
-    'Calendar, Music, Stickers }',
-    'Calendar, Music, MusicRequest, Stickers }',
-    "new separately controlled AI app-launch ability")
+import re
+tool_path = root / tools
+tool_source = tool_path.read_text(encoding="utf-8")
+group_match = re.search(r"enum class ToolGroup\s*\{([^}]+)\}", tool_source, flags=re.S)
+if group_match is None or not re.search(r"\bMusic\b", group_match.group(1)):
+    raise RuntimeError("Missing Music group in ToolGroup enum")
+groups = group_match.group(1)
+if "MusicRequest" in groups:
+    raise RuntimeError("MusicRequest already integrated")
+groups = re.sub(r"\bMusic\b", "Music, MusicRequest", groups, count=1)
+tool_path.write_text(tool_source[:group_match.start(1)] + groups + tool_source[group_match.end(1):], encoding="utf-8")
 edit(tools,
 '''    val all = listOf(
         sendMessage,
