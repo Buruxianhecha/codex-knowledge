@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.cleo.cleos.ai.LaunchOutcome
 import com.cleo.cleos.ai.MusicLaunch
 import com.cleo.cleos.ai.SongPlayer
-import com.cleo.cleos.ai.SongRequest
+import com.cleo.cleos.ai.ChatSongLaunchRequest
 import com.cleo.cleos.ai.SongRequests
 import kotlinx.coroutines.flow.collect
 
@@ -32,7 +32,7 @@ internal fun MusicSongRequestDialogs(
     onStatus: (String) -> Unit,
 ) {
     val context = LocalContext.current
-    var pending by remember { mutableStateOf<SongRequest?>(null) }
+    var pending by remember { mutableStateOf<ChatSongLaunchRequest?>(null) }
     var loudPlayer by remember { mutableStateOf<SongPlayer?>(null) }
 
     fun dismiss() {
