@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlin.math.ceil
 
-data class SongRequest(val conversationId: Long, val title: String, val artist: String)
+data class ChatSongLaunchRequest(val conversationId: Long, val title: String, val artist: String)
 
 /** AI tools never try to launch an Activity from a background worker.
  * The foreground chat handles all consent and external launches after the request is queued.
  */
 object SongRequests {
-    private val queue = MutableSharedFlow<SongRequest>(
+    private val queue = MutableSharedFlow<ChatSongLaunchRequest>(
         extraBufferCapacity = 8, onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
     val events = queue.asSharedFlow()
@@ -24,7 +24,7 @@ object SongRequests {
     fun enqueue(conversationId: Long, title: String, artist: String): Boolean {
         val cleanTitle = title.trim().take(120)
         if (conversationId <= 0L || cleanTitle.isEmpty()) return false
-        return queue.tryEmit(SongRequest(conversationId, cleanTitle, artist.trim().take(120)))
+        return queue.tryEmit(ChatSongLaunchRequest(conversationId, cleanTitle, artist.trim().take(120)))
     }
 }
 
@@ -61,7 +61,7 @@ object MusicLaunch {
     /** Standard Android play-from-search; only the receiver decides whether to actually play.
      * Never claim a track is playing just because startActivity returned.
      */
-    fun request(context: Context, player: SongPlayer, song: SongRequest): LaunchOutcome {
+    fun request(context: Context, player: SongPlayer, song: ChatSongLaunchRequest): LaunchOutcome {
         if (player !in installed(context)) return LaunchOutcome.FAILED
         val query = listOf(song.title, song.artist).filter { it.isNotBlank() }.joinToString(" ")
         val play = Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
