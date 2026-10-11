@@ -18,7 +18,7 @@ suffixes = [
     "保持高贵的沉默。", "试图萌混过关 😉", "并假装无事发生。",
     "并对你施了遗忘咒。", "就是辣么神秘 😎", "并祝你节日快乐",
 ]
-assert catalog.count('"$DEFAULT,') == len(suffixes)
+assert catalog.count('"$DEFAULT，') == len(suffixes)
 assert '\n        DEFAULT,\n' in catalog
 for s in suffixes:
     assert '"$DEFAULT，' + s + '"' in catalog, s
