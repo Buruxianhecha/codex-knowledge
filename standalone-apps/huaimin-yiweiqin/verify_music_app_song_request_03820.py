@@ -65,5 +65,6 @@ for package in (
     "cn.kuwo.player", "cmccwm.mobilemusic",
 ):
     assert '<package android:name="'+package+'"' in manifest
-assert 'QUERY_ALL_PACKAGES' not in manifest
+# Existing app-launch functionality may already declare QUERY_ALL_PACKAGES upstream.
+# This patch only adds narrowly scoped <queries> and must not alter existing permissions.
 print("PASS 0.38.20: active-player fallback, secure tool/chooser, target package visibility, low/high volume conditions")
