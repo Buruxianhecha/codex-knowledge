@@ -52,11 +52,25 @@ class KugouSearchPlan(private val song: SongRequest, private val player: String)
         val artistHome = labels.any { it.contains("入驻艺人") || it.contains("粉丝") } &&
             labels.any { it == "关注" || it == "播放全部" }
         if (artistHome) return QqUiAction.Stop("误入歌手主页，已停止自动操作。请返回搜索，切到「单曲」再点歌。")
-        val tab = if (searchTabs) nodes.firstOrNull { it.words.any { w -> w.trim() == "单曲" } &&
-            clickFor(it) != null && it.heightDp <= 110 } else null
+        // Singer profile's section heading also says 单曲. The navigation tab
+        // must align vertically with the 综合 and 视频 navigation labels.
+        val navY = nodes.firstOrNull { it.words.any { w -> w.trim() == "综合" } }?.centerY ?: -1
+        val videoY = nodes.firstOrNull { it.words.any { w -> w.trim() == "视频" } }?.centerY ?: -1
+        val tab = if (searchTabs) nodes.firstOrNull { candidate ->
+            candidate.words.any { w -> w.trim() == "单曲" } &&
+                candidate.heightDp in 1..110 &&
+                (if (navY > 0 && videoY > 0) {
+                    candidate.centerX > 0 && candidate.centerY > 0 &&
+                        kotlin.math.abs(candidate.centerY - navY) < 125 &&
+                        kotlin.math.abs(candidate.centerY - videoY) < 125
+                } else clickFor(candidate) != null)
+        } else null
+        // A visible tab may have no ACTION_CLICK. It is still a valid,
+        // uniquely located tap target, unlike arbitrary matching singer text.
+        val tabId = tab?.id // precise tab text node, not a broad parent container
         if (!songsTab) {
             if (tab?.selected == true) songsTab = true
-            else return tab?.let { QqUiAction.Click(clickFor(it)!!, "songs") } ?: QqUiAction.Wait
+            else return tabId?.let { QqUiAction.Click(it, "songs") } ?: QqUiAction.Wait
         }
         // Clicking a tab does not mean the content switched yet; wait for the
         // singer card to disappear, and never select a song in the 综合 page.
@@ -77,7 +91,10 @@ class KugouSearchPlan(private val song: SongRequest, private val player: String)
                 val artist = song.artist.isEmpty() || words.any { song.artistMatches(it) ||
                     it.split(Regex("\\s*[-|·]\\s*")).any(song::artistMatches) }
                 val nonSong = words.any { it.trim() in setOf("MV", "视频", "专辑", "歌单", "关注", "入驻艺人", "歌手主页") }
-                val target = clickFor(title)
+                // Prefer tapping the exact song TITLE bounds, rather than
+                // an ancestor that could route to the singer's profile.
+                val target = if (title.centerX > 0 && title.centerY > 0) title.id
+                    else clickFor(title)
                 val targetNode = nodes.firstOrNull { it.id == target }
                 // The singer's clickable label can be nested in the same result
                 // container. It is never a valid song playback target.

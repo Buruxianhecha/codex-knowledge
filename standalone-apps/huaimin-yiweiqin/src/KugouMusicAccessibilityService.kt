@@ -7,7 +7,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
+import android.graphics.Path
 import android.os.Build
+import android.accessibilityservice.GestureDescription
 import android.os.Bundle
 import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
@@ -63,14 +65,47 @@ class KugouMusicAccessibilityService : AccessibilityService() {
                     val bounds = Rect().also(node::getBoundsInScreen)
                     nodes.add(QqUiNode(id, parent, node.text?.toString().orEmpty(), node.contentDescription?.toString().orEmpty(),
                         node.viewIdResourceName.orEmpty(), node.isEditable, node.isClickable && node.isEnabled, node.isSelected,
-                        (bounds.height() / resources.displayMetrics.density).toInt(), node.hintText?.toString().orEmpty()))
+                        (bounds.height() / resources.displayMetrics.density).toInt(), node.hintText?.toString().orEmpty(),
+                        bounds.centerX(), bounds.centerY()))
                     for (i in 0 until node.childCount) node.getChild(i)?.let { visit(it, id, depth + 1) }
                 }
                 visit(root, null, 0)
                 val action = plan.next(pkg, nodes)
                 if (action is QqUiAction.Stop) return@withTimeoutOrNull action.reason
                 val success = when (action) {
-                    is QqUiAction.Click -> actual.getOrNull(action.id)?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true
+                    is QqUiAction.Click -> {
+                        val target = actual.getOrNull(action.id)
+                        if (target?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true) true
+                        else if (target != null && action.purpose in setOf("songs", "song")) {
+                            // Gesture fallback only for the verified navigation tab or
+                            // an EXACT matched song title: never tap singer name / profile.
+                            val words = listOf(target.text?.toString(), target.contentDescription?.toString())
+                                .filterNotNull()
+                            val validLabel = when (action.purpose) {
+                                "songs" -> words.any { it.trim() == "单曲" }
+                                "song" -> words.any {
+                                    AppNames.key(it.trim('《', '》')) == AppNames.key(song.title)
+                                }
+                                else -> false
+                            }
+                            val box = Rect().also(target::getBoundsInScreen)
+                            val displayHeight = resources.displayMetrics.heightPixels
+                            val safeBounds = !box.isEmpty && box.width() in 20..800 &&
+                                box.height() in 12..280 &&
+                                box.centerX() in 1 until resources.displayMetrics.widthPixels &&
+                                box.centerY() in (displayHeight / 12) until (displayHeight * 8 / 10)
+                            if (!validLabel || !safeBounds) false
+                            else {
+                                val path = Path().apply {
+                                    moveTo(box.centerX().toFloat(), box.centerY().toFloat())
+                                }
+                                val gesture = GestureDescription.Builder()
+                                    .addStroke(GestureDescription.StrokeDescription(path, 0L, 90L))
+                                    .build()
+                                dispatchGesture(gesture, null, null)
+                            }
+                        } else false
+                    }
                     is QqUiAction.Fill -> actual.getOrNull(action.id)?.let { node ->
                         node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
                         node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
