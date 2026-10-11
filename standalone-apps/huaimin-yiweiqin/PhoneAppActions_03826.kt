@@ -14,7 +14,7 @@ object AppNames {
         "微信" to listOf("com.tencent.mm"), "wechat" to listOf("com.tencent.mm"),
         "qq" to listOf("com.tencent.mobileqq"),
         "网易云音乐" to listOf("com.netease.cloudmusic"), "网易云" to listOf("com.netease.cloudmusic"),
-        "酷狗音乐" to listOf("com.kugou.android"), "酷我音乐" to listOf("cn.kuwo.player"),
+        "酷狗音乐" to listOf("com.kugou.android"), "酷狗" to listOf("com.kugou.android"), "kugou" to listOf("com.kugou.android"), "酷我音乐" to listOf("cn.kuwo.player"),
         "哔哩哔哩" to listOf("tv.danmaku.bili"), "b站" to listOf("tv.danmaku.bili"),
         "抖音" to listOf("com.ss.android.ugc.aweme"), "支付宝" to listOf("com.eg.android.AlipayGphone"),
     )
@@ -38,6 +38,8 @@ object AppNames {
 interface PhoneAppActions {
     fun open(name: String): ToolOutcome
     suspend fun playQQ(title: String, artist: String?): ToolOutcome
+    suspend fun playKugou(title: String, artist: String?): ToolOutcome =
+        throw ToolFailure("酷狗音乐点歌在此设备上尚未接入。", "未接入酷狗")
 }
 
 data class SongRequest(val title: String, val artist: String) {
