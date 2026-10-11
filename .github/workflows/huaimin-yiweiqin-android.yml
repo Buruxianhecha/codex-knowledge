@@ -249,8 +249,10 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/verify_qq_final_play_03828.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_compact_message_menu_03829.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_compact_message_menu_03829.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.29"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62095' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_tap_voice_dictation_03830.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_tap_voice_dictation_03830.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.30"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62096' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -321,6 +323,7 @@ jobs:
               "ai.PhoneAppsTest": 26,
               "ai.QqWindowRulesTest": 5,
               "ai.QqFinalPlayRulesTest": 7,
+              "ui.chat.VoiceDictationDraftTest": 5,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
@@ -394,8 +397,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.29", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62095", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.30", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62096", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
