@@ -259,8 +259,11 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_gallery_count_03833.py /tmp/huaimin-cleos
           cp standalone-apps/huaimin-yiweiqin/GalleryCountTest_03833.kt /tmp/huaimin-cleos/app/src/test/java/com/cleo/cleos/ai/GalleryCountTest.kt
           python3 standalone-apps/huaimin-yiweiqin/verify_gallery_count_03833.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.33"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62099' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_gallery_send_trash_03834.py /tmp/huaimin-cleos
+          cp standalone-apps/huaimin-yiweiqin/GallerySendSafetyTest_03834.kt /tmp/huaimin-cleos/app/src/test/java/com/cleo/cleos/ai/GallerySendSafetyTest.kt
+          python3 standalone-apps/huaimin-yiweiqin/verify_gallery_send_trash_03834.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.34"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62100' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -335,6 +338,7 @@ jobs:
               "ui.chat.ChatLocationPayloadTest": 5,
               "ai.GallerySafetyTest": 5,
               "ai.GalleryCountTest": 6,
+              "ai.GallerySendSafetyTest": 5,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
@@ -408,8 +412,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.33", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62099", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.34", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62100", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
