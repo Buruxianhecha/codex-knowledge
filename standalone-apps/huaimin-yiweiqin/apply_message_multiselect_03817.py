@@ -45,7 +45,7 @@ replacement = '''    val focusManager = LocalFocusManager.current
         selectedMessageIds = setOf(id)
         drawerOpen = false
         plusOpen = false
-        keyboard?.hide()
+        // Focus loss dismisses IME; keyboard controller is declared later.
         focusManager.clearFocus()
     }
     LaunchedEffect(state.conversationId, state.messages) {
@@ -211,8 +211,8 @@ rep('    walletAction?.let { kind ->\n', '''    if (choosingForwardMode) {
                     val sourceId = state.conversationId
                     val chosen = selectedMessageIds.toSet()
                     val merged = mergeForward
-                    val names = state.groupSpeakers.associate { it.id to it.name } +
-                        (state.companionId to state.aiName)
+                    val names = if (state.isGroup) state.groupSpeakers.associate { it.id to it.name }
+                        else mapOf(state.companionId to state.aiName)
                     val title = state.aiName.ifBlank { "聊天" }
                     scope.launch {
                         try {
