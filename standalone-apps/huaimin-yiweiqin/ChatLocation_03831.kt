@@ -45,7 +45,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.json.JSONObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.doubleOrNull
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.util.GeoPoint
@@ -67,21 +72,24 @@ internal object ChatLocationPayload {
     private const val PREFIX = "HUAIMIN_LOCATION_V1:"
     fun encode(p: ChatLocationPoint): String {
         require(valid(p.latitude, p.longitude))
-        return PREFIX + JSONObject()
-            .put("lat", p.latitude).put("lon", p.longitude)
-            .put("name", p.name.take(120))
-            .put("address", p.address.take(320)).toString()
+        return PREFIX + buildJsonObject {
+            put("lat", p.latitude)
+            put("lon", p.longitude)
+            put("name", p.name.take(120))
+            put("address", p.address.take(320))
+        }.toString()
     }
     fun decode(raw: String): ChatLocationPoint? {
         if (!raw.startsWith(PREFIX) || raw.length > 1600) return null
         return runCatching {
-            val json = JSONObject(raw.removePrefix(PREFIX))
-            val lat = json.getDouble("lat")
-            val lon = json.getDouble("lon")
+            val json = Json.parseToJsonElement(raw.removePrefix(PREFIX)).jsonObject
+            val lat = json["lat"]?.jsonPrimitive?.doubleOrNull ?: return null
+            val lon = json["lon"]?.jsonPrimitive?.doubleOrNull ?: return null
             if (!valid(lat,lon)) return null
             ChatLocationPoint(lat, lon,
-                json.optString("name", "选定位置").take(120).ifBlank { "选定位置" },
-                json.optString("address", "").take(320))
+                json["name"]?.jsonPrimitive?.content.orEmpty().take(120)
+                    .ifBlank { "选定位置" },
+                json["address"]?.jsonPrimitive?.content.orEmpty().take(320))
         }.getOrNull()
     }
     private fun valid(lat: Double, lon: Double) =
