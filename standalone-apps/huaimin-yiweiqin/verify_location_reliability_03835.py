@@ -28,7 +28,7 @@ for marker in [
     "手动选点模式",
     "这不是你的位置",
     "manualStart",
-    "query.trim().split(Regex(",
+    "q.trim().split(Regex(",
     "android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS",
     "android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS",
     "selected.latitude,selected.longitude",
