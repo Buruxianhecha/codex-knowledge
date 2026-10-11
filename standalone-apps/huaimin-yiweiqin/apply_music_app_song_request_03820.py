@@ -120,10 +120,15 @@ edit(shared,
 ''',
 "song permission switch")
 pages = "app/src/main/java/com/cleo/cleos/ui/settings/SettingsPages.kt"
-edit(pages,
-    'ToolGroup.Calendar, ToolGroup.Music, ToolGroup.Avatar,',
-    'ToolGroup.Calendar, ToolGroup.Music, ToolGroup.MusicRequest, ToolGroup.Avatar,',
-    "ability switch totals")
+page_file=root/pages
+page_src=page_file.read_text(encoding="utf-8")
+list_start=page_src.index("internal val ABILITIES = listOf(")
+list_end=page_src.index("\n)",list_start)
+section=page_src[list_start:list_end]
+if "ToolGroup.MusicRequest" in section or "ToolGroup.Music" not in section:
+    raise RuntimeError("Unexpected abilities registry")
+section=section.replace("ToolGroup.Music", "ToolGroup.Music, ToolGroup.MusicRequest", 1)
+page_file.write_text(page_src[:list_start]+section+page_src[list_end:],encoding="utf-8")
 
 manifest="app/src/main/AndroidManifest.xml"
 edit(manifest,
