@@ -31,6 +31,12 @@ for marker in [
     "q.trim().split(Regex(",
     "android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS",
     "android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS",
+    "ChinaMapLink.marker(p)",
+    "https://uri.amap.com/marker?position=",
+    "https://uri.amap.com/search?keyword=",
+    "coordinate=wgs84",
+    "preferChinaMap()",
+    "在高德地图查看选中位置",
     "selected.latitude,selected.longitude",
     "Button(onClick={ point?.let(onSend) },enabled=point != null)",
 ]:
