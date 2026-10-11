@@ -95,7 +95,7 @@ class QqPlayback(private val phone: QqPlaybackPhone, private val pause: suspend 
                 // An enabled Android service can be disconnected. Never report
                 // "permission off" unless the actual enabled-state check says so.
                 if (phone.screenControlEnabled()) throw ToolFailure(
-                    "QQ 音乐点歌权限已开启，但服务暂时未连接。请到系统无障碍设置重新连接「怀民亦未寝 · QQ 音乐点歌」，然后重试。",
+                    "还没有确认到目标歌曲播放。QQ 音乐点歌权限已开启，但服务暂时未连接。请到系统无障碍设置重新连接「怀民亦未寝 · QQ 音乐点歌」，然后重试。",
                     "QQ 音乐无障碍服务未连接（不是权限未开启）",
                 )
                 throw ToolFailure(
@@ -109,8 +109,8 @@ class QqPlayback(private val phone: QqPlaybackPhone, private val pause: suspend 
             // before treating any UI error as playback failure.
             confirmed(app, song, if (selectionError == null) 32 else 6)?.let { return done(it) }
             if (selectionError != null) throw ToolFailure(
-                "QQ 音乐自动选歌暂未完成：$selectionError。当前未从 QQ 音乐媒体会话确认目标歌曲正在播放；这不代表权限未开启。",
-                "QQ 音乐界面选歌未完成（非权限结论）",
+                selectionError,
+                "QQ 音乐界面选歌未完成（不代表权限未开启）",
             )
             throw ToolFailure(
                 "已在 QQ 音乐点选《${song.title}》，但没有确认到这首歌正在播放。请检查 QQ 音乐是否要求登录、会员或网络连接；不能说已播放。", "未确认目标歌曲播放",
