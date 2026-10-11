@@ -34,7 +34,7 @@ method='''    /** Count IDs only: no pagination, thumbnail decoding, or uploadin
                 args += album.trim().take(80)
             }
             // Cursor.getCount() reports the provider's entire visible result
-            // set. Crucially: no QUERY_ARG_LIMIT / QUERY_ARG_OFFSET / LIMIT.
+            // set without any paging or thumbnail loading.
             val selection = filters.joinToString(" AND ").ifBlank { null }
             val selectionArgs = args.takeIf { it.isNotEmpty() }?.toTypedArray()
             val cursor = resolver.query(
