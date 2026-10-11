@@ -27,6 +27,7 @@ for x in [
     'images.import(uri, maxEdge = 2048, prefix = "ai-gallery-")',
     'MessageImages.encode(imported)',
     'role = "assistant"',
+    'senderCompanionId = companionId',
     'db.conversations().touch(conversationId, at)',
     'images.delete(imported.map { it.file })',
     '不能声称已经发出',
@@ -42,6 +43,7 @@ for x in [
     assert x in g,x
 for x in [
     'galleryReviewOwner == state.conversationId',
+    'error == null && images == null && audio == null',
     'AI 建议检查 ',
     'GalleryManagerDialog',
     'galleryReviewOpen = true',
