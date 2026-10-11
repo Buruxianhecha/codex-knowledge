@@ -27,7 +27,7 @@ for key in [
 ]:
     assert key in chat,key
 vm=(src/"ChatViewModel.kt").read_text()
-assert "fun sendLocation(point: ChatLocationPoint): Boolean" in vm
+assert "internal fun sendLocation(point: ChatLocationPoint): Boolean" in vm
 assert "c.chat.send(id,ChatLocationPayload.encode(point),emptyList(),null,emptyMap())" in vm
 gradle=(r/"app/build.gradle.kts").read_text()
 assert 'versionName = "0.38.31"' in gradle
