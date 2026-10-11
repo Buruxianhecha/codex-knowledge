@@ -330,6 +330,7 @@ jobs:
               "ai.QqFinalPlayRulesTest": 7,
               "ui.chat.VoiceDictationDraftTest": 5,
               "ui.chat.ChatLocationPayloadTest": 5,
+              "ai.GallerySafetyTest": 5,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
