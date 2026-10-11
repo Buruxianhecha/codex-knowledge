@@ -241,8 +241,10 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/verify_kugou_recovery_03824.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_kugou_ime_03825.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_kugou_ime_03825.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.25"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62091' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_qq_feedback_03826.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_qq_feedback_03826.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.26"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62092' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -310,7 +312,8 @@ jobs:
               "data.ReactionEventsTest": 11,
               "data.GroupReactionRulesTest": 4,
               "ai.ReactionPromptTest": 10,
-              "ai.PhoneAppsTest": 23,
+              "ai.PhoneAppsTest": 26,
+              "ai.QqWindowRulesTest": 5,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
@@ -384,8 +387,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.25", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62091", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.26", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62092", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
