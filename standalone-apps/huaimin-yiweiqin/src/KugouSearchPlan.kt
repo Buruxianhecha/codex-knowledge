@@ -67,7 +67,7 @@ class KugouSearchPlan(private val song: SongRequest, private val player: String)
         } else null
         // A visible tab may have no ACTION_CLICK. It is still a valid,
         // uniquely located tap target, unlike arbitrary matching singer text.
-        val tabId = tab?.let { clickFor(it) ?: it.id }
+        val tabId = tab?.id // precise tab text node, not a broad parent container
         if (!songsTab) {
             if (tab?.selected == true) songsTab = true
             else return tabId?.let { QqUiAction.Click(it, "songs") } ?: QqUiAction.Wait
