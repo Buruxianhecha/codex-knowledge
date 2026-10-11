@@ -99,10 +99,14 @@ class KugouMusicAccessibilityService : AccessibilityService() {
                         window.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD,
                         window.isActive, window.isFocused, window.layer)
                 }
+                // rootInActiveWindow may itself be null while the IME owns focus.
+                // An observed active keyboard window is sufficient to inspect the
+                // frontmost app layer, never to authorize a background app.
+                val focusedWindowId = active?.windowId
+                    ?: windowList.firstOrNull { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.isActive }?.id
                 val chosenId = KugouScreenRules.applicationWindow(
-                    active?.windowId, active?.packageName?.toString(), snapshots)
-                val rootTemporarilyMissing = active == null ||
-                    (snapshots.any { it.id == active.windowId && it.inputMethod } && chosenId == null)
+                    focusedWindowId, active?.packageName?.toString(), snapshots)
+                val rootTemporarilyMissing = chosenId == null
                 if (rootTemporarilyMissing) {
                     val otherForeground = snapshots.any { it.application && it.active && it.packageName.isNotEmpty() && it.packageName != player }
                     if (!otherForeground && missingRootLooks++ < 6) { delay(300); continue }
