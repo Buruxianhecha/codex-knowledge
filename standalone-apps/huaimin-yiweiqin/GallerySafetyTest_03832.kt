@@ -7,7 +7,7 @@ class GallerySafetyTest {
     private fun photo(id: Long) = GalleryPhoto(id,"test_$id.jpg","Camera",1720000000000L,1024)
     @Test fun toolMetadataMustNotPretendToHaveSeenImages() {
         val text=GalleryResultFormatter.display(listOf(photo(101)),GalleryAccess.All)
-        assertTrue(text.contains("仅"))
+        assertTrue(text.contains("不代表已经看过"))
         assertTrue(text.contains("元数据"))
         assertTrue(text.contains("inspect_gallery_photos"))
         assertTrue(text.contains("ID=101"))
