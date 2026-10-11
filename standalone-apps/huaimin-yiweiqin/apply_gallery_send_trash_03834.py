@@ -118,10 +118,16 @@ change(tools,
 chat=src/"ai/ChatRepository.kt"
 change(chat,
     '''            val outcome = try {
-                if (outer != null) runOutside(conversationId, outer, call, live, ai) else tools.run(call, s, conversationId, companionId)
+                if (call.name in setOf(ToolSpecs.searchChatHistory.name, ToolSpecs.readChatMessage.name))
+                    searchHistoryCall(conversationId, call)
+                else if (outer != null) runOutside(conversationId, outer, call, live, ai)
+                else tools.run(call, s, conversationId, companionId)
 ''',
     '''            var outcome = try {
-                if (outer != null) runOutside(conversationId, outer, call, live, ai) else tools.run(call, s, conversationId, companionId)
+                if (call.name in setOf(ToolSpecs.searchChatHistory.name, ToolSpecs.readChatMessage.name))
+                    searchHistoryCall(conversationId, call)
+                else if (outer != null) runOutside(conversationId, outer, call, live, ai)
+                else tools.run(call, s, conversationId, companionId)
 ''',
     "make outcome mutable for error feedback")
 change(chat,
