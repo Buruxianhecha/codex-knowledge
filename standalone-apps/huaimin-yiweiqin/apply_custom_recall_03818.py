@@ -59,14 +59,12 @@ page_enum = "app/src/main/java/com/cleo/cleos/ui/settings/SettingsPages.kt"
 replace(page_enum, '    Chat("聊天"),\n', '    Chat("聊天"),\n    Recall("自定义撤回消息"),\n', "nested recall page enum")
 
 screen = "app/src/main/java/com/cleo/cleos/ui/settings/SettingsScreen.kt"
+# Added *after* existing BackHandler(s), so the nested subpage takes precedence
+# without changing earlier keyboard/upgrade handler logic.
 replace(screen,
-    '    BackHandler(enabled = page != null) { page = null }\n',
-    '    BackHandler(enabled = page != null) { page = if (page == SettingsPage.Recall) SettingsPage.Chat else null }\n',
+    '    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()\n',
+    '    BackHandler(enabled = page == SettingsPage.Recall) { page = SettingsPage.Chat }\n    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()\n',
     "nested hardware back")
-replace(screen,
-    '    GlassPage(\n',
-    '    GlassPage(\n',
-    "screen anchor only",) if False else None
 replace(screen,
     'GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "返回", { if (page != null) page = null else onBack() }, backdrop)',
     'GlassIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "返回", { if (page == SettingsPage.Recall) page = SettingsPage.Chat else if (page != null) page = null else onBack() }, backdrop)',
