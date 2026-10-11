@@ -154,4 +154,6 @@ for name,folder in [("KugouPlayback.kt","ai"),("KugouSearchPlan.kt","ai"),("Kugo
     dest.parent.mkdir(parents=True,exist_ok=True)
     copyfile(here/"src"/name,dest)
 copyfile(here/"src/kugou_music_accessibility.xml",root/"app/src/main/res/xml/kugou_music_accessibility.xml")
+for unit in ("KugouPlaybackTest", "KugouSearchPlanTest"):
+    copyfile(here/(unit+"_03821.kt"),root/("app/src/test/java/com/cleo/cleos/ai/"+unit+".kt"))
 print("v0.38.21: Kugou-only play tool, separate permission and real playback check; QQ untouched")
