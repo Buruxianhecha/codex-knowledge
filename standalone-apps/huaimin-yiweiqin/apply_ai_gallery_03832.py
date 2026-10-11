@@ -212,11 +212,10 @@ edit(chat,
 '''        return step.message.toolCalls.mapNotNull { results[it.id] }''',
 '''        return step.message.toolCalls.mapNotNull { results[it.id] } + galleryVision''',"append ephemeral vision only in model call")
 edit(chat,
-'''                        messages = messages + step.message + results
-                        rounds++''',
-'''                        if (results.any { it.images.isNotEmpty() }) withImages = true
-                        messages = messages + step.message + results
-                        rounds++''',"safe multimodal refusal handling")
+'''                        val results = runTools(conversationId, step, s.copy(tools = groups), ta.id, outside, ta.name)''',
+'''                        val results = runTools(conversationId, step, s.copy(tools = groups), ta.id, outside, ta.name)
+                        if (results.any { it.images.isNotEmpty() }) withImages = true''',
+"safe multimodal refusal handling")
 
 manifest=root/"app/src/main/AndroidManifest.xml"
 edit(manifest,
