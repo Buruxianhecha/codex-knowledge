@@ -391,14 +391,15 @@ internal fun ChatLocationPicker(onDismiss: () -> Unit, onSend: (ChatLocationPoin
                         StaticLocationMap(
                             point = point,
                             modifier = Modifier.fillMaxSize(),
+                            onTap = { lat,lon ->
+                                userPicked = true
+                                point = ChatLocationPoint(lat,lon,"地图选点",
+                                    String.format(Locale.US,"%.6f, %.6f",lat,lon))
+                                query = ""
+                                hint = "已选中地图位置。请确认地点后点击发送"
+                            },
                             initialCenter = manualStart,
-                        ) { lat,lon ->
-                            userPicked = true
-                            point = ChatLocationPoint(lat,lon,"地图选点",
-                                String.format(Locale.US,"%.6f, %.6f",lat,lon))
-                            query = ""
-                            hint = "已选中地图位置。请确认地点后点击发送"
-                        }
+                        )
                         Text("© OpenStreetMap contributors",Modifier.align(Alignment.BottomStart)
                             .background(Color.White.copy(alpha=0.85f)).padding(5.dp),
                             fontSize=10.sp,color=Color.DarkGray)
@@ -435,7 +436,11 @@ internal fun ChatLocationPicker(onDismiss: () -> Unit, onSend: (ChatLocationPoin
                 if (!permission || !locationEnabled) {
                     TextButton(onClick = {
                         runCatching {
-                            context.startActivity(Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                            val action = if (!hasLocationPermission(context))
+                                Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                    .setData(Uri.parse("package:" + context.packageName))
+                            else Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                            context.startActivity(action)
                         }
                     },modifier=Modifier.padding(start=12.dp)) {
                         Text(if (!permission) "检查应用定位权限 / 系统位置设置"
