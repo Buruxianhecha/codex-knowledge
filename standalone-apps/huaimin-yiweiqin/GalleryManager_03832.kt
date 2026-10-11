@@ -98,6 +98,12 @@ internal fun GalleryManagerDialog(onDismiss: () -> Unit) {
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Text(
+                    "AI 查看照片时，选中的图片缩略图会发送给你所配置的模型服务；" +
+                        "照片不会因开启相册权限就自动批量上传。",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 if (suggestions.isNotEmpty()) {
                     Text(
                         "AI 建议检查 " + suggestions.size +
