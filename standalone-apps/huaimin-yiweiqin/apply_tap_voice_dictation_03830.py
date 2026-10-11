@@ -161,10 +161,13 @@ chat=modify(chat,
             } catch (e: Exception) {
                 voiceHint = "语音转文字失败：" + (e.message ?: "请检查网络和服务配置")
             } finally {
-                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable + kotlinx.coroutines.Dispatchers.IO) {
-                    c.images.delete(listOf(clip.file))
+                try {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable + kotlinx.coroutines.Dispatchers.IO) {
+                        c.images.delete(listOf(clip.file))
+                    }
+                } finally {
+                    dictationBusy = false
                 }
-                dictationBusy = false
             }
         }
     }
@@ -271,7 +274,7 @@ chat=modify(chat,
 chat=modify(chat,
 '''        Text(if (cancelling) "松开取消" else "松开发送，上滑取消", color = if (cancelling) palette.error else palette.contentSecondary, fontSize = 14.sp)''',
 '''        Text(
-            if (tapToFinish) "再点语音输入结束并转文字"
+            if (tapToFinish) "再点「结束录音」完成转文字"
             else if (cancelling) "松开取消" else "松开发送，上滑取消",
             color = if (cancelling) palette.error else palette.contentSecondary,
             fontSize = 14.sp,
