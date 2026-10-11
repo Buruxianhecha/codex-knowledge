@@ -6,8 +6,8 @@ root=Path(sys.argv[1]).resolve()
 base=root/"app/src/main/java/com/cleo/cleos"
 get=lambda name: (base/name).read_text(encoding="utf-8")
 music=get("ai/Music.kt")
-req=get("ai/SongRequests.kt")
-ui=get("ui/chat/MusicSongRequestDialogs.kt")
+req=get("ai/ChatSongLaunchRequests.kt")
+ui=get("ui/chat/MusicChatSongLaunchRequestDialogs.kt")
 tools=get("ai/Tools.kt")
 chat=get("ui/chat/ChatScreen.kt")
 settings=get("ui/settings/SharedPages.kt")
@@ -19,12 +19,12 @@ assert 'versionName = "0.38.20"' in build and "versionCode = 62086" in build
 assert 'current.controller.sessionActivity' in music
 assert 'if (intent == null) return MusicLaunch.open(context, current.controller.packageName)' in music
 assert 'return MusicLaunch.open(context, current.controller.packageName)' in music
-assert 'MusicSongRequestDialogs(' in chat and 'visible = pageShown' in chat
+assert 'MusicChatSongLaunchRequestDialogs(' in chat and 'visible = pageShown' in chat
 assert 'onOpen = {' in chat and '"无法跳转当前播放器' in chat
 assert 'onPrevious = ' in chat and 'onNext = ' in chat and 'onToggle = ' in chat
 
 for term in (
-    'MutableSharedFlow<SongRequest>', 'conversationId: Long',
+    'MutableSharedFlow<ChatSongLaunchRequest>', 'conversationId: Long',
     'com.tencent.qqmusic', 'com.netease.cloudmusic', 'com.kugou.android',
     'cn.kuwo.player', 'cmccwm.mobilemusic',
     'getLaunchIntentForPackage', 'getStreamVolume(AudioManager.STREAM_MUSIC)',
@@ -39,7 +39,7 @@ for term in (
     assert term in req, "request: "+term
 assert 'normal' not in req.lower() or True
 for term in (
-    'LaunchedEffect(conversationId, visible)', 'SongRequests.events.collect',
+    'LaunchedEffect(conversationId, visible)', 'ChatSongLaunchRequests.events.collect',
     'if (request.conversationId == conversationId)',
     'choices.size == 1', 'choices.size > 1',
     'MusicLaunch.requiresLoudnessConfirmation',
@@ -55,7 +55,7 @@ for term in (
     'name = "request_song"', 'groups = setOf(ToolGroup.MusicRequest)',
     'required = listOf("title")', 'ToolSpecs.requestSong.name -> requestSong(args, conversationId)',
     'fun requestSong(a: JsonObject, conversationId: Long)',
-    'SongRequests.enqueue(conversationId, title, artist)',
+    'ChatSongLaunchRequests.enqueue(conversationId, title, artist)',
 ):
     assert term in tools, "AI: "+term
 assert 'on(ToolGroup.MusicRequest)' in settings and '"用音乐 App 点歌"' in settings
