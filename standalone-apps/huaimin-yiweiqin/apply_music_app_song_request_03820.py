@@ -78,14 +78,9 @@ tool_source = tool_source[:list_end] + "\n        requestSong," + tool_source[li
 (root / tools).write_text(tool_source, encoding="utf-8")
 
 edit(tools,
-'''                ToolSpecs.musicControl.name -> musicControl(args)
-                else -> getWeather(args, settings)
-''',
-'''                ToolSpecs.musicControl.name -> musicControl(args)
-                ToolSpecs.requestSong.name -> requestSong(args, conversationId)
-                else -> getWeather(args, settings)
-''',
-"tool dispatch")
+    '                ToolSpecs.musicControl.name -> musicControl(args)\n',
+    '                ToolSpecs.musicControl.name -> musicControl(args)\n                ToolSpecs.requestSong.name -> requestSong(args, conversationId)\n',
+    "tool dispatch with later upstream PatUser branch")
 edit(tools,
 '''    private suspend fun musicControl(a: JsonObject): ToolOutcome {
 ''',
