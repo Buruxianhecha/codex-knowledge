@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.cleo.cleos.ai.DeviceGallery
 import com.cleo.cleos.ai.GalleryAccess
 import com.cleo.cleos.ai.GalleryPermissions
