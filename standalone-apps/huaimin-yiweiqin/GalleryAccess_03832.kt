@@ -160,6 +160,13 @@ class DeviceGallery(private val context: Context) : GallerySource {
         existing.size
     }
 
+    suspend fun photosByIds(ids: List<Long>): List<GalleryPhoto> =
+        withContext(Dispatchers.IO) {
+            ids.distinct().take(50).mapNotNull { id ->
+                if (id <= 0L) null else runCatching { photo(id) }.getOrNull()
+            }
+        }
+
     fun uriFor(id: Long) = ContentUris.withAppendedId(uri, id)
 }
 object GalleryResultFormatter {
