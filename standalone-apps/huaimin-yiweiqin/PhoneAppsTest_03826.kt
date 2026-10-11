@@ -223,7 +223,7 @@ class PhoneAppsTest {
         val phone = Phone(app).apply { selectError = "QQ 音乐不在前台"; selectedState = null }
         val error = playbackFailure { QqPlayback(phone) {}.play(song) }
         assertTrue(error.result.contains("不在前台"))
-        assertTrue(error.result.contains("不代表权限未开启"))
+        assertTrue(error.note.contains("不代表权限未开启"))
         assertFalse(error.note.contains("权限未开启"))
     }
 }
