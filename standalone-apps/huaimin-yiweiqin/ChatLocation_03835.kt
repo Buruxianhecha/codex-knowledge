@@ -10,6 +10,7 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
+import android.content.ActivityNotFoundException
 import android.os.Build
 import android.os.CancellationSignal
 import android.widget.Toast
@@ -433,6 +434,23 @@ internal fun ChatLocationPicker(onDismiss: () -> Unit, onSend: (ChatLocationPoin
                         Icon(Icons.Rounded.MyLocation,contentDescription="重新获取手机当前位置")
                     }
                 }
+                if (preferChinaMap()) {
+                    // Domestic fallback for OSM tiles or system Geocoder being unavailable.
+                    // AMap URI is a user-invoked browser/app link, not an invisible upload.
+                    TextButton(
+                        onClick = {
+                            val target = point?.let(ChinaMapLink::marker)
+                                ?: ChinaMapLink.search(query.ifBlank { "附近" })
+                            if (!openChinaMap(context, target)) {
+                                hint = "未找到能打开的地图应用；可继续用坐标或手动选点"
+                            }
+                        },
+                        modifier = Modifier.padding(start=12.dp),
+                    ) {
+                        Text(if (point != null) "在高德地图查看选中位置"
+                            else "用高德地图查看国内地点（免费外部打开）")
+                    }
+                }
                 if (!permission || !locationEnabled) {
                     TextButton(onClick = {
                         runCatching {
@@ -521,7 +539,35 @@ internal fun ChatLocationCard(
     }
 }
 
+/**
+ * China-first keyless map handoff (NOT an embedded AMap SDK).
+ * Official AMap marker URI accepts WGS84 explicitly; keeping original
+ * coordinates prevents GCJ02 shifts when a photo/location is shared.
+ */
+internal object ChinaMapLink {
+    fun marker(p: ChatLocationPoint): String =
+        "https://uri.amap.com/marker?position=" +
+            p.longitude + "," + p.latitude +
+            "&name=" + Uri.encode(p.name) +
+            "&coordinate=wgs84&src=huaimin&callnative=1"
+
+    fun search(keyword: String): String =
+        "https://uri.amap.com/search?keyword=" +
+            Uri.encode(keyword.take(100)) +
+            "&view=map&src=huaimin&callnative=1"
+}
+
+private fun openChinaMap(context: Context, uri: String): Boolean =
+    runCatching {
+        context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(uri)))
+        true
+    }.getOrDefault(false)
+
+private fun preferChinaMap(): Boolean =
+    Locale.getDefault().country.equals("CN",ignoreCase=true)
+
 private fun openLocationNavigation(context: Context,p: ChatLocationPoint) {
+    if (preferChinaMap() && openChinaMap(context, ChinaMapLink.marker(p))) return
     val uri=Uri.parse("geo:" + p.latitude + "," + p.longitude + "?q=" +
         p.latitude + "," + p.longitude + "(" + Uri.encode(p.name) + ")")
     if (runCatching {
