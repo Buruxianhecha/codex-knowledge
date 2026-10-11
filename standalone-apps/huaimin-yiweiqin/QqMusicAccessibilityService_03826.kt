@@ -74,7 +74,7 @@ class QqMusicAccessibilityService : AccessibilityService() {
                     activeWindowId, activeRoot?.packageName?.toString(), snapshots, player)
                 val root = if (chosenId == activeRoot?.windowId) activeRoot else appRoots[chosenId]
                 val pkg = root?.packageName?.toString().orEmpty()
-                if (pkg != player) {
+                if (root == null || pkg != player) {
                     // Never manipulate a different app. Give QQ a moment to
                     // launch or for the keyboard's window hierarchy to refresh.
                     if (!seenQQ && initialLooks++ < 12) { delay(300); continue }
