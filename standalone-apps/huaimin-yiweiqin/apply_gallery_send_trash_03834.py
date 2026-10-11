@@ -186,8 +186,8 @@ change(screen,
     '''    var sentCount by remember { mutableIntStateOf(0) }''',
     '''    var sentCount by remember { mutableIntStateOf(0) }
     // Review is attached to the chat that requested it, not to unrelated TAs.
-    val galleryReviewIds by com.cleo.cleos.ai.GalleryReviewQueue.ids.collectAsState()
-    val galleryReviewOwner by com.cleo.cleos.ai.GalleryReviewQueue.owner.collectAsState()
+    val galleryReviewIds by com.cleo.cleos.ai.GalleryReviewQueue.ids.collectAsStateWithLifecycle()
+    val galleryReviewOwner by com.cleo.cleos.ai.GalleryReviewQueue.owner.collectAsStateWithLifecycle()
     var galleryReviewOpen by remember { mutableStateOf(false) }''',
     "chat review UI state")
 change(screen,
