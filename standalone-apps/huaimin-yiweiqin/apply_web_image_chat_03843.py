@@ -77,7 +77,7 @@ change(chat,
                                 conversationId = conversationId, role = "tool", content = outcome.result,''',
     '''                        if (outcome.webSendUrls.isNotEmpty()) {
                             outcome = persistWebImages(conversationId, ta.id, outcome.webSendUrls,
-                                background, false)
+                                background, null)
                         }
                         withContext(NonCancellable) {
                             val at = stamp()
@@ -91,7 +91,7 @@ change(chat,
         companionId: Long,
         urls: List<String>,
         wake: Boolean = false,
-        inCall: Boolean = false,
+        inCall: Long? = null,
     ): ToolOutcome {
         val imported = ArrayList<MessageImage>()
         try {
