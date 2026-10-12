@@ -38,7 +38,7 @@ replace(tools,
                 // Gallery authorization must be checked on every operation, not only when
                 // the model first saw the media ID. The phone user controls access.
                 val matching = userGallery().sendablePhotos(listOf(galleryId))
-                if (matching.none { it.id == galleryId })
+                if (galleryId !in matching)
                     throw ToolFailure("相册中找不到这张授权照片（ID=$galleryId），请重新检索。", "找不到那张相册照片")
                 val update = galleryAvatar ?: throw ToolFailure("本机相册头像功能不可用。", "不能换头像")
                 if (!update(companionId, galleryId))
