@@ -41,10 +41,6 @@ anchor_memo="            val memo = if (ToolGroup.Memory in s.tools) db.memories
 if alltext.count(anchor_memo)!=1:raise RuntimeError("group call memory read not found")
 alltext=alltext.replace(anchor_memo,
     "            val memo = PersonalityGrowthRules.forPrompt(db.memories().allFor(ta.id), ToolGroup.Memory in s.tools)")
-anchor_inner="            val memories = if (ToolGroup.Memory in s.tools) db.memories().allFor(ta.id) else emptyList()"
-if alltext.count(anchor_inner)!=1:raise RuntimeError("normal chat memory read missing")
-alltext=alltext.replace(anchor_inner,
-    "            val memories = PersonalityGrowthRules.forPrompt(db.memories().allFor(ta.id), ToolGroup.Memory in s.tools)")
 chat.write_text(alltext,encoding="utf-8")
 
 change(chat,
