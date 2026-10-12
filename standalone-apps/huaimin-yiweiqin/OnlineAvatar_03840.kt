@@ -195,7 +195,7 @@ class OnlineAvatarService(
             .header("Accept", "image/jpeg,image/png,image/webp")
             .build()
         return runCatching {
-            client.newCall(req).execute().use { resp ->
+            client.newCall(req).execute().use response@ { resp ->
                 val body = resp.body ?: return@use null
                 if (!resp.isSuccessful ||
                     !OnlineAvatarRules.allowedMime(resp.header("Content-Type")) ||
@@ -208,7 +208,7 @@ class OnlineAvatarService(
                         val n = input.read(chunk)
                         if (n < 0) break
                         used += n
-                        if (used > maxBytes) return@use null
+                        if (used > maxBytes) return@response null
                         bytes.write(chunk, 0, n)
                     }
                 }
