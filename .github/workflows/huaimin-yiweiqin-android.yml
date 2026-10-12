@@ -279,8 +279,10 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/verify_personality_growth_03841.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_personality_controls_03842.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_personality_controls_03842.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.42"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62108' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_web_image_chat_03843.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_web_image_chat_03843.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.43"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62109' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -362,6 +364,7 @@ jobs:
               "ai.OnlineAvatarRulesTest": 11,
               "ai.PersonalityGrowthRulesTest": 11,
               "ai.PersonalityGrowthConfigTest": 12,
+              "ai.OnlineWebChatRulesTest": 8,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
@@ -435,8 +438,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.42", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62108", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.43", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62109", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
