@@ -196,10 +196,10 @@ class OnlineAvatarService(
             .build()
         return runCatching {
             client.newCall(req).execute().use response@ { resp ->
-                val body = resp.body ?: return@use null
+                val body = resp.body ?: return@response null
                 if (!resp.isSuccessful ||
                     !OnlineAvatarRules.allowedMime(resp.header("Content-Type")) ||
-                    body.contentLength() > maxBytes) return@use null
+                    body.contentLength() > maxBytes) return@response null
                 val bytes = ByteArrayOutputStream()
                 body.byteStream().use { input ->
                     val chunk = ByteArray(8192)
