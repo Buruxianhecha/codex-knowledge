@@ -73,8 +73,8 @@ change(chat,
 
 app=root/"app/src/main/java/com/cleo/cleos/CleosApp.kt"
 change(app,
-    'import com.cleo.cleos.ai.AiSelfName\\n',
-    'import com.cleo.cleos.ai.AiSelfName\\nimport com.cleo.cleos.ai.PersonalityGrowth\\n')
+    'import com.cleo.cleos.ai.AiSelfName\n',
+    'import com.cleo.cleos.ai.AiSelfName\nimport com.cleo.cleos.ai.PersonalityGrowth\n')
 change(app,
     '''        db, settings, secrets, chatClient, tools, images, companions, recaps, mcp, transcriber, speaker, appScope,
         // A reply finished''',
@@ -84,8 +84,8 @@ change(app,
 
 vm=root/"app/src/main/java/com/cleo/cleos/ui/settings/SettingsViewModel.kt"
 change(vm,
-    '''import kotlinx.coroutines.flow.first\\n''',
-    '''import kotlinx.coroutines.flow.first\\nimport kotlinx.coroutines.flow.Flow\\nimport kotlinx.coroutines.flow.map\\nimport com.cleo.cleos.ai.PersonalityGrowthRules\\n''')
+    '''import kotlinx.coroutines.flow.first\n''',
+    '''import kotlinx.coroutines.flow.first\nimport kotlinx.coroutines.flow.Flow\nimport kotlinx.coroutines.flow.map\nimport com.cleo.cleos.ai.PersonalityGrowthRules\n''')
 change(vm,
     '''    var persona by mutableStateOf("")''',
     '''    fun growingPersona(id: Long): Flow<String> = c.db.memories().observeFor(id)
