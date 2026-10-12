@@ -62,6 +62,10 @@ replace(app,
             AiSelfAvatar(db, images, companions).usePicture(actor, stored.file)
         },
         selfName = AiSelfName(db, companions),''')
+# No 5,000-photo pagination ceiling: large authorized libraries must stay browsable.
+replace(tools,
+    'val offset = a["offset"]?.jsonPrimitive?.intOrNull?.coerceIn(0,5000) ?: 0',
+    'val offset = a["offset"]?.jsonPrimitive?.intOrNull?.coerceIn(0,1000000) ?: 0')
 prompt=ai/"Prompt.kt"
 replace(prompt,
     'if (ToolGroup.Avatar in tools) add("你可以用 set_my_avatar 换自己的头像：用对方发来的一张图，或者一个表情。")',
