@@ -266,8 +266,10 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/verify_location_reliability_03835.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_location_card_03836.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_location_card_03836.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.36"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62102' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_ai_self_name_03837.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_ai_self_name_03837.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.37"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62103' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -344,6 +346,7 @@ jobs:
               "ai.GalleryCountTest": 6,
               "ai.GallerySendSafetyTest": 5,
               "ui.chat.LocationQualityTest": 8,
+              "ai.SelfNameRulesTest": 12,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
@@ -417,8 +420,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.36", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62102", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.37", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62103", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
