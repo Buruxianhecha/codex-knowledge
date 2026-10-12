@@ -270,8 +270,11 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/verify_ai_self_name_03837.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/apply_ai_self_name_relaxed_03838.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_ai_self_name_relaxed_03838.py /tmp/huaimin-cleos
-          grep -q 'versionName = "0.38.38"' /tmp/huaimin-cleos/app/build.gradle.kts
-          grep -q 'versionCode = 62104' /tmp/huaimin-cleos/app/build.gradle.kts
+          python3 standalone-apps/huaimin-yiweiqin/apply_gallery_budget_03839.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/apply_gallery_avatar_03839.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_gallery_budget_03839.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.39"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62105' /tmp/huaimin-cleos/app/build.gradle.kts
 
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
@@ -349,6 +352,7 @@ jobs:
               "ai.GallerySendSafetyTest": 5,
               "ui.chat.LocationQualityTest": 8,
               "ai.SelfNameRulesTest": 8,
+              "ai.GalleryToolBudgetTest": 12,
               "ai.QqSearchPlanTest": 21,
               "data.PortableConfigurationTest": 24,
               "data.AvatarPresetsTest": 3,
@@ -422,8 +426,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.38", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62104", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.39", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62105", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
