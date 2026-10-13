@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke-test SQL extracted from actual generated Room migrations 16->22."""
+"""Smoke-test SQL extracted from actual generated Room migrations 16->23."""
 import argparse
 import re
 import sqlite3
@@ -26,7 +26,7 @@ def extract_migrations(src):
 
 def run(src):
     steps = extract_migrations(src)
-    assert all((i, i + 1) in steps for i in range(16, 22)), list(steps)
+    assert all((i, i + 1) in steps for i in range(16, 23)), list(steps)
     db = sqlite3.connect(':memory:')
     db.execute('PRAGMA foreign_keys=ON')
     db.executescript("""
@@ -42,7 +42,7 @@ def run(src):
         INSERT INTO messages VALUES(20,5,'user','这条必须保留',111);
         PRAGMA user_version=16;
     """)
-    for a in range(16, 22):
+    for a in range(16, 23):
         with db:
             for statement in steps[(a, a + 1)]:
                 db.execute(statement)
@@ -57,13 +57,15 @@ def run(src):
         print(f'SQL upgrade {a}->{a+1}: passed; retained chat message')
     columns = {row[1] for row in db.execute('PRAGMA table_info(conversations)')}
     required = {'isGroup', 'pinned', 'groupMode', 'groupShareOutside',
-                'groupAvatarEmoji', 'groupTotalCalls', 'groupTextInputChars', 'groupTextOutputChars'}
+                'groupAvatarEmoji', 'groupTotalCalls', 'groupTextInputChars', 'groupTextOutputChars',
+                'groupAutoInviteEnabled', 'groupInviteDay'}
     assert required.issubset(columns)
     assert db.execute('SELECT groupAvatarEmoji,groupTotalCalls,groupCallsToday FROM conversations WHERE id=5').fetchone() == ('👥', 0, 0)
+    assert db.execute('SELECT groupAutoInviteEnabled,groupInviteDay FROM conversations WHERE id=5').fetchone() == (0, -1)
     assert db.execute('SELECT companionId,position FROM conversation_members ORDER BY position').fetchall() == [(1,0),(2,1)]
     assert db.execute('SELECT senderCompanionId,mentionedCompanionIds FROM messages WHERE id=20').fetchone() == (2,None)
     assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
-    print('All six historical SQL upgrades passed; group member links and messages preserved.')
+    print('All seven historical SQL upgrades passed; group member links and messages preserved.')
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser()
