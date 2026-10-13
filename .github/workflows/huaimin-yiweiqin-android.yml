@@ -320,6 +320,12 @@ jobs:
           grep -q 'versionName = "0.38.51"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62117' /tmp/huaimin-cleos/app/build.gradle.kts
 
+      - name: Place document icon in second row of chat + menu
+        run: |
+          python3 standalone-apps/huaimin-yiweiqin/apply_chat_file_grid_03852.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.52"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62118' /tmp/huaimin-cleos/app/build.gradle.kts
+
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
           python3 standalone-apps/huaimin-yiweiqin/fetch_official_fonts_03738.py /tmp/huaimin-cleos
@@ -487,8 +493,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.51", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62117", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.52", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62118", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
