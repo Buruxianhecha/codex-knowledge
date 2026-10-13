@@ -32,6 +32,10 @@ edit("ui/chat/GroupOptionsDialog.kt",[
  ('默认关闭。每群每天最多考虑邀请一次；被邀请角色可以拒绝。同意后自动入群并能查看群历史。最多6名AI，邀请决定会消耗相应模型额度。',
   '默认关闭。没有6人限制或每天一次的限制；邀请判断有20分钟冷却以保护模型额度。被邀请者可拒绝，接受后可查看群历史。')
 ])
+edit("data/db/Daos.kt",[
+ ('    suspend fun claimGroupInviteDay(id: Long, day: Long): Int',
+  '    suspend fun claimGroupInviteDay(id: Long, day: Long): Int\n\n    /** Reuse old day field as milliseconds to preserve DB and backups. Old epoch-day values expire immediately. */\n    @Query("UPDATE conversations SET groupInviteDay=:now WHERE id=:id AND isGroup=1 AND groupAutoInviteEnabled=1 AND groupInviteDay < :cutoff")\n    suspend fun claimGroupInviteAttempt(id: Long, now: Long, cutoff: Long): Int')
+])
 edit("ui/chat/ChatScreen.kt",[
  ('if (selected.size >= GroupChats.MAX_MEMBERS || companions.size > GroupChats.MAX_MEMBERS) Text("一次群聊最多 ',
   'if (companions.isEmpty()) Text("一次群聊最多 '),
