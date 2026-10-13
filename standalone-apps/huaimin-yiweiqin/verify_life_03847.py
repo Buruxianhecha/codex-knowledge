@@ -14,7 +14,7 @@ required={
  'ui/LifeScreen.kt':['生活与成长','lifeStudy.study','导入','职业'],
  'ui/HubScreens.kt':['生活与成长','onLife'],
  'ui/MainScreen.kt':['LifeScreen','onLife'],
- 'ui/chat/ChatScreen.kt':['LifeAvailabilityBanner'],
+ 'ui/chat/ChatScreen.kt':['LifeChatBanner'],
  'ai/MomentsAutonomy.kt':['life.availability'],
  'data/BackupService.kt':['LifeSnapshot','WalletBook'],
 }
