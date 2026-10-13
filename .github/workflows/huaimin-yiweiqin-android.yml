@@ -314,6 +314,12 @@ jobs:
           grep -q 'versionName = "0.38.50"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62116' /tmp/huaimin-cleos/app/build.gradle.kts
 
+      - name: Apply file transfers to existing + panel
+        run: |
+          python3 standalone-apps/huaimin-yiweiqin/apply_chat_files_03851.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.51"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62117' /tmp/huaimin-cleos/app/build.gradle.kts
+
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
           python3 standalone-apps/huaimin-yiweiqin/fetch_official_fonts_03738.py /tmp/huaimin-cleos
@@ -445,7 +451,7 @@ jobs:
               "ai.KugouRecoveryTest": 14,
               "ai.KugouRuntimeRulesTest": 16,
           }
-          expected.update({'data.LifeRulesTest': 26, 'ai.LifeStudyRulesTest': 6, 'ai.LifeGateRulesTest': 4, 'data.CalendarOvertimeTest': 8, 'ai.VoluntaryOvertimeTest': 8})
+          expected.update({'data.LifeRulesTest': 26, 'ai.LifeStudyRulesTest': 6, 'ai.LifeGateRulesTest': 4, 'data.CalendarOvertimeTest': 8, 'ai.VoluntaryOvertimeTest': 8, 'data.ChatFileTransferTest': 6})
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
               suite = ET.parse(report).getroot()
@@ -481,8 +487,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.50", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62116", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.51", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62117", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
