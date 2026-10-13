@@ -296,6 +296,12 @@ jobs:
           python3 standalone-apps/huaimin-yiweiqin/apply_life_03847.py /tmp/huaimin-cleos
           python3 standalone-apps/huaimin-yiweiqin/verify_life_03847.py /tmp/huaimin-cleos
 
+      - name: Remove duplicate Discover memory entry (keep Home memory)
+        run: |
+          python3 standalone-apps/huaimin-yiweiqin/apply_discover_memory_dedup_03848.py /tmp/huaimin-cleos
+          grep -q 'versionName = "0.38.48"' /tmp/huaimin-cleos/app/build.gradle.kts
+          grep -q 'versionCode = 62114' /tmp/huaimin-cleos/app/build.gradle.kts
+
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
           python3 standalone-apps/huaimin-yiweiqin/fetch_official_fonts_03738.py /tmp/huaimin-cleos
@@ -463,8 +469,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.47", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62113", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.48", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62114", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
