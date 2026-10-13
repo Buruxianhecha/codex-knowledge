@@ -154,6 +154,75 @@ object DocumentInsightExtractor {
         }
         return out.toString()
     }
+    /** Retain shared-string indices, otherwise XLSX cells would show meaningless integers. */
+    private fun sharedStrings(bytes:ByteArray):List<String> {
+        val source=decode(bytes)
+        if(source.contains("<!DOCTYPE",true))return emptyList()
+        val p=Xml.newPullParser()
+        p.setInput(source.reader())
+        val result=mutableListOf<String>()
+        val current=StringBuilder()
+        var inString=false
+        var textTag=false
+        try {
+            while(result.size<4000) {
+                when(p.next()) {
+                    XmlPullParser.END_DOCUMENT -> break
+                    XmlPullParser.START_TAG -> {
+                        when(p.name.substringAfterLast(':')) {
+                            "si" -> { inString=true; current.setLength(0) }
+                            "t" -> textTag=inString
+                        }
+                    }
+                    XmlPullParser.TEXT -> if(textTag && current.length<240)
+                        current.append(p.text.orEmpty().take(240-current.length))
+                    XmlPullParser.END_TAG -> when(p.name.substringAfterLast(':')) {
+                        "t" -> textTag=false
+                        "si" -> { result+=current.toString(); inString=false }
+                    }
+                }
+            }
+        } catch (_:Exception) { /* A bounded XML prefix can end mid-element. */ }
+        return result
+    }
+
+    private fun sheetCells(bytes:ByteArray,strings:List<String>):String {
+        val source=decode(bytes)
+        if(source.contains("<!DOCTYPE",true))return "[DTD blocked]"
+        val p=Xml.newPullParser()
+        p.setInput(source.reader())
+        val out=StringBuilder()
+        var ref=""
+        var shared=false
+        var valueTag=false
+        try {
+            while(out.length<4300) {
+                when(p.next()) {
+                    XmlPullParser.END_DOCUMENT -> break
+                    XmlPullParser.START_TAG -> when(p.name.substringAfterLast(':')) {
+                        "row" -> out.append('\n')
+                        "c" -> {
+                            ref=p.getAttributeValue(null,"r").orEmpty().take(15)
+                            shared=p.getAttributeValue(null,"t")=="s"
+                        }
+                        "v","t" -> valueTag=true
+                    }
+                    XmlPullParser.TEXT -> if(valueTag) {
+                        val value=p.text.orEmpty().trim().take(150)
+                        if(value.isNotEmpty()) {
+                            val resolved=if(shared) strings.getOrNull(value.toIntOrNull() ?: -1)
+                                ?: "[共享字符串索引"+value+"]" else value
+                            out.append(ref).append('=').append(resolved).append(' ')
+                        }
+                    }
+                    XmlPullParser.END_TAG -> if(p.name.substringAfterLast(':') in setOf("v","t"))
+                        valueTag=false
+                }
+            }
+        } catch (_:Exception) { /* partial spreadsheet sampled, keep collected cells */ }
+        return out.toString()
+    }
+
     private fun office(file:File,ext:String):Finding = ZipFile(file).use { zip ->
         val entries=zip.entries().asSequence().take(12000).filter{!it.isDirectory}.toList()
         val candidates=entries.filter { e -> when(ext) {
@@ -167,17 +236,21 @@ object DocumentInsightExtractor {
         val out=StringBuilder("【文件结构】共有"+entries.size+"个ZIP项，主要文本/工作表/幻灯片候选"+
             main.size+"个\n")
         out.append("【部分章节名称】\n").append(main.take(24).joinToString("\n"){it.name.take(90)}).append('\n')
-        val shared=candidates.firstOrNull { it.name=="xl/sharedStrings.xml" }?.let { e ->
-            xmlWords(readBounded(zip.getInputStream(e),500*1024)).take(1900)
-        }.orEmpty()
-        if(shared.isNotEmpty())out.append("【共享字符串样本】\n").append(shared).append('\n')
+        val strings=candidates.firstOrNull { it.name=="xl/sharedStrings.xml" }?.let { e ->
+            sharedStrings(readBounded(zip.getInputStream(e),XML_BUDGET))
+        } ?: emptyList()
+        if(strings.isNotEmpty())out.append("【共享字符串样本】\n").append(strings.take(30).joinToString(" / ")).append('\n')
         var spent=0
         for(idx in samples(main.size)) {
             val entry=main[idx]
             if(spent>=6*1024*1024 || out.length>=LIMIT)break
             val bytes=readBounded(zip.getInputStream(entry),XML_BUDGET)
             spent+=bytes.size
-            val words=if(ext=="epub") htmlBody(decode(bytes)) else xmlWords(bytes)
+            val words=when(ext) {
+                "epub" -> htmlBody(decode(bytes))
+                "xlsx" -> sheetCells(bytes,strings)
+                else -> xmlWords(bytes)
+            }
             out.append("【").append(entry.name.take(95)).append("】\n")
                 .append(words.take(2300)).append('\n')
         }
