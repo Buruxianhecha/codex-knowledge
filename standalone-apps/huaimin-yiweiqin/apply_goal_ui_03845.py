@@ -80,7 +80,7 @@ one(screen,
                 )
             }
             AnimatedVisibility(
-                visible = barShown && !selectionMode && currentGoal==null,''')
+                visible = barShown && !selectionMode,''')
 # Place the editor in ChatTab, outside overlay side-effects and after state is available.
 one(screen,
     '''    MusicSongRequestDialogs(
@@ -107,4 +107,9 @@ one(screen,
     }
     MusicSongRequestDialogs(
         conversationId = state.conversationId,''')
+one(screen,
+    '''                    .padding(top = statusTop + TopBarHeight + 2.dp, start = 16.dp, end = 16.dp),''',
+    '''                    .padding(top = statusTop + TopBarHeight +
+                        (if (currentGoal!=null) 88.dp else 2.dp),
+                        start = 16.dp, end = 16.dp),''')
 print("0.38.45: ChatTab displays interactive goal card and editor, /goal commands intercepted before normal send")
