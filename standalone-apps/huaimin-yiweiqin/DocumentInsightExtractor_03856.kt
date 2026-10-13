@@ -267,7 +267,7 @@ object DocumentInsightExtractor {
         if(file.length()>PDF_BUDGET)return Finding("",
             "PDF大于96 MiB，原件可传输但暂不自动解析正文；请拆分或压缩后做深入阅读")
         PDFBoxResourceLoader.init(context.applicationContext)
-        PDDocument.load(file,MemoryUsageSetting.setupTempFileOnly()).use { doc ->
+        return PDDocument.load(file,MemoryUsageSetting.setupTempFileOnly()).use { doc ->
             val count=doc.numberOfPages
             val title=doc.documentInformation.title.orEmpty().take(150)
             val out=StringBuilder("【PDF页数】"+count+"\n【文档标题】"+title+"\n")
