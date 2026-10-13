@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.46"
-assert apk.get_androidversion_code() == "62112"
+assert apk.get_androidversion_name() == "0.38.47"
+assert apk.get_androidversion_code() == "62113"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
@@ -308,7 +308,7 @@ for cls, name in (
 print("Compiled group controls checked: authorized history, request budget, group modes and voice settings.")
 
 print("Compiled group chat verified: membership, editable members, cross-character context, per-speaker messages, conversation pinning/reorder and creation UI wiring.")
-print(f"Verified APK: version=0.38.2 code=62068 bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
+print(f"Verified APK: version={apk.get_androidversion_name()} code={apk.get_androidversion_code()} bytes={path.stat().st_size} sha256={hashlib.sha256(path.read_bytes()).hexdigest()}")
 
 
 
