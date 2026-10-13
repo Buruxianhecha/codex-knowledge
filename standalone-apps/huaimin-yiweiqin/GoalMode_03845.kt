@@ -64,6 +64,7 @@ data class GoalRecord(
     val receipts: List<GoalReceipt> = emptyList(),
     val events: List<GoalEvent> = emptyList(),
     val noProgress: Int = 0,
+    val delivery: GoalDelivery = GoalDelivery(),
     val updatedAt: Long = System.currentTimeMillis(),
 )
 @Serializable private data class GoalArchive(val schema: Int = 1, val goals: List<GoalRecord> = emptyList())
@@ -119,7 +120,14 @@ class GoalStore(context: Context) {
     private val json=Json { ignoreUnknownKeys=true; encodeDefaults=true }
     private fun load(): List<GoalRecord> = runCatching {
         json.decodeFromString<GoalArchive>(file.openRead().bufferedReader().use { it.readText() })
-            .goals.map(GoalRules::resumeState)
+            .goals.map(GoalRules::resumeState).map { g ->
+                if (g.status=="WAITING_INPUT" && g.pending==null &&
+                    GoalDeliveryRules.formatGap(g.lastError))
+                    g.copy(status="PAUSED",
+                        delivery=g.delivery.copy(capabilityGap=g.lastError.take(400)),
+                        lastError="检测到旧版本将文件能力缺口错误当作关键授权。原要求保留；点继续可先完成其他可执行步骤，或明确改成交付正文。")
+                else g
+            }
     }.getOrElse { emptyList() }
     private val _records=MutableStateFlow(load())
     val records: StateFlow<List<GoalRecord>> = _records
@@ -230,6 +238,25 @@ class GoalStore(context: Context) {
             pending=null,approvedFingerprint=null,inFlight=null,
             events=ev(g,"updated","用户补充了约束；旧验收状态作废"))
     }
+    /** An explicit fallback is a USER change to required acceptance, never model self-authorization. */
+    suspend fun chooseDelivery(id: String, selected: String): GoalRecord? = change(id) { g ->
+        if (g.status in GoalRules.terminal || selected !in setOf("CHAT_TEXT","MARKDOWN")) g
+        else g.copy(
+            version=g.version+1,
+            criteria=GoalDeliveryRules.replacedCriteria(g,selected),
+            delivery=GoalDelivery(selected=selected,userConfirmed=true),
+            steps=g.steps.map { step ->
+                if (Regex("(?i)(PDF|Word|DOCX?|生成文档|导出|字体)").containsMatchIn(step.title))
+                    step.copy(title=if(selected=="MARKDOWN") "以 Markdown 形式交付已整理内容" else "在聊天正文中交付已整理内容",
+                        status="PENDING",result="",evidence="")
+                else step
+            },
+            status="PAUSED", elapsedMs=spent(g), runningSince=null, noProgress=0,
+            pending=null,approvedFingerprint=null,inFlight=null,lastError="",
+            events=ev(g,"delivery_changed","用户明确将交付及验收要求改为 $selected；所有旧验收状态重新评估")
+        )
+    }
+
     suspend fun approve(id: String): GoalRecord? = change(id) { g ->
         if(g.status!="WAITING_INPUT"||g.pending==null) g
         else g.copy(approvedFingerprint=g.pending.fingerprint,status="RUNNING",
@@ -336,20 +363,31 @@ class GoalStore(context: Context) {
             val reason=field("blocking_reason").take(400)
             val wait=field("needs_input")=="true"
             val done=GoalRules.canComplete(criteria)
+            val decision=if(done) null else GoalDeliveryRules.decide(g,steps,reason,wait)
             val status=when {
                 done -> "COMPLETED"
+                decision!=null -> decision.status
                 wait -> "WAITING_INPUT"
                 reason.isNotBlank() -> "BLOCKED"
                 field("verification_phase")=="true" -> "VERIFYING"
                 else -> "RUNNING"
+            }
+            val newDelivery=when {
+                decision==null -> g.delivery
+                else -> g.delivery.copy(
+                    selected=decision.selected ?: g.delivery.selected,
+                    capabilityGap=decision.notice,
+                    deferredCount=g.delivery.deferredCount+if(decision.deferred) 1 else 0,
+                )
             }
             val progressed=steps!=g.steps || criteria!=g.criteria
             val stalls=if(progressed) 0 else g.noProgress+1
             feedback=if(field("criterion_state")=="PASSED" && !verified)
 "没有与该验收标准严格对应的程序可验证依据；该验收项仍为未验证。需用户核实或使用专用验证器。"
                 else "检查点已持久保存；${criteria.count { it.status=="PASSED" }}/${criteria.size}项有证据通过。"
-            g.copy(steps=steps,criteria=criteria,status=status,
-                lastError=if(wait || reason.isNotBlank()) reason.ifBlank { "等待用户提供必要信息" } else "",
+            g.copy(steps=steps,criteria=criteria,status=status,delivery=newDelivery,
+                lastError=if(status in setOf("WAITING_INPUT","BLOCKED"))
+                    decision?.notice ?: reason.ifBlank { "等待用户提供必要信息" } else "",
                 noProgress=stalls,
                 elapsedMs=if(status!="RUNNING") spent(g) else g.elapsedMs,
                 runningSince=if(status!="RUNNING") null else g.runningSince,
@@ -373,11 +411,17 @@ class GoalStore(context: Context) {
         appendLine("用户暂停/取消/修改优先。失败有限重试且不重复未知是否成功的不可逆操作。")
         appendLine("目标：${g.description}")
         appendLine("约束：${g.constraints}")
+        appendLine("交付策略：用户选定=${g.delivery.selected}；原目标强制文件=${GoalDeliveryRules.fileIsRequired(g)}；用户确认变更=${g.delivery.userConfirmed}。")
+        if (g.delivery.capabilityGap.isNotBlank())
+            appendLine("已识别能力缺口：${g.delivery.capabilityGap}。缺少 Word/PDF 时，优先做可完成的检索、核实和正文；不能凭空通过文件/字体验收。")
+        if (g.delivery.selected in setOf("CHAT_TEXT","MARKDOWN"))
+            appendLine("已选定 ${g.delivery.selected} 交付。不要再次请求允许改成聊天正文，不可声称生成了文件。")
         appendLine("验收：${g.criteria.mapIndexed { i,c -> "${i}: ${c.text} [${c.status}] ${c.evidence}" }.joinToString(" ; ")}")
         appendLine("步骤：${g.steps.mapIndexed { i,s -> "${i}: ${s.title} [${s.status}] ${s.result.take(140)}" }.joinToString(" ; ")}")
         appendLine("最近工具收据：${g.receipts.takeLast(7).joinToString(" ; ") { "${it.id}: ${it.tool}, verified=${it.verified}, ${it.summary.take(100)}" }}")
         appendLine("轮数：${g.rounds}/${g.budget.maxRounds}；时间预算：${g.budget.maxMinutes}分钟；实际费用/Token未报告，不作精确估计。")
         appendLine("下一步：如还没有步骤，先调用goal_checkpoint(plan=...).然后执行下一可行步骤并汇报step_index、step_state和证据ID。")
-        appendLine("需要外部信息或缺工具就上报needs_input或blocking_reason，状态由程序而非你的文字决定。")
+        appendLine("仅缺少非必需的文件导出或字体工具时不要请求用户许可，先给出可验证的正文。若文件是必需验收，继续其他未完成步骤；只在已无可执行步骤时上报blocking_reason，等待用户亲自变更交付要求。")
+        appendLine("需要关键外部信息、真实授权或已无可执行步骤时才上报needs_input/blocking_reason；状态始终由程序控制。")
     }
 }
