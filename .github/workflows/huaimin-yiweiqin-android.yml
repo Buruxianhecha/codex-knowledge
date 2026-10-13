@@ -291,6 +291,11 @@ jobs:
           grep -q 'versionName = "0.38.46"' /tmp/huaimin-cleos/app/build.gradle.kts
           grep -q 'versionCode = 62112' /tmp/huaimin-cleos/app/build.gradle.kts
 
+      - name: Apply work, rest, wages and verified book learning
+        run: |
+          python3 standalone-apps/huaimin-yiweiqin/apply_life_03847.py /tmp/huaimin-cleos
+          python3 standalone-apps/huaimin-yiweiqin/verify_life_03847.py /tmp/huaimin-cleos
+
       - name: Download immutable Google Fonts files and OFL licenses
         run: |
           python3 standalone-apps/huaimin-yiweiqin/fetch_official_fonts_03738.py /tmp/huaimin-cleos
@@ -329,6 +334,15 @@ jobs:
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/Companions.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/BackupService.kt
             /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/SettingsRepository.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/CleosApp.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/LifeModels.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/LifeStore.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/data/VirtualWalletStore.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/LifeWakeWorker.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/LifeStudyService.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ai/MomentsAutonomy.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/LifeScreen.kt
+            /tmp/huaimin-cleos/app/src/main/java/com/cleo/cleos/ui/HubScreens.kt
           if-no-files-found: error
           retention-days: 1
 
@@ -413,6 +427,7 @@ jobs:
               "ai.KugouRecoveryTest": 14,
               "ai.KugouRuntimeRulesTest": 16,
           }
+          expected.update({'data.LifeRulesTest': 26, 'ai.LifeStudyRulesTest': 6, 'ai.LifeGateRulesTest': 4})
           for name, count in expected.items():
               report = f"app/build/test-results/testDebugUnitTest/TEST-com.cleo.cleos.{name}.xml"
               suite = ET.parse(report).getroot()
@@ -448,8 +463,8 @@ jobs:
           from androguard.core.apk import APK
           apk = APK("怀民亦未寝-release-unsigned.apk")
           assert apk.get_package() == "com.lin.huaimin", apk.get_package()
-          assert apk.get_androidversion_name() == "0.38.46", apk.get_androidversion_name()
-          assert apk.get_androidversion_code() == "62112", apk.get_androidversion_code()
+          assert apk.get_androidversion_name() == "0.38.47", apk.get_androidversion_name()
+          assert apk.get_androidversion_code() == "62113", apk.get_androidversion_code()
           from lxml import etree
           application = apk.get_android_manifest_xml().find("application")
           assert application is not None, "AndroidManifest is missing <application>"
@@ -495,6 +510,7 @@ jobs:
           path: 怀民亦未寝.apk
           if-no-files-found: error
           retention-days: 30
+
 
 
 
