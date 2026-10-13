@@ -27,6 +27,7 @@ object GroupInviteRules {
     fun proposal(raw: String, offered: Set<Long>): Proposal? {
         val text = raw.trim().take(350)
         if (text == "SKIP") return null
+        require(!text.contains("\\n") && !text.contains("\\r")) { "邀请内容不可携带转义换行" }
         val parsed = Regex("^INVITE:([0-9]{1,18}):([^\\r\\n]{6,120})$").matchEntire(text)
             ?: throw IllegalArgumentException("AI没有输出有效邀请")
         val id = parsed.groupValues[1].toLongOrNull()
