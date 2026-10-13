@@ -27,7 +27,7 @@ for expected in (
     "suspend fun chooseDelivery(id: String, selected: String)",
     "GoalDeliveryRules.replacedCriteria(g,selected)",
     "version=g.version+1", "GoalDeliveryRules.formatGap(g.lastError)",
-    "先继续检索与正文整理", "用户确认变更", "文件交付及字体检查",
+    "先继续检索与正文整理", "明确确认变更验收要求", "文件交付及字体检查",
 ):
     if expected not in g and expected not in d:
         raise AssertionError(f"missing delivery state logic: {expected}")
