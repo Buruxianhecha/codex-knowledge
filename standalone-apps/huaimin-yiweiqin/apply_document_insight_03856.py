@@ -18,6 +18,7 @@ def apply(root:Path):
         "ChatFileTransfer_03856.kt":src/"data/ChatFileTransfer.kt",
         "DocumentInsightExtractor_03856.kt":src/"data/DocumentInsightExtractor.kt",
         "ChatFileTransferTest_03856.kt":tests/"data/ChatFileTransferTest.kt",
+        "BackupArchiveGuardTest_03856.kt":tests/"data/BackupArchiveGuardTest.kt",
     }.items():
         assert (home/name).is_file(),name
         dest.parent.mkdir(parents=True,exist_ok=True)
@@ -74,6 +75,7 @@ def apply(root:Path):
     assert "DocumentInsightExtractor.guide()" in prompt.read_text(encoding="utf-8")
     test=(tests/"data/ChatFileTransferTest.kt").read_text(encoding="utf-8")
     assert test.count("@Test ")==12
+    assert (tests/"data/BackupArchiveGuardTest.kt").read_text(encoding="utf-8").count("@Test ")==14
 
     gradle.write_text(version.replace('versionName = "0.38.55"','versionName = "0.38.56"',1)
         .replace("versionCode = 62121","versionCode = 62122",1),encoding="utf-8")
