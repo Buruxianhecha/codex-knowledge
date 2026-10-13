@@ -470,7 +470,7 @@ jobs:
               "data.BubbleStudioCodecTest": 10,
               "update.UpdatePolicyTest": 8,
               "ai.GroupWeatherRulesTest": 9,
-              "data.BackupArchiveGuardTest": 12,
+              "data.BackupArchiveGuardTest": 14,
               "data.VirtualWalletRulesTest": 4,
               "ui.chat.ChatWalletPanelTest": 3,
               "ai.WalletChatBridgeTest": 4,
