@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke-test SQL extracted from actual generated Room migrations 16->23."""
+"""Smoke-test SQL extracted from actual generated Room migrations 16->24."""
 import argparse
 import re
 import sqlite3
@@ -26,7 +26,7 @@ def extract_migrations(src):
 
 def run(src):
     steps = extract_migrations(src)
-    assert all((i, i + 1) in steps for i in range(16, 23)), list(steps)
+    assert all((i, i + 1) in steps for i in range(16, 24)), list(steps)
     db = sqlite3.connect(':memory:')
     db.execute('PRAGMA foreign_keys=ON')
     db.executescript("""
@@ -40,9 +40,15 @@ def run(src):
         INSERT INTO companions VALUES(1,'阿弦'),(2,'小艺');
         INSERT INTO conversations VALUES(5,1,'群聊原始记录');
         INSERT INTO messages VALUES(20,5,'user','这条必须保留',111);
+        CREATE TABLE todos (
+            id INTEGER PRIMARY KEY, title TEXT NOT NULL, note TEXT NOT NULL,
+            done INTEGER NOT NULL, dueDay INTEGER, createdAt INTEGER NOT NULL, doneAt INTEGER
+        );
+        INSERT INTO todos(id,title,note,done,dueDay,createdAt,doneAt)
+        VALUES(7,'原来的待办','旧内容',0,NULL,123,NULL);
         PRAGMA user_version=16;
     """)
-    for a in range(16, 23):
+    for a in range(16, 24):
         with db:
             for statement in steps[(a, a + 1)]:
                 db.execute(statement)
@@ -55,6 +61,8 @@ def run(src):
             db.execute('UPDATE messages SET senderCompanionId=2 WHERE id=20')
         assert db.execute('PRAGMA foreign_key_check').fetchall() == [], f'FK failed in {a}->{a+1}'
         print(f'SQL upgrade {a}->{a+1}: passed; retained chat message')
+    assert db.execute('SELECT title,note,imageFile FROM todos WHERE id=7').fetchone() == ('原来的待办','旧内容',None)
+    print("Existing Todo row survived Room 23->24 with optional imageFile NULL")
     columns = {row[1] for row in db.execute('PRAGMA table_info(conversations)')}
     required = {'isGroup', 'pinned', 'groupMode', 'groupShareOutside',
                 'groupAvatarEmoji', 'groupTotalCalls', 'groupTextInputChars', 'groupTextOutputChars',
@@ -65,7 +73,7 @@ def run(src):
     assert db.execute('SELECT companionId,position FROM conversation_members ORDER BY position').fetchall() == [(1,0),(2,1)]
     assert db.execute('SELECT senderCompanionId,mentionedCompanionIds FROM messages WHERE id=20').fetchone() == (2,None)
     assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
-    print('All seven historical SQL upgrades passed; group member links and messages preserved.')
+    print('All eight historical SQL upgrades passed; group member links and messages preserved.')
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser()
