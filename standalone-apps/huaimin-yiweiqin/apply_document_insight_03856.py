@@ -62,7 +62,7 @@ def apply(root:Path):
                                                 if(doc.note.contains("暂无可靠") || doc.extracted.isBlank()) "已保存原件"
                                                 else "已提取内容样本",fontSize=11.sp)
                                             if(doc.note.isNotBlank()) Text(doc.note,fontSize=10.sp,
-                                                color=MaterialTheme.colorScheme.onSurfaceVariant)
+                                                color=androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                                             Text("点击保存原文件",fontSize=11.sp)'''),
     ])
     code=(src/"data/ChatFileTransfer.kt").read_text(encoding="utf-8")
