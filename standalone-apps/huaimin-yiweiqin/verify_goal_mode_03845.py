@@ -27,7 +27,7 @@ for x in (
     "suspend fun cancel(", "suspend fun edit(", "suspend fun verify(",
     "suspend fun reconcile(", "suspend fun adjustBudget(", "suspend fun userNote(",
     "lastError", "inFlight", "approvedFingerprint", "GoalRules.canComplete",
-    "GoalRules.resumeState", "status=\"BLOCKED\"", "status=\"PAUSED\"",
+    "fun resumeState(", "status=\"BLOCKED\"", "status=\"PAUSED\"",
 ):
     assert x in a, "Goal persistence, budget or verification missing: "+x
 assert 'name="goal_checkpoint"' in b
