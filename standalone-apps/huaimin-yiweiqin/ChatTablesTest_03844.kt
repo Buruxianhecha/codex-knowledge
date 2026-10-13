@@ -66,7 +66,7 @@ class ChatTablesTest {
         assertTrue(ChatTables.parts(s).none { it is ChatTablePart.Grid })
     }
     @Test fun escapedPipeStaysInsideCell() {
-        val s = "| A | B |\n|---|---|\n| a\\\\|b | value |"
+        val s = "| A | B |\n|---|---|\n| a\\|b | value |"
         val table = (ChatTables.parts(s).first() as ChatTablePart.Grid).table
         assertEquals("a|b",table.rows[0][0])
     }
