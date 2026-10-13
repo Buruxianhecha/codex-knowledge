@@ -146,11 +146,13 @@ class GoalStore(context: Context) {
     fun byId(id: String) = _records.value.firstOrNull { it.id==id }
 
     suspend fun create(conversationId: Long, companionId: Long, description: String,
-        constraints: String, criteria: List<String>, steps: List<String>, budget: GoalBudget): GoalRecord? =
+        constraints: String, criteria: List<String>, steps: List<String>, budget: GoalBudget, replaceActive: Boolean = false): GoalRecord? =
         mutex.withLock {
-            if (description.isBlank() || criteria.isEmpty() || criteria.any { it.isBlank() } ||
-                _records.value.any { it.conversationId==conversationId && it.companionId==companionId &&
-                    it.status !in GoalRules.terminal }) return@withLock null
+            if (description.isBlank() || criteria.isEmpty() || criteria.any { it.isBlank() })
+                return@withLock null
+            val old=_records.value.filter { it.conversationId==conversationId &&
+                it.companionId==companionId && it.status !in GoalRules.terminal }
+            if(old.isNotEmpty() && !replaceActive) return@withLock null
             val now=System.currentTimeMillis()
             val goal=GoalRecord(
                 id=UUID.randomUUID().toString(),conversationId=conversationId,companionId=companionId,
@@ -160,7 +162,10 @@ class GoalStore(context: Context) {
                 budget=budget.safe(),events=listOf(GoalEvent(now,1,"created","已保存目标和验收项")),
                 updatedAt=now,
             )
-            val updated=_records.value + goal
+            val updated=_records.value.map { g -> if(old.any { it.id==g.id })
+                g.copy(status="CANCELED",runningSince=null,approvedFingerprint=null,
+                    events=ev(g,"replaced","用户明确选择终止旧目标并创建新目标"))
+                else g } + goal
             write(updated);_records.value=updated;goal
         }
 
