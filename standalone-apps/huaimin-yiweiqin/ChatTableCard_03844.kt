@@ -123,16 +123,16 @@ private fun TableGrid(table: ChatTable, expanded: Boolean) {
         horizontalArrangement = Arrangement.Start,
     ) {
         Column {
-            TableGridRow(table.columns, widths, header = true)
+            TableGridRow(table.columns, widths, header = true, full = expanded)
             (if (expanded) table.rows else table.rows.take(8)).forEachIndexed { index, cells ->
-                TableGridRow(cells, widths, header = false, alt = index % 2 == 1)
+                TableGridRow(cells, widths, header = false, alt = index % 2 == 1, full = expanded)
             }
         }
     }
 }
 
 @Composable
-private fun TableGridRow(cells: List<String>, widths: List<Dp>, header: Boolean, alt: Boolean = false) {
+private fun TableGridRow(cells: List<String>, widths: List<Dp>, header: Boolean, alt: Boolean = false, full: Boolean = false) {
     Row {
         cells.forEachIndexed { index, cell ->
             Box(
@@ -151,7 +151,7 @@ private fun TableGridRow(cells: List<String>, widths: List<Dp>, header: Boolean,
                     text = cell, color = Color(0xFF25303B),
                     fontSize = 13.sp, lineHeight = 19.sp,
                     fontWeight = if (header) FontWeight.SemiBold else FontWeight.Normal,
-                    maxLines = if (header || expanded) Int.MAX_VALUE else 5,
+                    maxLines = if (header || full) Int.MAX_VALUE else 5,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
