@@ -30,6 +30,10 @@ def update(name,changes):
 file_src=here/"ChatFileTransfer_03851.kt"
 assert file_src.is_file()
 (base/"data/ChatFileTransfer.kt").write_bytes(file_src.read_bytes())
+(test_src:=here/"ChatFileTransferTest_03851.kt")
+assert test_src.is_file()
+(tests/"data").mkdir(parents=True,exist_ok=True)
+(tests/"data/ChatFileTransferTest.kt").write_bytes(test_src.read_bytes())
 
 update("ui/chat/ChatViewModel.kt",[
     ("import android.net.Uri","import android.net.Uri\nimport android.content.Context"),
