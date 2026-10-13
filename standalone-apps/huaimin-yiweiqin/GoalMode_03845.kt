@@ -278,7 +278,8 @@ class GoalStore(context: Context) {
                     events=ev(g,"approval_required","等待确认工具「$tool」"))
             } else {
                 allowed=true
-                g.copy(inFlight=GoalAction(tool,fp,System.currentTimeMillis()),approvedFingerprint=null,
+                g.copy(inFlight=GoalAction(tool,fp,System.currentTimeMillis()),
+                    approvedFingerprint=if(g.approvedFingerprint==fp) null else g.approvedFingerprint,
                     events=ev(g,"tool_started","工具 $tool，请求 $callId"))
             }
         }
