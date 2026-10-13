@@ -59,6 +59,8 @@ data class GoalRecord(
     val pending: GoalAction? = null,
     val approvedFingerprint: String? = null,
     val inFlight: GoalAction? = null,
+    /** Never automatically replay operations with ambiguous crash outcomes. */
+    val uncertainFingerprints: List<String> = emptyList(),
     val receipts: List<GoalReceipt> = emptyList(),
     val events: List<GoalEvent> = emptyList(),
     val noProgress: Int = 0,
@@ -84,6 +86,13 @@ object GoalRules {
             "inspect_gallery_photos", "search_web_avatar_images", "read_letters",
         )
     }
+    /** A generic tool result proves only that a tool responded; not semantic correctness.
+     * Automatically pass only an explicitly checkable "工具调用：name" criterion.
+     * Other acceptance rules need a stronger typed verifier or user approval.
+     */
+    fun toolReceiptProves(criterion: String, tool: String): Boolean =
+        criterion.trim() == "工具调用：$tool" ||
+            criterion.trim().equals("tool-called:$tool",ignoreCase=true)
     fun canComplete(criteria: List<GoalCriterion>): Boolean =
         criteria.isNotEmpty() && criteria.all { it.status == "PASSED" && it.evidence.isNotBlank() }
     fun resumeState(record: GoalRecord): GoalRecord = when {
@@ -197,7 +206,7 @@ class GoalStore(context: Context) {
                 inFlight=null,lastError="",events=ev(g,"edited","目标变更，旧验收作废"))
         }
     suspend fun resume(id: String): GoalRecord? = change(id) { g ->
-        if(g.status !in setOf("PENDING","PAUSED","BLOCKED","WAITING_INPUT") || g.inFlight!=null || g.pending!=null) g
+        if(g.status !in setOf("PENDING","PAUSED","BLOCKED","WAITING_INPUT","VERIFYING") || g.inFlight!=null || g.pending!=null) g
         else g.copy(status="RUNNING",runningSince=System.currentTimeMillis(),
             lastError="",noProgress=0,events=ev(g,"resumed","恢复目标执行"))
     }
@@ -205,6 +214,7 @@ class GoalStore(context: Context) {
     suspend fun reconcile(id: String): GoalRecord? = change(id) { g ->
         if(g.inFlight==null || g.status in GoalRules.terminal) g
         else g.copy(inFlight=null,status="PAUSED",pending=null,approvedFingerprint=null,
+            uncertainFingerprints=(g.uncertainFingerprints+g.inFlight.fingerprint).distinct().takeLast(80),
             lastError="请检查历史消息或外部服务确认上一操作结果；此处未将它标记为成功。",
             events=ev(g,"reconciled","用户确认已检查中断操作；外部效果仍需证据"))
     }
@@ -257,7 +267,11 @@ class GoalStore(context: Context) {
         var allowed=false
         change(id) { g ->
             if(g.version!=version || g.status!="RUNNING") return@change g
-            if(GoalRules.sideEffect(tool,external) && g.approvedFingerprint!=fp) {
+            if(fp in g.uncertainFingerprints) {
+                g.copy(status="BLOCKED",elapsedMs=spent(g),runningSince=null,
+                    approvedFingerprint=null,lastError="该工具参数与中断时结果不明的操作完全相同，为防止重复外部效果，拒绝再次调用。请修改行动方案或提供真实核验依据。",
+                    events=ev(g,"duplicate_protected","拒绝重放中断操作 $tool"))
+            } else if(GoalRules.sideEffect(tool,external) && g.approvedFingerprint!=fp) {
                 g.copy(status="WAITING_INPUT",elapsedMs=spent(g),runningSince=null,
                     pending=GoalAction(tool,fp,System.currentTimeMillis()),approvedFingerprint=null,
                     lastError="工具「$tool」可能产生外部效果。需要你核对后授权；未执行。",
@@ -298,7 +312,7 @@ class GoalStore(context: Context) {
             if(si!=null && si in steps.indices) {
                 steps=steps.toMutableList().also { ls ->
                     ls[si]=ls[si].copy(status=when(field("step_state")) {
-                        "DONE" -> if(verified || field("result").length>=20) "DONE" else "VERIFYING"
+                        "DONE" -> if(verified) "DONE" else "VERIFYING"
                         "BLOCKED" -> "BLOCKED"
                         "ACTIVE" -> "ACTIVE"
                         else -> ls[si].status
@@ -308,7 +322,9 @@ class GoalStore(context: Context) {
             val criteria=g.criteria.toMutableList()
             val ci=index("criterion_index")
             if(ci!=null && ci in criteria.indices) {
-                val pass=field("criterion_state")=="PASSED" && verified
+                val candidate=g.receipts.firstOrNull { it.id==receipt && it.version==version && it.verified }
+                val pass=field("criterion_state")=="PASSED" && candidate!=null &&
+                    GoalRules.toolReceiptProves(criteria[ci].text,candidate.tool)
                 val fail=field("criterion_state")=="FAILED"
                 criteria[ci]=criteria[ci].copy(
                     status=if(pass) "PASSED" else if(fail) "FAILED" else "UNVERIFIED",
@@ -329,7 +345,7 @@ class GoalStore(context: Context) {
             val progressed=steps!=g.steps || criteria!=g.criteria
             val stalls=if(progressed) 0 else g.noProgress+1
             feedback=if(field("criterion_state")=="PASSED" && !verified)
-                "未取得与本目标同版本且已验证的工具结果；该验收项仍为未验证。"
+"没有与该验收标准严格对应的程序可验证依据；该验收项仍为未验证。需用户核实或使用专用验证器。"
                 else "检查点已持久保存；${criteria.count { it.status=="PASSED" }}/${criteria.size}项有证据通过。"
             g.copy(steps=steps,criteria=criteria,status=status,
                 lastError=if(wait || reason.isNotBlank()) reason.ifBlank { "等待用户提供必要信息" } else "",
