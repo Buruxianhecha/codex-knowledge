@@ -17,8 +17,8 @@ args = parser.parse_args()
 path = Path(args.apk)
 apk = APK(str(path))
 assert apk.get_package() == "com.lin.huaimin"
-assert apk.get_androidversion_name() == "0.38.55"
-assert apk.get_androidversion_code() == "62121"
+assert apk.get_androidversion_name() == "0.38.56"
+assert apk.get_androidversion_code() == "62122"
 
 methods = []
 for dex_bytes in apk.get_all_dex():
