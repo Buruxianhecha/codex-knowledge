@@ -21,8 +21,8 @@ edit("data/LifeModels.kt",[
 edit("data/LifeStore.kt",[
  ('            LifeProfessions.get(p.professionId)\n            p.customMonthlyRmb?.let',
   '            LifeProfessions.get(p.professionId)\n            require(p.customProfessionTitle.length <= 60 && p.customProfessionTitle.none { it.code < 32 })\n            if (p.professionId=="custom") require(p.customProfessionTitle.isNotBlank() && p.customMonthlyRmb!=null)\n            p.customMonthlyRmb?.let'),
- ('                           customMonthlyRmb: Int? = null): Unit = mutex.withLock {',
-  '                           customMonthlyRmb: Int? = null, customProfessionTitle: String = ""): Unit = mutex.withLock {'),
+ ('                          customMonthlyRmb: Int? = null): Unit = mutex.withLock {',
+  '                          customMonthlyRmb: Int? = null, customProfessionTitle: String = ""): Unit = mutex.withLock {'),
  ('        LifeProfessions.get(professionId)\n        LifeRules.validateSchedule(schedule)',
   '        LifeProfessions.get(professionId)\n        val enteredTitle = customProfessionTitle.trim().ifBlank { if(professionId=="custom") "" else LifeProfessions.get(professionId).title }\n        require(enteredTitle.length in 1..60 && enteredTitle.none { it.code < 32 }) { "职业名称需为1—60字" }\n        if(professionId=="custom") require(customMonthlyRmb!=null) { "自定义职业必须填写月薪" }\n        LifeRules.validateSchedule(schedule)'),
  ('            customMonthlyRmb = customMonthlyRmb, lastAccruedAt = max(now, it.lastAccruedAt))',
@@ -43,9 +43,9 @@ edit("ui/LifeScreen.kt",[
   'onClick = { profession=job.id; jobTitle=if(job.id=="custom") "" else job.title; if(job.id=="custom")customSalary=""; professionMenu=false }'),
  ('                Text("上海 · 模拟月薪参考',
   '                OutlinedTextField(value=jobTitle,onValueChange={jobTitle=it.take(60)}, label={Text("职业名称（自由编辑）")},singleLine=true, enabled=enabled, modifier=Modifier.fillMaxWidth())\n                Text("可以输入任意职业名，预设只是经验类型分类。",color=p.contentSecondary,fontSize=12.sp)\n                Text("上海 · 模拟月薪参考'),
- ('                     require(days.isNotEmpty())',
-  '                     require(jobTitle.trim().isNotBlank() && jobTitle.length<=60) { "请填写职业名称" }\n                     require(days.isNotEmpty())'),
- ('                     onSave(profession, schedule, strict, salary)',
+ ('                    require(days.isNotEmpty())',
+  '                     require(jobTitle.trim().isNotBlank() && jobTitle.length<=60) { "请填写职业名称" }\n                    require(days.isNotEmpty())'),
+ ('                    onSave(profession, schedule, strict, salary)',
   '                     if(profession=="custom")require(salary!=null) { "自定义职业请输入月薪" }\n                     onSave(profession, jobTitle.trim(), schedule, strict, salary)'),
  ('profession?.title ?: "职业"','LifeProfessions.title(profile)'),
 ])
