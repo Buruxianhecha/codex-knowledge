@@ -64,6 +64,7 @@ def apply(root:Path):
     # Do not replace the current Todo UI with a reimplementation. Patch only its
     # existing + button, draft creation, preview and optional picture thumbnail.
     edit("ui/todo/TodoScreen.kt",[
+        ('@Composable\nfun TodoTab', '@OptIn(ExperimentalMaterial3Api::class)\n@Composable\nfun TodoTab'),
         ('package com.cleo.cleos.ui.todo\n',
          '''package com.cleo.cleos.ui.todo
 
@@ -79,7 +80,7 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import coil3.compose.AsyncImage
@@ -100,7 +101,7 @@ import kotlinx.coroutines.withContext'''),
     }
 
     fun photoFile(name: String?): File? {
-        if(name == null || !name.matches(Regex("todo_[a-fA-F0-9-]{36}\\\\.(jpg|png)"))) return null
+        if(name == null || !name.matches(Regex("""todo_[a-fA-F0-9-]{36}\.(jpg|png)"""))) return null
         return c.images.file(name).takeIf { it.isFile }
     }
 
