@@ -320,6 +320,11 @@ import java.io.File
                 OutlinedTextField(''')
     ])
 
+    test=here/"TodoPhotoFieldTest_03855.kt"
+    assert test.is_file()
+    (tests/"data").mkdir(parents=True,exist_ok=True)
+    (tests/"data/TodoPhotoFieldTest.kt").write_bytes(test.read_bytes())
+
     # Guard: do not turn the Todo screen into a whole new design.
     screen=(src/"ui/todo/TodoScreen.kt").read_text(encoding="utf-8")
     assert 'GlassPage(' in screen and 'GlassSurface(' in screen
