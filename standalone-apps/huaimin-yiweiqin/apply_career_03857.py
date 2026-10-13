@@ -24,7 +24,7 @@ edit("data/LifeStore.kt",[
  ('                           customMonthlyRmb: Int? = null): Unit = mutex.withLock {',
   '                           customMonthlyRmb: Int? = null, customProfessionTitle: String = ""): Unit = mutex.withLock {'),
  ('        LifeProfessions.get(professionId)\n        LifeRules.validateSchedule(schedule)',
-  '        LifeProfessions.get(professionId)\n        val enteredTitle = customProfessionTitle.trim()\n        require(enteredTitle.length in 1..60 && enteredTitle.none { it.code < 32 }) { "职业名称需为1—60字" }\n        if(professionId=="custom") require(customMonthlyRmb!=null) { "自定义职业必须填写月薪" }\n        LifeRules.validateSchedule(schedule)'),
+  '        LifeProfessions.get(professionId)\n        val enteredTitle = customProfessionTitle.trim().ifBlank { if(professionId=="custom") "" else LifeProfessions.get(professionId).title }\n        require(enteredTitle.length in 1..60 && enteredTitle.none { it.code < 32 }) { "职业名称需为1—60字" }\n        if(professionId=="custom") require(customMonthlyRmb!=null) { "自定义职业必须填写月薪" }\n        LifeRules.validateSchedule(schedule)'),
  ('            customMonthlyRmb = customMonthlyRmb, lastAccruedAt = max(now, it.lastAccruedAt))',
   '            customMonthlyRmb = customMonthlyRmb, customProfessionTitle=enteredTitle, lastAccruedAt = max(now, it.lastAccruedAt))'),
  ('LifeProfessions.get(p.professionId).title','LifeProfessions.title(p)'),
