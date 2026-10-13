@@ -206,4 +206,11 @@ g=g.replace('versionName = "0.38.50"','versionName = "0.38.51"',1)
 g=g.replace('versionCode = 62116','versionCode = 62117',1)
 g=g.replace("dependencies {","dependencies {\n    implementation(\"com.tom-roush:pdfbox-android:2.0.27.0\")",1)
 gradle.write_text(g,encoding="utf-8")
+
+rules=root/"app/proguard-rules.pro"
+before=rules.read_text(encoding="utf-8") if rules.exists() else ""
+# PDFBox JPX (JPEG2000) decoding is an optional provider. We extract text, never render JPX.
+if "-dontwarn com.gemalto.jp2.**" not in before:
+    rules.write_text(before+"\n# Optional PdfBox JPEG2000 decoding library is intentionally absent.\n-dontwarn com.gemalto.jp2.**\n",encoding="utf-8")
+
 print("0.38.51 62117: + menu file chooser, bounded document extractor, visible file messages, backups, exports, and model context")
