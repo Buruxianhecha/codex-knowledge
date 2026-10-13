@@ -192,9 +192,28 @@ class GoalStore(context: Context) {
                 inFlight=null,lastError="",events=ev(g,"edited","目标变更，旧验收作废"))
         }
     suspend fun resume(id: String): GoalRecord? = change(id) { g ->
-        if(g.status !in setOf("PENDING","PAUSED","BLOCKED") || g.inFlight!=null || g.pending!=null) g
+        if(g.status !in setOf("PENDING","PAUSED","BLOCKED","WAITING_INPUT") || g.inFlight!=null || g.pending!=null) g
         else g.copy(status="RUNNING",runningSince=System.currentTimeMillis(),
             lastError="",noProgress=0,events=ev(g,"resumed","恢复目标执行"))
+    }
+    /** User reviewed an interrupted operation; it remains unverified, never replayed as done. */
+    suspend fun reconcile(id: String): GoalRecord? = change(id) { g ->
+        if(g.inFlight==null || g.status in GoalRules.terminal) g
+        else g.copy(inFlight=null,status="PAUSED",pending=null,approvedFingerprint=null,
+            lastError="请检查历史消息或外部服务确认上一操作结果；此处未将它标记为成功。",
+            events=ev(g,"reconciled","用户确认已检查中断操作；外部效果仍需证据"))
+    }
+    suspend fun adjustBudget(id: String, newBudget: GoalBudget): GoalRecord? = change(id) { g ->
+        if(g.status in GoalRules.terminal) g
+        else g.copy(budget=newBudget.safe(),events=ev(g,"budget_changed","用户调整预算"))
+    }
+    suspend fun userNote(id: String, note: String): GoalRecord? = change(id) { g ->
+        if(g.status in GoalRules.terminal) g
+        else g.copy(version=g.version+1, constraints=(g.constraints+"\\n补充："+note.take(1000)).takeLast(3000),
+            criteria=g.criteria.map { it.copy(status="UNVERIFIED",evidence="",source="") },
+            status="PAUSED",runningSince=null,elapsedMs=spent(g),noProgress=0,
+            pending=null,approvedFingerprint=null,inFlight=null,
+            events=ev(g,"updated","用户补充了约束；旧验收状态作废"))
     }
     suspend fun approve(id: String): GoalRecord? = change(id) { g ->
         if(g.status!="WAITING_INPUT"||g.pending==null) g
