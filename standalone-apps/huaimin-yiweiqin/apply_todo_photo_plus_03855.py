@@ -253,8 +253,10 @@ import kotlinx.coroutines.withContext'''),
                 AsyncImage(model=image,contentDescription="待办图片",
                     contentScale=ContentScale.Crop,
                     modifier=Modifier.size(66.dp).clip(RoundedCornerShape(13.dp)))
-                Spacer(Modifier.width(12.dp))
+            } else {
+                CheckCircle(todo.done, onToggle)
             }
+            Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {'''),
         ('''                }
             }
@@ -266,8 +268,10 @@ import kotlinx.coroutines.withContext'''),
 private fun CheckCircle''',
          '''                }
             }
-            Spacer(Modifier.width(8.dp))
-            CheckCircle(todo.done, onToggle)
+            if (image != null) {
+                Spacer(Modifier.width(8.dp))
+                CheckCircle(todo.done, onToggle)
+            }
         }
     }
 }
