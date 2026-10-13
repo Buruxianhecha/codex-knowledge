@@ -124,6 +124,7 @@ class GoalStore(context: Context) {
                 if (g.status=="WAITING_INPUT" && g.pending==null &&
                     GoalDeliveryRules.formatGap(g.lastError))
                     g.copy(status="PAUSED",
+                        delivery=g.delivery.copy(capabilityGap=g.lastError.take(400)),
                         lastError="检测到旧版本将文件能力缺口错误当作关键授权。原要求保留；点继续可先完成其他可执行步骤，或明确改成交付正文。")
                 else g
             }
