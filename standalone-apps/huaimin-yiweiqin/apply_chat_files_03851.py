@@ -37,7 +37,7 @@ assert test_src.is_file()
 
 update("ui/chat/ChatViewModel.kt",[
     ("import android.net.Uri","import android.net.Uri\nimport android.content.Context"),
-    ("import com.cleo.cleos.data.MessageAudio","import com.cleo.cleos.data.ChatDocument\nimport com.cleo.cleos.data.ChatFileTransfer\nimport com.cleo.cleos.data.MessageAudio"),
+    ("import com.cleo.cleos.data.MessageAudio\n","import com.cleo.cleos.data.ChatDocument\nimport com.cleo.cleos.data.ChatFileTransfer\nimport com.cleo.cleos.data.MessageAudio"),
     ("import kotlinx.coroutines.launch","import kotlinx.coroutines.launch\nimport kotlinx.coroutines.Dispatchers\nimport kotlinx.coroutines.withContext"),
     ("    fun detach(image: MessageImage) {",
      """    /** Picker copies selected files before they can be sent; UI remains responsive. */
@@ -78,7 +78,7 @@ update("ui/chat/ChatViewModel.kt",[
 ])
 
 update("ui/chat/ChatScreen.kt",[
-    ("import com.cleo.cleos.data.MessageAudio","import com.cleo.cleos.data.ChatDocument\nimport com.cleo.cleos.data.ChatFileTransfer\nimport com.cleo.cleos.data.MessageAudio"),
+    ("import com.cleo.cleos.data.MessageAudio\n","import com.cleo.cleos.data.ChatDocument\nimport com.cleo.cleos.data.ChatFileTransfer\nimport com.cleo.cleos.data.MessageAudio"),
     ("    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_ATTACHMENTS)) {",
      """    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { picked ->
         vm.attachDocuments(context,picked) { voiceHint=it }
@@ -182,7 +182,7 @@ update("ai/Prompt.kt",[
      "        val text = words(ChatFileTransfer.forModel(content))\n        val spokenText"),
 ])
 update("ai/ChatRepository.kt",[
-    ("import com.cleo.cleos.data.MessageAudio","import com.cleo.cleos.data.ChatFileTransfer\nimport com.cleo.cleos.data.MessageAudio"),
+    ("import com.cleo.cleos.data.MessageAudio\n","import com.cleo.cleos.data.ChatFileTransfer\nimport com.cleo.cleos.data.MessageAudio"),
     ("        val content = text.trim()\n        if (content.isEmpty()",
      "        val content = text.trim()\n        if (content.isEmpty()"),
     ('StickerText.plain(content).lineSequence().first().take(24)', 
