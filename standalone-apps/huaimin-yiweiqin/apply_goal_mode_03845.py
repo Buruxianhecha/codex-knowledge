@@ -13,6 +13,9 @@ def one(p, old, new):
 ai=root/"app/src/main/java/com/cleo/cleos/ai"
 copyfile(here/"GoalMode_03845.kt",ai/"GoalMode.kt")
 copyfile(here/"GoalCheckpointTool_03845.kt",ai/"GoalCheckpointTool.kt")
+test=root/"app/src/test/java/com/cleo/cleos/ai/GoalModeRulesTest.kt"
+test.parent.mkdir(parents=True,exist_ok=True)
+copyfile(here/"GoalModeRulesTest_03845.kt",test)
 
 app=root/"app/src/main/java/com/cleo/cleos/CleosApp.kt"
 one(app,"import com.cleo.cleos.ai.ChatRepository\n",
