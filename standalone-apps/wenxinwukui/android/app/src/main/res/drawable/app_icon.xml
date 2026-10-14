@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 暖米白底，与怀民亦未寝桌面图标的浅色系协调 -->
+    <path android:fillColor="#F7F2EA" android:pathData="M0,0h108v108h-108z"/>
+    <!-- 钱包后片和顶边 -->
+    <path android:fillColor="#D77654"
+        android:pathData="M25,35 C25,29 30,25 36,25 H74 C80,25 83,29 83,35 V45 H25 Z"/>
+    <path android:fillColor="#F0A17E"
+        android:pathData="M25,39 H80 C84,39 87,42 87,46 V75 C87,81 82,85 76,85 H34 C28,85 24,81 24,75 V44 C24,42 24,40 25,39 Z"/>
+    <path android:fillColor="#FFC6A3"
+        android:pathData="M27,44 H80 V49 H27 Z"/>
+    <!-- 钱包扣带 -->
+    <path android:fillColor="#AA5942"
+        android:pathData="M63,52 H85 C88,52 90,55 90,59 V67 C90,71 87,74 83,74 H63 C58,74 55,70 55,64 V62 C55,56 58,52 63,52 Z"/>
+    <path android:fillColor="#FFF0D4" android:pathData="M71,63 m-4,0 a4,4 0,1 0,8 0 a4,4 0,1 0,-8 0"/>
+</vector>
