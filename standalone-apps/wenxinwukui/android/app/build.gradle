@@ -1,4 +1,8 @@
 plugins { id 'com.android.application' }
+
+def stableKeyFile = System.getenv('WENXIN_KEYSTORE_PATH')
+def stablePassword = System.getenv('WENXIN_SIGNING_PASSWORD')
+
 android {
     namespace 'com.wenxinwukui.ledger'
     compileSdk 35
@@ -6,11 +10,25 @@ android {
         applicationId 'com.wenxinwukui.ledger'
         minSdk 26
         targetSdk 35
-        versionCode 2
-        versionName '0.1.1-beta'
+        versionCode 3
+        versionName '0.1.2-beta'
+    }
+    signingConfigs {
+        stableRelease {
+            if (stableKeyFile && stablePassword) {
+                storeFile file(stableKeyFile)
+                storePassword stablePassword
+                keyAlias 'wenxinwukui'
+                keyPassword stablePassword
+                storeType 'pkcs12'
+            }
+        }
     }
     buildTypes {
-        release { minifyEnabled false }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.stableRelease
+        }
         debug { minifyEnabled false }
     }
     compileOptions {

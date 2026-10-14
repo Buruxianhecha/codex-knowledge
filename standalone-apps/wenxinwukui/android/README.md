@@ -9,3 +9,10 @@
 * 这是演示版，未接入真实支付、微信、AI 云端、推送、会员计费与生物识别锁。
 * 编译：`gradle :app:assembleDebug`，输出在 `app/build/outputs/apk/debug/app-debug.apk`。
 * Debug APK 使用构建环境的调试签名，跨构建环境不保证覆盖安装。正式发行须配置固定 Release 签名。
+
+
+## v0.1.2 Beta
+- 安卓桌面启动器图标改为暖米白底橙色钱包。
+
+
+**固定签名升级规则**：见 `SIGNING.md`，CI 不再发布临时 debug 签名包。
