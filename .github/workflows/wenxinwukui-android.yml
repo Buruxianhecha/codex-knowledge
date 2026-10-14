@@ -1,0 +1,54 @@
+name: Build 问薪无愧 Android APK
+on:
+  push:
+    branches:
+      - master
+      - feature/wenxinwukui-android-20261014
+    paths:
+      - standalone-apps/wenxinwukui/**
+      - .github/workflows/wenxinwukui-android.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Install Android SDK 35
+        shell: bash
+        run: |
+          echo "y" | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Restore PNG icons
+        shell: bash
+        run: |
+          for f in standalone-apps/wenxinwukui/android/app/src/main/assets/icons/*.png.b64; do
+            base64 -d "$f" > "${f%.b64}"
+          done
+      - name: Assemble test APK
+        working-directory: standalone-apps/wenxinwukui/android
+        run: gradle --no-daemon :app:assembleDebug --stacktrace
+      - name: Verify installable APK and bundled assets
+        shell: bash
+        run: |
+          APK="standalone-apps/wenxinwukui/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          unzip -l "$APK" | grep -F 'assets/index.html'
+          unzip -l "$APK" | grep -F 'classes.dex'
+          cp "$APK" "问薪无愧-v0.1.0-beta-debug.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 问薪无愧-v0.1.0-beta-APK
+          path: 问薪无愧-v0.1.0-beta-debug.apk
+          if-no-files-found: error
+          retention-days: 30
