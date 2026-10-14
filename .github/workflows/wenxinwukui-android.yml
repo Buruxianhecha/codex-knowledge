@@ -50,10 +50,10 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
           unzip -l "$APK" | grep -F 'assets/index.html'
           unzip -l "$APK" | grep -F 'classes.dex'
-          cp "$APK" "问薪无愧-v0.1.0-beta-debug.apk"
+          cp "$APK" "问薪无愧-v0.1.1-beta-debug.apk"
       - uses: actions/upload-artifact@v4
         with:
-          name: 问薪无愧-v0.1.0-beta-APK
-          path: 问薪无愧-v0.1.0-beta-debug.apk
+          name: 问薪无愧-v0.1.1-beta-APK
+          path: 问薪无愧-v0.1.1-beta-debug.apk
           if-no-files-found: error
           retention-days: 30
